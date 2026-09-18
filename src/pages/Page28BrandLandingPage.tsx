@@ -137,7 +137,7 @@ export const Page28BrandLandingPage: React.FC = () => {
           <iframe
             title={`Custom Landing Page - ${entity.name}`}
             srcDoc={sandboxedDocument}
-            sandbox="allow-scripts allow-same-origin allow-forms"
+            sandbox="allow-scripts allow-forms"
             className="w-full h-[calc(100vh-42px)] border-none"
           />
         )}
