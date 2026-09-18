@@ -9,11 +9,11 @@ class DataService {
   private localPayments: PaymentReceipt[] = [];
 
   // ==========================================
-  // 1. ENTITY & DIRECTORY OPERATIONS
+  // 1. ENTITY DIRECTORY (Public & Filtered)
   // ==========================================
 
-  async getApprovedEntities(typeFilter?: EntityType | 'all', searchKeyword?: string): Promise<Entity[]> {
-    if (isSupabaseConfigured) {
+  async getApprovedEntities(typeFilter?: string, searchKeyword?: string): Promise<Entity[]> {
+    if (isSupabaseConfigured && supabase) {
       try {
         let query = supabase
           .from('entities')
@@ -50,7 +50,7 @@ class DataService {
   }
 
   async getEntityById(id: string): Promise<Entity | undefined> {
-    if (isSupabaseConfigured) {
+    if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase.from('entities').select('*').eq('id', id).single();
         if (!error && data) return this.mapSupabaseEntity(data);
@@ -73,7 +73,7 @@ class DataService {
       submittedAt: new Date().toISOString().split('T')[0]
     };
 
-    if (isSupabaseConfigured) {
+    if (isSupabaseConfigured && supabase) {
       try {
         await supabase.from('entities').insert([{
           name: app.name,
@@ -119,13 +119,17 @@ class DataService {
           name: app.name,
           handle: `@${app.name.toLowerCase().replace(/\s+/g, '_')}`,
           category: app.category,
+          badge: 'Verified Member',
           verified: true,
           verificationStatus: 'approved',
           avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
           coverImage: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200',
-          bio: app.details || 'Baru bergabung dalam Ekosistem KIRI Bali.',
+          bio: app.details,
           location: app.city || 'Bali, Indonesia',
-          stats: [{ label: 'Members', value: '1' }],
+          stats: [
+            { label: 'Kolaborasi Aktif', value: '1' },
+            { label: 'Rating Komunitas', value: '5.0' }
+          ],
           tags: [app.category, 'Verified']
         };
         this.localEntities.unshift(newEntity);
@@ -136,26 +140,30 @@ class DataService {
   }
 
   // ==========================================
-  // 3. COLLABORATION ENGINE PIPELINE
+  // 3. COLLABORATION REQUESTS
   // ==========================================
 
-  async submitCollaborationRequest(req: Omit<CollaborationRequest, 'id' | 'trackingCode' | 'createdAt' | 'status'>): Promise<CollaborationRequest> {
-    const newReq: CollaborationRequest = {
-      ...req,
+  async submitCollaboration(collab: Omit<CollaborationRequest, 'id' | 'status' | 'createdAt' | 'trackingCode'>): Promise<CollaborationRequest> {
+    const newCollab: CollaborationRequest = {
+      ...collab,
       id: `collab-${Date.now()}`,
-      trackingCode: `KR-${Math.floor(100000 + Math.random() * 900000)}`,
+      trackingCode: `KP-COL-${Math.floor(1000 + Math.random() * 9000)}`,
       status: 'submitted',
       createdAt: new Date().toISOString().split('T')[0]
     };
 
-    if (isSupabaseConfigured) {
+    if (isSupabaseConfigured && supabase) {
       try {
         await supabase.from('collaboration_requests').insert([{
-          project_title: req.title,
-          project_description: req.scope,
-          budget_range: req.budget,
-          timeline: req.timeline,
-          deliverables: req.deliverables,
+          tracking_code: newCollab.trackingCode,
+          title: newCollab.title,
+          category: newCollab.category,
+          requester_id: newCollab.requesterId,
+          target_id: newCollab.targetId,
+          budget: newCollab.budget,
+          timeline: newCollab.timeline,
+          scope: newCollab.scope,
+          deliverables: newCollab.deliverables,
           status: 'pending'
         }]);
       } catch (err) {
@@ -163,16 +171,16 @@ class DataService {
       }
     }
 
-    this.localCollabs.unshift(newReq);
-    return newReq;
+    this.localCollabs.unshift(newCollab);
+    return newCollab;
   }
 
-  async getMyCollaborations(entityId: string): Promise<CollaborationRequest[]> {
-    return this.localCollabs.filter(c => c.requesterId === entityId || c.targetId === entityId);
+  async getCollaborationRequests(): Promise<CollaborationRequest[]> {
+    return this.localCollabs;
   }
 
   // ==========================================
-  // 4. MANUAL PAYMENT & MEMBERSHIP PIPELINE
+  // 4. MANUAL PAYMENT & RECEIPT VERIFICATION
   // ==========================================
 
   async submitPaymentReceipt(receipt: Omit<PaymentReceipt, 'id' | 'status' | 'submittedAt'>): Promise<PaymentReceipt> {
@@ -221,11 +229,10 @@ class DataService {
       instagram: raw.instagram,
       tiktok: raw.tiktok,
       youtube: raw.youtube,
-      stats: raw.stats || [],
-      tags: raw.tags || [],
-      lookingFor: raw.looking_for || [],
-      membersCount: raw.members_count || 0,
-      featured: raw.featured || false
+      stats: raw.stats || [{ label: 'Impact', value: 'Active' }],
+      tags: raw.tags || [raw.category],
+      membersCount: raw.members_count,
+      featured: raw.featured
     };
   }
 }

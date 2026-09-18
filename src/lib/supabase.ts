@@ -6,13 +6,9 @@ const supabaseAnonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 export const isSupabaseConfigured = Boolean(
   supabaseUrl && 
   supabaseAnonKey && 
-  supabaseUrl !== 'https://your-project.supabase.co' &&
-  supabaseUrl.startsWith('https://')
+  supabaseUrl !== 'https://your-supabase-project.supabase.co'
 );
 
-// Graceful client creation: won't throw even if env variables are empty
-export const supabase = isSupabaseConfigured
+export const supabase = isSupabaseConfigured 
   ? createClient(supabaseUrl, supabaseAnonKey)
-  : createClient('https://mock-kiri-project.supabase.co', 'mock-key', {
-      auth: { persistSession: false }
-    });
+  : null;
