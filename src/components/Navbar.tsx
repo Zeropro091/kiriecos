@@ -139,17 +139,6 @@ export const Navbar: React.FC = () => {
 
           {/* Right Action Bar */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Master Page Switcher Button */}
-            <button
-              onClick={() => setIsMasterNavOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-kiri-gold-500/15 hover:bg-kiri-gold-500/25 text-kiri-gold-800 dark:text-kiri-gold-300 border border-kiri-gold-500/30 transition-all shadow-sm"
-              title="Buka Daftar 27 Halaman UI/UX Foundation"
-            >
-              <FolderGit2 className="w-3.5 h-3.5 text-kiri-gold-600 dark:text-kiri-gold-400" />
-              <span className="hidden sm:inline">27 Master Pages</span>
-              <span className="sm:hidden">27 Pages</span>
-            </button>
-
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
@@ -243,32 +232,6 @@ export const Navbar: React.FC = () => {
                     >
                       Edit Profil & Portofolio
                     </button>
-                  </div>
-
-                  <div className="px-3 py-1.5 border-t border-gray-100 dark:border-kiri-dark-700">
-                    <p className="text-[10px] uppercase font-bold text-kiri-gold-700 dark:text-kiri-gold-400 tracking-wider mb-1">
-                      Demo Cepat Ganti Peran:
-                    </p>
-                    {DEFAULT_USERS.map((user) => (
-                      <button
-                        key={user.id}
-                        onClick={() => {
-                          loginAs(user);
-                          setIsUserDropdownOpen(false);
-                        }}
-                        className={`w-full text-left px-2.5 py-1.5 rounded text-xs flex items-center gap-2 transition-all ${
-                          currentUser?.id === user.id
-                            ? 'bg-kiri-gold-500/15 text-kiri-green-950 dark:text-kiri-gold-300 font-bold'
-                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-kiri-dark-700'
-                        }`}
-                      >
-                        <span className="w-2 h-2 rounded-full bg-kiri-gold-500 shrink-0"></span>
-                        <span className="truncate">{user.name}</span>
-                        <span className="text-[10px] text-gray-400 ml-auto capitalize shrink-0">
-                          {user.role.replace('_', ' ')}
-                        </span>
-                      </button>
-                    ))}
                   </div>
 
                   <div className="px-2 pt-1 border-t border-gray-100 dark:border-kiri-dark-700">

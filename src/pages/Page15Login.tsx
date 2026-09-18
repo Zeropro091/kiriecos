@@ -90,46 +90,6 @@ export const Page15Login: React.FC = () => {
           </button>
         </form>
 
-        {/* 1-Click Fast Demo Role Switcher */}
-        <div className="pt-4 border-t border-gray-100 dark:border-kiri-dark-700 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase font-bold text-kiri-gold-700 dark:text-kiri-gold-400 tracking-wider flex items-center gap-1">
-              <Zap className="w-3 h-3 text-kiri-gold-500" />
-              1-Click Demo Login (Pilih Peran):
-            </span>
-          </div>
-
-          <div className="space-y-2">
-            {DEFAULT_USERS.map((u) => (
-              <button
-                key={u.id}
-                type="button"
-                onClick={() => loginAs(u)}
-                className="w-full p-2.5 rounded-xl border border-gray-200 dark:border-kiri-dark-700 hover:border-kiri-gold-500/60 bg-gray-50 dark:bg-kiri-dark-750 flex items-center justify-between text-left text-xs transition-all group"
-              >
-                <div className="flex items-center gap-2.5">
-                  <img
-                    src={u.avatar}
-                    alt={u.name}
-                    className="w-7 h-7 rounded-full object-cover border border-kiri-gold-500/30"
-                  />
-                  <div>
-                    <p className="font-bold text-gray-900 dark:text-white group-hover:text-kiri-green-900 dark:group-hover:text-kiri-gold-300">
-                      {u.name}
-                    </p>
-                    <p className="text-[10px] text-gray-500 dark:text-gray-400">
-                      {u.membershipTier} • {u.role.toUpperCase()}
-                    </p>
-                  </div>
-                </div>
-                <span className="text-[10px] font-bold px-2 py-1 rounded bg-white dark:bg-kiri-dark-850 text-kiri-green-900 dark:text-kiri-gold-400 border border-gray-100 dark:border-kiri-dark-700 group-hover:bg-kiri-green-900 group-hover:text-white dark:group-hover:bg-kiri-gold-500 dark:group-hover:text-kiri-dark-900 transition-all">
-                  Login →
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div className="pt-2 text-center text-xs text-gray-500 dark:text-gray-400">
           Belum memiliki akun terdaftar?{' '}
           <button
