@@ -380,10 +380,10 @@ export const Page17ProfileEditor: React.FC = () => {
             </div>
 
             <button
-              onClick={() => navigateTo('page-04-creator-profile', currentEntity.id)}
+              onClick={() => navigateTo('page-28-brand-landing-page', currentEntity.id)}
               className="w-full py-2.5 rounded-xl bg-kiri-green-900 text-white dark:bg-kiri-gold-500 dark:text-kiri-dark-950 font-bold text-xs flex items-center justify-center gap-1.5"
             >
-              <span>Buka Halaman Penuh</span>
+              <span>Buka Landing Page Brand (`kiriproject.id`)</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </button>
           </div>

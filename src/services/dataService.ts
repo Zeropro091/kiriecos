@@ -1,6 +1,7 @@
 import { Entity, CollaborationRequest, RegistrationApplication, PaymentReceipt, EntityType } from '../types';
 import { INITIAL_ENTITIES, INITIAL_COLLAB_REQUESTS, INITIAL_REGISTRATIONS } from '../data/mockData';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { compressImage } from '../utils/imageCompressor';
 
 class DataService {
   private localEntities: Entity[] = [...INITIAL_ENTITIES];
@@ -180,17 +181,27 @@ class DataService {
   }
 
   // ==========================================
-  // 4. MANUAL PAYMENT & RECEIPT VERIFICATION
+  // 4. MANUAL PAYMENT & RECEIPT VERIFICATION (WITH AUTO-COMPRESSION)
   // ==========================================
 
   async uploadReceiptImage(file: File): Promise<string> {
+    // 1. Auto compress receipt before uploading to optimize bandwidth
+    const compressedBlob = await compressImage(file, {
+      maxWidth: 1200,
+      maxHeight: 1200,
+      quality: 0.8,
+      outputFormat: 'image/webp'
+    });
+
     if (isSupabaseConfigured && supabase) {
       try {
-        const ext = file.name.split('.').pop() || 'jpg';
-        const filePath = `receipts/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${ext}`;
+        const filePath = `receipts/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.webp`;
         const { error: uploadError } = await supabase.storage
           .from('receipts')
-          .upload(filePath, file, { upsert: false });
+          .upload(filePath, compressedBlob, { 
+            contentType: 'image/webp',
+            upsert: false 
+          });
 
         if (!uploadError) {
           const { data } = supabase.storage.from('receipts').getPublicUrl(filePath);
@@ -203,7 +214,37 @@ class DataService {
       }
     }
     // Fallback: create an object URL for preview/local testing
-    return URL.createObjectURL(file);
+    return URL.createObjectURL(compressedBlob);
+  }
+
+  async uploadMedia(file: File, folder: 'avatars' | 'portfolios' | 'covers' = 'portfolios'): Promise<string> {
+    const isAvatar = folder === 'avatars';
+    const compressedBlob = await compressImage(file, {
+      maxWidth: isAvatar ? 600 : 1600,
+      maxHeight: isAvatar ? 600 : 1600,
+      quality: isAvatar ? 0.85 : 0.8,
+      outputFormat: 'image/webp'
+    });
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const filePath = `${folder}/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.webp`;
+        const { error: uploadError } = await supabase.storage
+          .from('media')
+          .upload(filePath, compressedBlob, {
+            contentType: 'image/webp',
+            upsert: false
+          });
+
+        if (!uploadError) {
+          const { data } = supabase.storage.from('media').getPublicUrl(filePath);
+          return data.publicUrl;
+        }
+      } catch (err) {
+        console.warn('Media upload error:', err);
+      }
+    }
+    return URL.createObjectURL(compressedBlob);
   }
 
   async submitPaymentReceipt(receipt: Omit<PaymentReceipt, 'id' | 'status' | 'submittedAt'>): Promise<PaymentReceipt> {

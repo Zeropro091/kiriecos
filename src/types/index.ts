@@ -25,7 +25,8 @@ export type PageId =
   | 'page-24-login-admin'
   | 'page-25-dashboard-admin'
   | 'page-26-admin-reviews'
-  | 'page-27-request-flowchart';
+  | 'page-27-request-flowchart'
+  | 'page-28-brand-landing-page';
 
 export type EntityType = 'creator' | 'community' | 'business' | 'media' | 'strategic';
 
@@ -94,6 +95,12 @@ export interface Entity {
   lookingFor?: string[];
   membersCount?: number;
   featured?: boolean;
+  // Custom Landing Page & Developer Sandbox
+  customLandingPageActive?: boolean;
+  customHtml?: string;
+  customCss?: string;
+  customJs?: string;
+  customDomainRequested?: boolean;
 }
 
 export interface CommunityMember {

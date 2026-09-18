@@ -33,6 +33,7 @@ import { Page24LoginAdmin } from './pages/Page24LoginAdmin';
 import { Page25DashboardAdmin } from './pages/Page25DashboardAdmin';
 import { Page26AdminReviews } from './pages/Page26AdminReviews';
 import { Page27RequestFlowchart } from './pages/Page27RequestFlowchart';
+import { Page28BrandLandingPage } from './pages/Page28BrandLandingPage';
 
 import { FolderGit2, Sparkles } from 'lucide-react';
 
@@ -95,6 +96,8 @@ const MainContent: React.FC = () => {
         return <Page26AdminReviews />;
       case 'page-27-request-flowchart':
         return <Page27RequestFlowchart />;
+      case 'page-28-brand-landing-page':
+        return <Page28BrandLandingPage />;
       default:
         return <Page01Home />;
     }
