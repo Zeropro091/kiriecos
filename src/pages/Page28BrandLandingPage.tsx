@@ -21,6 +21,7 @@ export const Page28BrandLandingPage: React.FC = () => {
   const [isAdminContactOpen, setIsAdminContactOpen] = useState(false);
   const [customDomainInput, setCustomDomainInput] = useState('');
   const [contactMsg, setContactMsg] = useState('');
+  const [activeSandboxTab, setActiveSandboxTab] = useState<'preview' | 'html' | 'css' | 'js'>('preview');
 
   // Find active entity or fallback to first business/creator
   const entity = entities.find(e => e.id === selectedEntityId) || entities[0];
@@ -71,7 +72,7 @@ export const Page28BrandLandingPage: React.FC = () => {
     return (
       <div className="w-full min-h-screen bg-slate-950 relative">
         {/* Top Banner indicating custom developer page */}
-        <div className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur border-b border-slate-800 px-4 py-2 flex items-center justify-between text-xs">
+        <div className="sticky top-0 z-50 bg-slate-900/90 backdrop-blur border-b border-slate-800 px-4 py-2 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-2">
             <button
               onClick={() => navigateTo('page-02-directory')}
@@ -87,6 +88,33 @@ export const Page28BrandLandingPage: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* Sandbox Tabs */}
+            <div className="flex items-center bg-slate-800 rounded-lg p-0.5 border border-slate-700">
+              <button
+                onClick={() => setActiveSandboxTab('preview')}
+                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${activeSandboxTab === 'preview' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-300'}`}
+              >
+                Preview
+              </button>
+              <button
+                onClick={() => setActiveSandboxTab('html')}
+                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${activeSandboxTab === 'html' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-300'}`}
+              >
+                HTML
+              </button>
+              <button
+                onClick={() => setActiveSandboxTab('css')}
+                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${activeSandboxTab === 'css' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-300'}`}
+              >
+                CSS
+              </button>
+              <button
+                onClick={() => setActiveSandboxTab('js')}
+                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${activeSandboxTab === 'js' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-300'}`}
+              >
+                JS
+              </button>
+            </div>
             <button
               onClick={handleCopyUrl}
               className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center gap-1"
@@ -104,13 +132,33 @@ export const Page28BrandLandingPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Sandboxed Iframe */}
-        <iframe
-          title={`Custom Landing Page - ${entity.name}`}
-          srcDoc={sandboxedDocument}
-          sandbox="allow-scripts allow-same-origin allow-forms"
-          className="w-full h-[calc(100vh-42px)] border-none"
-        />
+        {/* Dynamic Sandbox Display */}
+        {activeSandboxTab === 'preview' && (
+          <iframe
+            title={`Custom Landing Page - ${entity.name}`}
+            srcDoc={sandboxedDocument}
+            sandbox="allow-scripts allow-same-origin allow-forms"
+            className="w-full h-[calc(100vh-42px)] border-none"
+          />
+        )}
+
+        {activeSandboxTab === 'html' && (
+          <div className="p-4 font-mono text-xs text-emerald-400 bg-slate-950 overflow-auto h-[calc(100vh-42px)] border-t border-slate-800">
+            <pre>{entity.customHtml}</pre>
+          </div>
+        )}
+
+        {activeSandboxTab === 'css' && (
+          <div className="p-4 font-mono text-xs text-sky-400 bg-slate-950 overflow-auto h-[calc(100vh-42px)] border-t border-slate-800">
+            <pre>{entity.customCss || '/* Multi-class Custom CSS / Tailwind overrides */'}</pre>
+          </div>
+        )}
+
+        {activeSandboxTab === 'js' && (
+          <div className="p-4 font-mono text-xs text-amber-300 bg-slate-950 overflow-auto h-[calc(100vh-42px)] border-t border-slate-800">
+            <pre>{entity.customJs || '// Custom Interactive Client Script'}</pre>
+          </div>
+        )}
       </div>
     );
   };
@@ -179,75 +227,75 @@ export const Page28BrandLandingPage: React.FC = () => {
 
   // Default Standard High-Impact Dedicated Brand Showcase Page
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-amber-500 selection:text-slate-950">
-      {/* Brand Top Header */}
-      <div className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur sticky top-0 z-40 px-4 sm:px-8 py-3 flex items-center justify-between">
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-20">
+      {/* Top Header Bar */}
+      <div className="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-40 px-4 sm:px-8 py-3 flex items-center justify-between">
         <button
           onClick={() => navigateTo('page-02-directory')}
-          className="flex items-center gap-2 text-xs text-slate-400 hover:text-white transition-colors"
+          className="flex items-center gap-2 text-xs text-slate-400 hover:text-amber-400 transition-colors font-medium"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Kembali ke Direktori</span>
+          <span>Kembali ke Directory KIRI</span>
         </button>
-
         <div className="flex items-center gap-2">
-          <span className="hidden sm:inline text-xs text-slate-400 font-mono">
-            kiriproject.id/{entity.handle.replace('@', '')}
-          </span>
           <button
             onClick={handleCopyUrl}
-            className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs flex items-center gap-1.5 transition-all"
-            title="Salin Link Halaman"
+            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 flex items-center gap-1.5 transition-all"
           >
-            <Copy className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">Salin URL</span>
+            <Copy className="w-3.5 h-3.5 text-amber-400" />
+            <span>Salin URL Brand</span>
           </button>
           <button
             onClick={() => setIsAdminContactOpen(true)}
-            className="px-3.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all"
+            className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-amber-500/10 transition-all"
           >
             <Globe className="w-3.5 h-3.5" />
-            <span>Custom Domain Hubungi Admin</span>
+            <span>Custom Domain</span>
           </button>
         </div>
       </div>
 
       {/* Hero Banner */}
-      <div className="relative h-64 sm:h-80 w-full overflow-hidden">
+      <div className="relative h-64 sm:h-80 w-full overflow-hidden bg-slate-900 border-b border-slate-800">
         <img
           src={entity.coverImage}
           alt={entity.name}
-          className="w-full h-full object-cover opacity-60 filter saturate-150"
+          className="w-full h-full object-cover opacity-60"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
       </div>
 
-      {/* Profile Info Overlay */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 relative z-10 pb-20 space-y-10">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-slate-800">
-          <div className="flex items-end gap-5">
+      {/* Main Profile & Showcase Content */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 relative -mt-20 z-10 space-y-8">
+        {/* Brand Main Header Card */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
             <img
               src={entity.avatar}
               alt={entity.name}
-              className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl object-cover border-4 border-slate-950 shadow-2xl"
+              className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-4 border-slate-950 shadow-xl"
             />
-            <div className="space-y-1">
+            <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                  {entity.name}
-                </h1>
+                <span className="px-3 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[11px] font-bold uppercase tracking-wider">
+                  {entity.type.toUpperCase()} BRAND
+                </span>
                 {entity.verified && (
-                  <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                  <span className="flex items-center gap-1 text-emerald-400 text-[11px] font-semibold">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    Verified Partner
+                  </span>
                 )}
               </div>
-              <p className="text-amber-400 font-mono text-sm">{entity.handle}</p>
-              <div className="flex items-center gap-2 text-xs text-slate-400 pt-1">
-                <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-200 border border-slate-700">
-                  {entity.category}
-                </span>
-                <span>•</span>
-                <span>{entity.location}</span>
-              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                {entity.name}
+              </h1>
+              <p className="text-xs text-amber-400/90 font-mono font-medium">
+                https://kiriproject.id/{entity.handle.replace('@', '')}
+              </p>
+              <p className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
+                {entity.bio}
+              </p>
             </div>
           </div>
 
@@ -257,89 +305,54 @@ export const Page28BrandLandingPage: React.FC = () => {
               className="px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg hover:shadow-amber-500/20 transition-all"
             >
               <Sparkles className="w-4 h-4" />
-              <span>Mulai Kolaborasi</span>
+              <span>Request Kolaborasi</span>
             </button>
           </div>
         </div>
 
-        {/* Bio & Overview */}
+        {/* Content Showcase Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Main Showcase & Services (Left 2 Cols) */}
           <div className="md:col-span-2 space-y-6">
-            <div className="bg-slate-900/50 border border-slate-800/80 rounded-3xl p-6 sm:p-8 space-y-4">
-              <h2 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                <span>Tentang {entity.name}</span>
-              </h2>
-              <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">
-                {entity.bio}
-              </p>
-            </div>
-
-            {/* Portfolio Highlights */}
-            {entity.portfolio && entity.portfolio.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="text-base font-bold text-slate-200 flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-amber-400" />
-                  <span>Karya & Portofolio Unggulan</span>
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {entity.portfolio.map((p) => (
-                    <div
-                      key={p.id}
-                      className="group rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 hover:border-amber-500/50 transition-all"
-                    >
-                      <img
-                        src={p.imageUrl}
-                        alt={p.title}
-                        className="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="p-4 space-y-1">
-                        <h4 className="text-sm font-bold text-white">{p.title}</h4>
-                        <p className="text-xs text-slate-400 line-clamp-2">{p.caption}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Right Side Stats & Services */}
-          <div className="space-y-6">
-            <div className="bg-slate-900/50 border border-slate-800/80 rounded-3xl p-6 space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Statistik & Impact
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Layers className="w-4 h-4 text-amber-400" />
+                <span>Katalog Portofolio & Campaign Showcase</span>
               </h3>
-              <div className="grid grid-cols-2 gap-3">
-                {entity.stats.map((s, i) => (
-                  <div key={i} className="p-3 rounded-2xl bg-slate-800/60 border border-slate-700/50">
-                    <p className="text-[10px] text-slate-400 uppercase font-semibold">{s.label}</p>
-                    <p className="text-base font-extrabold text-white mt-0.5">{s.value}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {entity.portfolio?.map((item) => (
+                  <div key={item.id} className="bg-slate-950 border border-slate-800/80 rounded-2xl overflow-hidden group">
+                    <div className="h-36 overflow-hidden">
+                      <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    </div>
+                    <div className="p-3.5 space-y-1">
+                      <h4 className="text-xs font-bold text-white group-hover:text-amber-400 transition-colors">{item.title}</h4>
+                      {item.caption && <p className="text-[11px] text-slate-400 line-clamp-2">{item.caption}</p>}
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
+          </div>
 
-            {/* Services / Rate Card */}
-            {entity.services && entity.services.length > 0 && (
-              <div className="bg-slate-900/50 border border-slate-800/80 rounded-3xl p-6 space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                  <span>Paket Kolaborasi</span>
-                  <Zap className="w-3.5 h-3.5 text-amber-400" />
-                </h3>
-                <div className="space-y-3">
-                  {entity.services.map((srv) => (
-                    <div key={srv.id} className="p-3.5 rounded-2xl bg-slate-800/40 border border-slate-800 hover:border-slate-700 space-y-1">
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs font-bold text-white">{srv.name}</p>
-                        <p className="text-xs font-bold text-emerald-400">{srv.price}</p>
-                      </div>
-                      <p className="text-[11px] text-slate-400">{srv.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+          {/* Sidebar & Admin Contact CTA (Right 1 Col) */}
+          <div className="space-y-6">
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Globe className="w-4 h-4 text-amber-400" />
+                <span>Punya Custom Domain / Web Sendiri?</span>
+              </h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Ingin mengubah tampilan halaman ini dengan **Custom Domain** (`brandkamu.com`) atau memasukkan **Custom HTML/CSS/JS** buatan tim dev kamu?
+              </p>
+              <button
+                onClick={() => setIsAdminContactOpen(true)}
+                className="w-full py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold text-xs flex items-center justify-center gap-2 transition-all"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Hubungi Admin KIRI</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -351,7 +364,7 @@ export const Page28BrandLandingPage: React.FC = () => {
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
                 <Globe className="w-4 h-4" />
-                <span>Custom Domain & Brand White-Label</span>
+                <span>Hubungi Admin KIRI untuk Custom Domain</span>
               </div>
               <button
                 onClick={() => setIsAdminContactOpen(false)}
@@ -361,19 +374,15 @@ export const Page28BrandLandingPage: React.FC = () => {
               </button>
             </div>
 
-            <p className="text-xs text-slate-400">
-              Tim KIRI Project menyediakan layanan setup domain pribadi (misal: <code className="text-amber-300">brandanda.com</code>) terhubung langsung ke profil ekosistem dan custom landing page Anda.
-            </p>
-
             <form onSubmit={handleRequestDomain} className="space-y-4">
               <div>
                 <label className="block text-xs text-slate-300 font-medium mb-1">
-                  Domain Pribadi yang Diajukan
+                  Domain yang Diinginkan (misal: brandkamu.com / portal.brand.id)
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="contoh: warung-kopi.com"
+                  placeholder="nama-brand.com"
                   value={customDomainInput}
                   onChange={(e) => setCustomDomainInput(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400"
@@ -381,11 +390,11 @@ export const Page28BrandLandingPage: React.FC = () => {
               </div>
               <div>
                 <label className="block text-xs text-slate-300 font-medium mb-1">
-                  Kontak WhatsApp / Catatan
+                  Pesan Tambahan ke Tim Dev KIRI
                 </label>
                 <textarea
-                  rows={2}
-                  placeholder="08123456789 - Tolong bantu mapping DNS..."
+                  rows={3}
+                  placeholder="Saya ingin menghubungkan domain pribadi dan integrasi custom tracking..."
                   value={contactMsg}
                   onChange={(e) => setContactMsg(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400"
@@ -396,7 +405,7 @@ export const Page28BrandLandingPage: React.FC = () => {
                 className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg"
               >
                 <Send className="w-4 h-4" />
-                <span>Ajukan ke Tim Admin</span>
+                <span>Kirim Permintaan ke Admin KIRI</span>
               </button>
             </form>
           </div>
