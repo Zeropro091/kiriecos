@@ -76,7 +76,7 @@ class DataService {
 
     if (isSupabaseConfigured && supabase) {
       try {
-        await supabase.from('entities').insert([{
+        const { error: insertError } = await supabase.from('entities').insert([{
           name: app.name,
           type: app.type,
           category: app.category,
@@ -87,6 +87,9 @@ class DataService {
           location: app.city || 'Bali, Indonesia',
           verification_status: 'pending_review'
         }]);
+        if (insertError) {
+          console.error('Supabase registration insert error:', insertError.message);
+        }
       } catch (err) {
         console.warn('Supabase registration insert failed:', err);
       }
@@ -155,18 +158,17 @@ class DataService {
 
     if (isSupabaseConfigured && supabase) {
       try {
-        await supabase.from('collaboration_requests').insert([{
-          tracking_code: newCollab.trackingCode,
-          title: newCollab.title,
-          category: newCollab.category,
-          requester_id: newCollab.requesterId,
-          target_id: newCollab.targetId,
-          budget: newCollab.budget,
+        const { error: insertError } = await supabase.from('collaboration_requests').insert([{
+          project_title: newCollab.title,
+          project_description: newCollab.scope || newCollab.deliverables || '-',
+          budget_range: newCollab.budget,
           timeline: newCollab.timeline,
-          scope: newCollab.scope,
-          deliverables: newCollab.deliverables,
+          deliverables: Array.isArray(newCollab.deliverables) ? newCollab.deliverables : [],
           status: 'pending'
         }]);
+        if (insertError) {
+          console.error('Supabase collab insert error:', insertError.message);
+        }
       } catch (err) {
         console.warn('Supabase collab insert failed:', err);
       }
@@ -228,17 +230,21 @@ class DataService {
 
     if (isSupabaseConfigured && supabase) {
       try {
+        // Bucket names must match supabase/migrations schema: avatars | portfolios
+        const bucket = folder === 'avatars' ? 'avatars' : 'portfolios';
         const filePath = `${folder}/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.webp`;
         const { error: uploadError } = await supabase.storage
-          .from('media')
+          .from(bucket)
           .upload(filePath, compressedBlob, {
             contentType: 'image/webp',
             upsert: false
           });
 
         if (!uploadError) {
-          const { data } = supabase.storage.from('media').getPublicUrl(filePath);
+          const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
           return data.publicUrl;
+        } else {
+          console.error('Supabase storage upload error:', uploadError.message);
         }
       } catch (err) {
         console.warn('Media upload error:', err);
@@ -256,6 +262,26 @@ class DataService {
     };
 
     this.localPayments.unshift(newReceipt);
+
+    // Best-effort persist to Supabase (schema: payment_receipts — user_id nullable, status 'pending_verification')
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { error } = await supabase.from('payment_receipts').insert([{
+          tier: receipt.tier,
+          amount: receipt.amount,
+          bank_name: receipt.bankName,
+          sender_account_name: receipt.senderAccountName,
+          receipt_image_url: receipt.receiptImageUrl,
+          status: 'pending_verification'
+        }]);
+        if (error) {
+          console.error('Supabase payment insert error:', error.message);
+        }
+      } catch (err) {
+        console.warn('Supabase payment insert failed:', err);
+      }
+    }
+
     return newReceipt;
   }
 

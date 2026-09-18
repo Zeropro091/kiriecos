@@ -141,8 +141,8 @@ CREATE TABLE IF NOT EXISTS public.community_members (
 -- 8. COLLABORATION REQUESTS & BRIEFS
 CREATE TABLE IF NOT EXISTS public.collaboration_requests (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    sender_id UUID NOT NULL REFERENCES public.entities(id) ON DELETE CASCADE,
-    receiver_id UUID NOT NULL REFERENCES public.entities(id) ON DELETE CASCADE,
+    sender_id UUID REFERENCES public.entities(id) ON DELETE SET NULL,
+    receiver_id UUID REFERENCES public.entities(id) ON DELETE SET NULL,
     project_title TEXT NOT NULL,
     project_description TEXT NOT NULL,
     budget_range TEXT,
@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS public.collaboration_requests (
 -- 9. PAYMENT RECEIPTS (Manual Bank Transfer Verification)
 CREATE TABLE IF NOT EXISTS public.payment_receipts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     entity_id UUID REFERENCES public.entities(id) ON DELETE SET NULL,
     tier membership_tier NOT NULL DEFAULT 'pro',
     amount NUMERIC(12, 2) NOT NULL,
@@ -263,6 +263,36 @@ WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Admin can update payment receipt" 
 ON public.payment_receipts FOR UPDATE 
 USING (public.is_admin());
+
+-- --- OPEN REGISTRATION POLICIES (LAUNCH) ---
+-- The frontend submits with the anon key (no Supabase Auth session yet).
+-- Moderation happens AFTER insert (status stays 'pending_review'), so open
+-- inserts are gated to pending states only. Tighten these once Supabase Auth
+-- is wired into Login/Register flows.
+
+CREATE POLICY "Anyone can submit pending entity registration" 
+ON public.entities FOR INSERT 
+WITH CHECK (verification_status = 'pending_review');
+
+CREATE POLICY "Anyone can submit pending collaboration request" 
+ON public.collaboration_requests FOR INSERT 
+WITH CHECK (status = 'pending');
+
+CREATE POLICY "Anyone can submit pending payment receipt" 
+ON public.payment_receipts FOR INSERT 
+WITH CHECK (status = 'pending_verification');
+
+-- --- STORAGE UPLOAD POLICIES (LAUNCH) ---
+-- Without INSERT grants on storage.objects every upload 403s, even on public buckets.
+
+CREATE POLICY "Anyone can upload receipts" ON storage.objects 
+FOR INSERT WITH CHECK (bucket_id = 'receipts');
+
+CREATE POLICY "Anyone can upload avatars" ON storage.objects 
+FOR INSERT WITH CHECK (bucket_id = 'avatars');
+
+CREATE POLICY "Anyone can upload portfolios" ON storage.objects 
+FOR INSERT WITH CHECK (bucket_id = 'portfolios');
 
 -- ==============================================================================
 -- 12. AUTOMATED TIMESTAMPS TRIGGER
