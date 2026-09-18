@@ -183,6 +183,29 @@ class DataService {
   // 4. MANUAL PAYMENT & RECEIPT VERIFICATION
   // ==========================================
 
+  async uploadReceiptImage(file: File): Promise<string> {
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const ext = file.name.split('.').pop() || 'jpg';
+        const filePath = `receipts/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from('receipts')
+          .upload(filePath, file, { upsert: false });
+
+        if (!uploadError) {
+          const { data } = supabase.storage.from('receipts').getPublicUrl(filePath);
+          return data.publicUrl;
+        } else {
+          console.warn('Supabase storage upload error:', uploadError);
+        }
+      } catch (err) {
+        console.warn('Storage upload exception:', err);
+      }
+    }
+    // Fallback: create an object URL for preview/local testing
+    return URL.createObjectURL(file);
+  }
+
   async submitPaymentReceipt(receipt: Omit<PaymentReceipt, 'id' | 'status' | 'submittedAt'>): Promise<PaymentReceipt> {
     const newReceipt: PaymentReceipt = {
       ...receipt,

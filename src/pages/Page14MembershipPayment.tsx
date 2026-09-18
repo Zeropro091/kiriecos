@@ -47,12 +47,17 @@ export const Page14MembershipPayment: React.FC = () => {
 
     setIsSubmitting(true);
     try {
+      let uploadedProofUrl = 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500';
+      if (receiptFile) {
+        uploadedProofUrl = await dataService.uploadReceiptImage(receiptFile);
+      }
+
       await dataService.submitPaymentReceipt({
         userId: currentUser?.id || 'guest-user',
         userName: currentUser?.name || accountName || 'Member Bali',
         tier: selectedTier,
         amount: calculateAmount(),
-        receiptImageUrl: receiptFile ? receiptFile.name : 'bukti_transfer.jpg',
+        receiptImageUrl: uploadedProofUrl,
         senderAccountName: accountName,
         bankName,
       });
