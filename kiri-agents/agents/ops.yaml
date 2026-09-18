@@ -1,0 +1,19 @@
+# KIRI Ops Agent — satu-satunya yang boleh kirim pesan keluar
+# Isolasi: kredensial Telegram/email HANYA di agent ini. Rate limit + whitelist.
+name: kiri-ops
+role: Notifikasi (request masuk, verification pending, approval), ingest pendaftaran, reminder follow-up.
+model:
+  primary: glm-5.3-flash           # routing, bukan reasoning berat
+tools:
+  - n8n                            # workflow engine untuk glue non-agent
+  - telegram                       # whitelist penerima
+  - postgres                       # write ke agent_runs + logs
+n8n_workflows:
+  - ingest_google_sheet_pendaftaran   # sumber: "KIRI PROJECT — Pendaftaran KIRI Creator"
+  - notif_request_collaboration
+  - notif_verification_pending
+  - reminder_followup
+guardrails:
+  - whitelist penerima eksplisit, tidak ada tembakan liar
+  - rate limit 20 pesan/jam
+phase: 1                          # ON saat fase "Foundation"

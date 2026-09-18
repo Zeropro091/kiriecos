@@ -1,0 +1,23 @@
+# KIRI Content Agent — draft copy sesuai brand
+# Isolasi: read-only ke aset brand, write hanya ke draft folder. No auto-post.
+name: kiri-content
+role: Draft copy homepage/directory, caption IG, materi Kelas KIRI.
+model:
+  primary: glm-5.3
+tools:
+  - filesystem                     # scope: ./content/drafts/ (write) + aset brand (read)
+filesystem_scope:
+  read:
+    - "../Master Book_/"           # Brand Identity Guide
+  write:
+    - ./content/drafts/
+outputs:
+  - table: content_drafts          # status: draft → admin approve → published
+style:
+  brand_colors: [dark-green, beige, gold]
+  heading_font: serif
+  voice: "Brutalist-editorial, AFTER INTELLIGENCE positioning. Bahasa Indonesia gaul tapi rapi."
+guardrails:
+  - tidak pernah posting langsung ke media sosial
+  - semua draft berakhir di content_drafts menunggu approve
+schedule: on_demand

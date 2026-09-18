@@ -1,0 +1,19 @@
+# KIRI Research Agent — riset pasar, seed directory
+# Isolasi: folder riset sendiri, key sendiri, no messaging.
+name: kiri-research
+role: Riset UMKM/kreator Bali, kompetitor platform kolaborasi, calon mitra.
+model:
+  primary: glm-5.3
+  fallback: ollama/llama3.2:3b   # draft kasar saat offline/API down
+tools:
+  - web_search
+  - web_extract
+  - filesystem                     # scope: ./research/ SAJA
+filesystem_scope: ./research/
+outputs:
+  - table: research_notes
+  - table: profiles               # seed directory (status: draft, belum published)
+guardrails:
+  - tidak pernah menghubungi siapa pun
+  - setiap klaim faktual harus punya sumber URL
+schedule: on_demand

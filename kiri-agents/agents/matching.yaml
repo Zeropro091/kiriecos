@@ -1,0 +1,16 @@
+# KIRI Matching Agent — inti nilai bisnis
+# Isolasi: READ-ONLY ke data member. Tidak bisa kirim pesan. Wajib approve admin.
+name: kiri-matching
+role: Analisis Request Collaboration → rekomendasi top-5 creator dari directory.
+model:
+  primary: glm-5.3                 # reasoning
+tools:
+  - postgres                       # credential READ-ONLY (DATABASE_URL_READONLY)
+outputs:
+  - table: match_suggestions       # admin approve/reject tiap saran
+human_in_the_loop:
+  # titik interrupt() di LangGraph — workflow pause sampai admin keputusan
+  trigger: setiap batch rekomendasi
+  approver: admin KIRI
+  on_approve: admin connects secara manual (agent tidak pernah connect)
+phase: 2                          # ON saat fase website "Collaboration"
