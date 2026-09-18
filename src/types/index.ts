@@ -29,7 +29,11 @@ export type PageId =
 
 export type EntityType = 'creator' | 'community' | 'business' | 'media' | 'strategic';
 
-export type UserRole = 'creator' | 'community_lead' | 'umkm_owner' | 'media_partner' | 'admin' | 'guest';
+export type UserRole = 'creator' | 'community_lead' | 'umkm_owner' | 'media_partner' | 'strategic_partner' | 'admin' | 'guest';
+
+export type VerificationStatus = 'pending_review' | 'approved' | 'rejected' | 'suspended';
+
+export type MembershipTier = 'free' | 'pro' | 'enterprise' | 'Creator Pro' | 'Community Verified' | 'UMKM Growth Pilot' | 'System Master' | string;
 
 export interface UserSession {
   id: string;
@@ -39,7 +43,7 @@ export interface UserSession {
   entityType?: EntityType;
   entityId?: string;
   avatar: string;
-  membershipTier: string;
+  membershipTier: MembershipTier;
   isVerified: boolean;
 }
 
@@ -70,6 +74,8 @@ export interface Entity {
   category: string;
   badge?: string;
   verified: boolean;
+  verificationStatus?: VerificationStatus;
+  rejectionReason?: string;
   avatar: string;
   coverImage: string;
   bio: string;
@@ -135,5 +141,22 @@ export interface RegistrationApplication {
   socialLink: string;
   details: string;
   status: 'pending' | 'approved' | 'rejected';
+  submittedAt: string;
+  verificationDocumentUrl?: string;
+  rejectionReason?: string;
+}
+
+export interface PaymentReceipt {
+  id: string;
+  userId: string;
+  userName: string;
+  entityId?: string;
+  tier: MembershipTier;
+  amount: number;
+  bankName: string;
+  senderAccountName: string;
+  receiptImageUrl: string;
+  status: 'pending_verification' | 'verified' | 'rejected';
+  adminNotes?: string;
   submittedAt: string;
 }
