@@ -2,7 +2,6 @@ import React from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
-import { MasterNavDrawer } from './components/MasterNavDrawer';
 import { CollabRequestModal } from './components/CollabRequestModal';
 import { ToastContainer } from './components/ToastContainer';
 
@@ -113,19 +112,7 @@ const MainContent: React.FC = () => {
 
       {/* Global Modals and Notifications */}
       <CollabRequestModal />
-      <MasterNavDrawer />
       <ToastContainer />
-
-      {/* Floating 27 Master Pages Navigator Quick Button */}
-      <div className="fixed bottom-6 left-6 z-40">
-        <button
-          onClick={() => setIsMasterNavOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-kiri-green-950 dark:bg-kiri-gold-500 text-white dark:text-kiri-dark-950 font-bold text-xs shadow-elevated border border-kiri-gold-500/50 hover:scale-105 transition-all group"
-        >
-          <FolderGit2 className="w-4 h-4 text-kiri-gold-400 dark:text-kiri-dark-950 group-hover:rotate-12 transition-transform" />
-          <span>27 Master Pages Guide</span>
-        </button>
-      </div>
     </div>
   );
 };
