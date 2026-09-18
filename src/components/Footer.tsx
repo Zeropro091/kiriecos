@@ -227,15 +227,6 @@ export const Footer: React.FC = () => {
                   <span>Portal Admin KIRI</span>
                 </button>
               </li>
-              <li className="pt-2">
-                <button
-                  onClick={() => setIsMasterNavOpen(true)}
-                  className="w-full text-left px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-kiri-gold-300 text-xs font-semibold flex items-center justify-between transition-all"
-                >
-                  <span>27 Master Pages Guide</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </button>
-              </li>
             </ul>
           </div>
         </div>
