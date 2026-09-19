@@ -8,12 +8,10 @@ import {
   UserSession,
 } from '../types';
 import {
-  INITIAL_ENTITIES,
   INITIAL_COMMUNITY_MEMBERS,
-  INITIAL_COLLAB_REQUESTS,
-  INITIAL_REGISTRATIONS,
   DEFAULT_USERS,
 } from '../data/mockData';
+import { dataService } from '../services/dataService';
 
 interface ToastInfo {
   id: number;
@@ -64,25 +62,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [selectedEntityId, setSelectedEntityId] = useState<string>('creator-1');
   const [currentUser, setCurrentUser] = useState<UserSession | null>(() => {
     const saved = localStorage.getItem('kiri_user');
-    return saved ? JSON.parse(saved) : DEFAULT_USERS[0]; // default logged in as Raka Dewantara for rich demo
+    return saved ? JSON.parse(saved) : null; // no silent demo login in production
   });
   const [themeMode, setThemeMode] = useState<'heritage' | 'nocturnal'>('heritage');
-  const [entities, setEntities] = useState<Entity[]>(() => {
-    const saved = localStorage.getItem('kiri_entities');
-    return saved ? JSON.parse(saved) : INITIAL_ENTITIES;
-  });
+  const [entities, setEntities] = useState<Entity[]>([]);
   const [communityMembers, setCommunityMembers] = useState<CommunityMember[]>(() => {
     const saved = localStorage.getItem('kiri_members');
     return saved ? JSON.parse(saved) : INITIAL_COMMUNITY_MEMBERS;
   });
-  const [collabRequests, setCollabRequests] = useState<CollaborationRequest[]>(() => {
-    const saved = localStorage.getItem('kiri_collabs');
-    return saved ? JSON.parse(saved) : INITIAL_COLLAB_REQUESTS;
-  });
-  const [registrations, setRegistrations] = useState<RegistrationApplication[]>(() => {
-    const saved = localStorage.getItem('kiri_registrations');
-    return saved ? JSON.parse(saved) : INITIAL_REGISTRATIONS;
-  });
+  const [collabRequests, setCollabRequests] = useState<CollaborationRequest[]>([]);
+  const [registrations, setRegistrations] = useState<RegistrationApplication[]>([]);
+  const [directoryLoading, setDirectoryLoading] = useState(true);
   const [selectedCollabId, setSelectedCollabId] = useState<string | null>(null);
   const [isCollabModalOpen, setIsCollabModalOpen] = useState<boolean>(false);
   const [collabTargetEntity, setCollabTargetEntity] = useState<Entity | null>(null);
@@ -118,6 +108,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       document.documentElement.classList.remove('dark');
     }
   }, [themeMode]);
+
+  // Load directory from Supabase on boot (mock fallback inside dataService)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const approved = await dataService.getApprovedEntities();
+        const pending = await dataService.getPendingEntities();
+        if (cancelled) return;
+        setEntities([...approved, ...pending]);
+        const localPending: RegistrationApplication[] = pending
+          .filter(e => e.verificationStatus === 'pending_review')
+          .map(e => ({
+            id: e.id,
+            type: e.type,
+            name: e.name,
+            contactPerson: e.name,
+            email: '-',
+            phone: '-',
+            city: e.location,
+            category: e.category,
+            socialLink: e.instagram || '-',
+            details: e.bio,
+            status: 'pending' as const,
+            submittedAt: new Date().toISOString().split('T')[0]
+          }));
+        setRegistrations(localPending);
+      } finally {
+        if (!cancelled) setDirectoryLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const showToast = (message: string, type: 'success' | 'info' | 'warning' | 'error' = 'success') => {
     const id = Date.now() + Math.random();
@@ -184,6 +207,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createdAt: 'Hari ini',
       adminNotes: 'Permintaan baru masuk. Menunggu verifikasi tim kurasi KIRI Project.',
     };
+
+    // Persist to Supabase (fire-and-forget; errors logged in dataService)
+    dataService.submitCollaboration(newReq).catch(() => {});
 
     setCollabRequests((prev) => [newReq, ...prev]);
     setSelectedCollabId(newReq.id);
@@ -265,15 +291,73 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: 'pending',
       submittedAt: 'Hari ini',
     };
+
+    // Persist to Supabase, then reflect in the admin queue
+    dataService.submitRegistration({
+      type: newApp.type,
+      name: newApp.name,
+      contactPerson: newApp.contactPerson,
+      email: newApp.email,
+      phone: newApp.phone,
+      city: newApp.city,
+      category: newApp.category,
+      socialLink: newApp.socialLink,
+      details: newApp.details
+    }).then((saved) => {
+      newApp.id = saved.id;
+      if (saved.syncError) {
+        showToast('Pendaftaran tersimpan lokal — sinkronisasi ke server gagal. Hubungi admin.', 'warning');
+      }
+      setRegistrations((prev) => {
+        const exists = prev.some(r => r.id === newApp.id);
+        return exists ? prev : [newApp, ...prev];
+      });
+      setEntities((prev) => {
+        if (prev.some(e => e.name === newApp.name)) return prev;
+        return [...prev, {
+          id: newApp.id,
+          type: newApp.type,
+          name: newApp.name,
+          handle: newApp.name.toLowerCase().replace(/\s+/g, '_'),
+          category: newApp.category,
+          verified: false,
+          verificationStatus: 'pending_review' as const,
+          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+          coverImage: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200',
+          bio: newApp.details,
+          location: newApp.city,
+          stats: [{ label: 'Kolaborasi Aktif', value: '0' }],
+          tags: [newApp.category]
+        }];
+      });
+    }).catch(() => {});
+
     setRegistrations((prev) => [newApp, ...prev]);
     showToast('Pendaftaran Anda telah diterima untuk verifikasi kurasi KIRI Project.', 'success');
   };
 
   const reviewRegistration = (id: string, status: 'approved' | 'rejected') => {
-    setRegistrations((prev) =>
-      prev.map((reg) => (reg.id === id ? { ...reg, status } : reg))
-    );
-    showToast(`Pendaftaran telah di-${status === 'approved' ? 'SETUJUI & DIAKTIFKAN' : 'TOLAK'}.`, status === 'approved' ? 'success' : 'warning');
+    // Persist moderation to Supabase (this is what makes the entity
+    // publicly visible in the directory — the RLS policy requires 'approved')
+    dataService.reviewEntity(id, status === 'approved' ? 'approve' : 'reject').then((ok) => {
+      if (!ok) {
+        showToast('Gagal menyimpan keputusan ke server.', 'error');
+        return;
+      }
+      setRegistrations((prev) =>
+        prev.map((reg) => (reg.id === id ? { ...reg, status } : reg))
+      );
+      setEntities((prev) =>
+        prev.map((ent) =>
+          ent.id === id
+            ? { ...ent, verified: status === 'approved', verificationStatus: status === 'approved' ? 'approved' as const : 'rejected' as const }
+            : ent
+        )
+      );
+      showToast(`Pendaftaran telah di-${status === 'approved' ? 'SETUJUI & DIAKTIFKAN' : 'TOLAK'}.`, status === 'approved' ? 'success' : 'warning');
+    }).catch(() => {
+      showToast('Gagal menghubungi server untuk moderasi.', 'error');
+    });
   };
 
   const updateEntityProfile = (entityId: string, updates: Partial<Entity>) => {

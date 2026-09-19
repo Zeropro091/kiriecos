@@ -151,6 +151,8 @@ export interface RegistrationApplication {
   submittedAt: string;
   verificationDocumentUrl?: string;
   rejectionReason?: string;
+  /** True when the Supabase insert failed and the data only lives locally. */
+  syncError?: boolean;
 }
 
 export interface PaymentReceipt {
@@ -166,4 +168,6 @@ export interface PaymentReceipt {
   status: 'pending_verification' | 'verified' | 'rejected';
   adminNotes?: string;
   submittedAt: string;
+  /** True when the Supabase insert failed and the data only lives locally. */
+  syncError?: boolean;
 }

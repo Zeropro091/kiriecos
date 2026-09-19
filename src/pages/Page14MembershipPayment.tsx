@@ -49,10 +49,16 @@ export const Page14MembershipPayment: React.FC = () => {
     try {
       let uploadedProofUrl = 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500';
       if (receiptFile) {
-        uploadedProofUrl = await dataService.uploadReceiptImage(receiptFile);
+        try {
+          uploadedProofUrl = await dataService.uploadReceiptImage(receiptFile);
+        } catch (uploadErr) {
+          setIsSubmitting(false);
+          showToast('Gagal mengunggah gambar bukti transfer. Cek koneksi lalu coba lagi.', 'error');
+          return;
+        }
       }
 
-      await dataService.submitPaymentReceipt({
+      const saved = await dataService.submitPaymentReceipt({
         userId: currentUser?.id || 'guest-user',
         userName: currentUser?.name || accountName || 'Member Bali',
         tier: selectedTier,
@@ -64,7 +70,11 @@ export const Page14MembershipPayment: React.FC = () => {
 
       setIsSubmitting(false);
       setIsSubmittedSuccess(true);
-      showToast('Bukti transfer berhasil diunggah! Menunggu verifikasi admin.', 'success');
+      if (saved.syncError) {
+        showToast('Bukti tersimpan lokal — sinkronisasi ke server gagal. Hubungi admin via WhatsApp.', 'warning');
+      } else {
+        showToast('Bukti transfer berhasil diunggah! Menunggu verifikasi admin.', 'success');
+      }
     } catch {
       setIsSubmitting(false);
       showToast('Gagal mengunggah bukti transfer.', 'error');

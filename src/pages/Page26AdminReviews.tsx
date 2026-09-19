@@ -21,21 +21,29 @@ export const Page26AdminReviews: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'registrations' | 'payments'>('registrations');
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [payments, setPayments] = useState<PaymentReceipt[]>([]);
+  const [paymentBusy, setPaymentBusy] = useState<string | null>(null);
+
+  const loadPayments = React.useCallback(async () => {
+    const list = await dataService.getPendingPayments();
+    setPayments(list);
+  }, []);
 
   useEffect(() => {
     loadPayments();
-  }, []);
-
-  const loadPayments = async () => {
-    const list = await dataService.getPendingPayments();
-    setPayments(list);
-  };
+  }, [loadPayments]);
 
   const handleVerifyPayment = async (id: string, action: 'verify' | 'reject') => {
-    const success = await dataService.verifyPayment(id, action);
-    if (success) {
-      showToast(action === 'verify' ? 'Pembayaran berhasil diverifikasi!' : 'Pembayaran ditolak.', 'success');
-      loadPayments();
+    setPaymentBusy(id);
+    try {
+      const success = await dataService.verifyPayment(id, action);
+      if (success) {
+        showToast(action === 'verify' ? 'Pembayaran berhasil diverifikasi!' : 'Pembayaran ditolak.', 'success');
+        await loadPayments();
+      } else {
+        showToast('Gagal menyimpan keputusan verifikasi ke server.', 'error');
+      }
+    } finally {
+      setPaymentBusy(null);
     }
   };
 
@@ -221,28 +229,41 @@ export const Page26AdminReviews: React.FC = () => {
                     </div>
 
                     <div className="p-3 bg-slate-950 rounded-xl border border-slate-800/80 flex items-center justify-between text-xs text-slate-300">
-                      <span className="flex items-center gap-1.5">
-                        <FileCheck className="w-4 h-4 text-emerald-400" />
-                        {p.receiptImageUrl}
+                      <span className="flex items-center gap-1.5 truncate max-w-[70%]">
+                        <FileCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span className="truncate">Bukti transfer terlampir</span>
                       </span>
-                      <span className="text-emerald-400 text-[10px] font-semibold cursor-pointer underline">
+                      <a
+                        href={p.receiptImageUrl.startsWith('blob:') || p.receiptImageUrl.startsWith('http') ? p.receiptImageUrl : undefined}
+                        target="_blank"
+                        rel="noreferrer"
+                        onClick={(e) => {
+                          if (!p.receiptImageUrl.startsWith('blob:') && !p.receiptImageUrl.startsWith('http')) {
+                            e.preventDefault();
+                            dataService.signReceipt(p.receiptImageUrl).then((url) => window.open(url, '_blank'));
+                          }
+                        }}
+                        className="text-emerald-400 text-[10px] font-semibold cursor-pointer underline shrink-0 hover:text-emerald-300"
+                      >
                         Lihat Lampiran
-                      </span>
+                      </a>
                     </div>
                   </div>
 
                   <div className="pt-3 border-t border-slate-800 flex items-center gap-2">
                     <button
+                      disabled={paymentBusy === p.id}
                       onClick={() => handleVerifyPayment(p.id, 'reject')}
-                      className="flex-1 py-2 rounded-xl text-xs font-semibold border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 transition-all"
+                      className="flex-1 py-2 rounded-xl text-xs font-semibold border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 transition-all disabled:opacity-50"
                     >
-                      Tolak
+                      {paymentBusy === p.id ? '...' : 'Tolak'}
                     </button>
                     <button
+                      disabled={paymentBusy === p.id}
                       onClick={() => handleVerifyPayment(p.id, 'verify')}
-                      className="flex-1 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold transition-all shadow-md shadow-emerald-500/20"
+                      className="flex-1 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold transition-all shadow-md shadow-emerald-500/20 disabled:opacity-50"
                     >
-                      Verifikasi & Upgrade
+                      {paymentBusy === p.id ? 'Memproses...' : 'Verifikasi & Upgrade'}
                     </button>
                   </div>
                 </div>
