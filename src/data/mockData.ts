@@ -28,6 +28,7 @@ export const MASTER_PAGES = [
   { id: 'page-25-dashboard-admin', num: '25', title: 'Admin Request & Matching', group: 'Admin & Operations', desc: 'Central request operations: Matching talent, setting escrow, status updates' },
   { id: 'page-26-admin-reviews', num: '26', title: 'Admin Registration Review', group: 'Admin & Operations', desc: 'Registration approval queue for creators, communities, and UMKM' },
   { id: 'page-27-request-flowchart', num: '27', title: 'Ecosystem Request Flowchart', group: 'Admin & Operations', desc: 'Visual interactive workflow and dynamic timeline simulator for partners' },
+  { id: 'page-28-brand-landing-page', num: '28', title: 'Brand Landing Page', group: 'Admin & Operations', desc: 'Custom brand landing page builder & developer sandbox preview' },
 ];
 
 export const INITIAL_ENTITIES: Entity[] = [

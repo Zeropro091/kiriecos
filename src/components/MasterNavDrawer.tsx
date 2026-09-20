@@ -49,7 +49,7 @@ export const MasterNavDrawer: React.FC = () => {
               </h2>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Panduan 27 Halaman & Alur Ekosistem Sesuai Dokumen Resmi KIRI PROJECT
+              Panduan {MASTER_PAGES.length} Halaman & Alur Ekosistem Sesuai Dokumen Resmi KIRI PROJECT
             </p>
           </div>
           <button
@@ -71,7 +71,7 @@ export const MasterNavDrawer: React.FC = () => {
             }`}
           >
             <FileText className="w-4 h-4" />
-            <span>27 Master Pages ({MASTER_PAGES.length})</span>
+            <span>Master Pages ({MASTER_PAGES.length})</span>
           </button>
           <button
             onClick={() => setActiveTab('references')}

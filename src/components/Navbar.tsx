@@ -15,7 +15,8 @@ import {
   ShieldAlert,
   ArrowRight,
   LogOut,
-  FolderGit2
+  FolderGit2,
+  LayoutGrid
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -27,6 +28,7 @@ export const Navbar: React.FC = () => {
     logout,
     themeMode,
     toggleTheme,
+    isMasterNavOpen,
     setIsMasterNavOpen,
     openCollabModalFor,
     entities,
@@ -111,6 +113,20 @@ export const Navbar: React.FC = () => {
             >
               <Layers className="w-4 h-4 text-kiri-green-700 dark:text-kiri-green-400" />
               Alur Kolaborasi
+            </button>
+
+            {/* Master Page Navigator — access all 28 pages */}
+            <button
+              onClick={() => setIsMasterNavOpen(true)}
+              className={`px-3.5 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-all ${
+                isMasterNavOpen
+                  ? 'text-kiri-green-950 dark:text-kiri-gold-400 bg-kiri-green-800/5 dark:bg-kiri-dark-800 font-semibold'
+                  : 'text-kiri-dark-800/80 dark:text-kiri-ivory-sand/80 hover:text-kiri-green-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
+              }`}
+              title="Buka semua halaman aplikasi"
+            >
+              <LayoutGrid className="w-4 h-4 text-kiri-gold-600" />
+              Semua Halaman
             </button>
 
             <button
@@ -308,6 +324,16 @@ export const Navbar: React.FC = () => {
             className="w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium text-kiri-gold-700 dark:text-kiri-gold-400 font-bold hover:bg-black/5 dark:hover:bg-white/5"
           >
             Gabung KIRI PROJECT
+          </button>
+          <button
+            onClick={() => {
+              setIsMasterNavOpen(true);
+              setIsMobileMenuOpen(false);
+            }}
+            className="w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-black/5 dark:hover:bg-white/5"
+          >
+            <LayoutGrid className="w-4 h-4 text-kiri-gold-600" />
+            Semua Halaman (28 Page)
           </button>
 
           <div className="pt-3 border-t border-gray-200 dark:border-kiri-dark-700">

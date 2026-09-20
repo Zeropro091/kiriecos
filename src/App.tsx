@@ -4,6 +4,7 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { CollabRequestModal } from './components/CollabRequestModal';
 import { ToastContainer } from './components/ToastContainer';
+import { MasterNavDrawer } from './components/MasterNavDrawer';
 
 // Import all 27 Pages
 import { Page01Home } from './pages/Page01Home';
@@ -115,6 +116,7 @@ const MainContent: React.FC = () => {
 
       {/* Global Modals and Notifications */}
       <CollabRequestModal />
+      <MasterNavDrawer />
       <ToastContainer />
     </div>
   );
