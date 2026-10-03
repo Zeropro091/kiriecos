@@ -93,11 +93,6 @@ export const Page08JoinSelect: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto space-y-4">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-kiri-green-800/10 dark:bg-kiri-gold-500/20 text-kiri-green-900 dark:text-kiri-gold-300 text-xs font-semibold">
-          <Sparkles className="w-3.5 h-3.5 text-kiri-gold-600 dark:text-kiri-gold-400" />
-          <span>PAGE 08 — Tahap 1: Identifikasi Peran Anda</span>
-        </div>
-
         <h1 className="font-serif text-3xl sm:text-5xl font-bold text-kiri-green-950 dark:text-white leading-tight">
           Join KIRI PROJECT — Who Are You?
         </h1>

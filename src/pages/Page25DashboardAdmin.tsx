@@ -86,7 +86,7 @@ export const Page25DashboardAdmin: React.FC = () => {
             onClick={() => navigateTo('page-27-request-flowchart')}
             className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 transition-all"
           >
-            Diagram Alur (PAGE 27)
+            Diagram Alur
           </button>
         </div>
       </div>

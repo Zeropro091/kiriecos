@@ -191,13 +191,13 @@ export const Page22CollabSuccess: React.FC = () => {
             onClick={() => navigateTo('page-25-dashboard-admin')}
             className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold"
           >
-            Review di Admin Center (PAGE 25)
+            Review di Admin Center
           </button>
           <button
             onClick={() => navigateTo('page-23-my-collaborations')}
             className="px-6 py-2.5 rounded-xl bg-kiri-green-900 text-white dark:bg-kiri-gold-500 dark:text-kiri-dark-950 text-xs font-bold shadow-subtle hover:opacity-90 flex items-center gap-2"
           >
-            <span>Buka Halaman Kolaborasi Saya (PAGE 23)</span>
+            <span>Buka Halaman Kolaborasi Saya</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>

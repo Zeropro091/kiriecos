@@ -40,11 +40,24 @@ CREATE OR REPLACE FUNCTION public.auto_approve_entity()
 RETURNS TRIGGER AS $$
 DECLARE
     recent_count INTEGER;
+    client_ip TEXT;
 BEGIN
-    -- Rate limit: max 5 registrations per client per hour
+    -- Prefer the real client IP (spoofing location must not bypass the gate).
+    BEGIN
+        client_ip := split_part(
+            COALESCE(current_setting('request.headers', true)::json->>'x-forwarded-for', ''),
+            ',', 1);
+    EXCEPTION WHEN OTHERS THEN
+        client_ip := NULL;
+    END;
+    IF client_ip IS NULL OR client_ip = '' THEN
+        client_ip := COALESCE(NEW.location, 'unknown');
+    END IF;
+
+    -- Rate limit: max 5 registrations per client IP+type per hour
     SELECT COUNT(*) INTO recent_count
     FROM public.anon_submission_log
-    WHERE client_key = COALESCE(NEW.location, 'unknown') || ':' || (NEW.type)::text
+    WHERE client_key = client_ip || ':' || (NEW.type)::text
       AND action = 'entity_insert'
       AND created_at > NOW() - INTERVAL '1 hour';
 
@@ -53,7 +66,7 @@ BEGIN
     END IF;
 
     INSERT INTO public.anon_submission_log (client_key, action)
-    VALUES (COALESCE(NEW.location, 'unknown') || ':' || (NEW.type)::text, 'entity_insert');
+    VALUES (client_ip || ':' || (NEW.type)::text, 'entity_insert');
 
     -- Auto-approve legitimate-looking registrations (admin can still suspend later)
     NEW.verification_status := 'approved'::verification_status;
@@ -71,8 +84,12 @@ CREATE TRIGGER on_entity_auto_approve
 -- 3. RECEIPTS: allow signed-URL reads (bucket stays private)
 -- -----------------------------------------------------------------------------
 DROP POLICY IF EXISTS "Anon can read receipts via signed url" ON storage.objects;
-CREATE POLICY "Anon can read receipts via signed url" ON storage.objects
-  FOR SELECT USING (bucket_id = 'receipts');
+-- Signed-URL reads are authorized by the signature itself (signed with the
+-- service key) and bypass RLS, so no blanket anon SELECT policy is needed.
+-- Direct listing/guessing is blocked; only admins (or the moderation token)
+-- may read receipt objects.
+CREATE POLICY "Admins can read receipt objects" ON storage.objects
+  FOR SELECT USING (bucket_id = 'receipts' AND public.is_admin_or_token());
 
 -- -----------------------------------------------------------------------------
 -- 4. ADMIN MODERATION VIA TOKEN (works before Supabase Auth is wired)
@@ -99,13 +116,37 @@ BEGIN
         RETURN FALSE;
     END IF;
 
-    expected_token := current_setting('app.kiri_admin_token', true);
-    RETURN expected_token IS NOT NULL AND provided_token = expected_token;
+    SELECT value INTO expected_token FROM public.app_config WHERE key = 'admin_token';
+    RETURN expected_token IS NOT NULL
+       AND length(provided_token) = length(expected_token)
+       AND provided_token = expected_token;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Set the expected token ONCE here (CHANGE THIS before deploying!)
-SELECT set_config('app.kiri_admin_token', 'kiri-change-me-2026', false);
+-- Lock down execution: only the API roles may call the checker (it reads a
+-- locked config table with elevated rights).
+REVOKE ALL ON FUNCTION public.is_admin_or_token() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.is_admin_or_token() TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.is_admin() TO anon, authenticated;
+
+-- Store the expected token in a locked config table instead of a session GUC,
+-- so it matches reliably across every PostgREST request regardless of pooling.
+-- CHANGE the value before deploying, then set the SAME value as
+-- VITE_KIRI_ADMIN_TOKEN in your Vercel environment variables.
+CREATE TABLE IF NOT EXISTS public.app_config (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
+ALTER TABLE public.app_config ENABLE ROW LEVEL SECURITY;
+-- Intentionally NO policies: RLS denies every client read/​write. The
+-- SECURITY DEFINER checker above reads it with elevated rights.
+
+INSERT INTO public.app_config (key, value)
+VALUES ('admin_token', 'kiri-admin-change-me-2026')
+ON CONFLICT (key) DO NOTHING;
+-- Rotate later from the SQL editor:
+--   UPDATE public.app_config SET value='<new>' WHERE key='admin_token';
+-- then update VITE_KIRI_ADMIN_TOKEN and redeploy.
 
 -- Admin-or-token update policies
 DROP POLICY IF EXISTS "Admin can approve entities" ON public.entities;
@@ -127,6 +168,10 @@ WITH CHECK (public.is_admin_or_token());
 --    submitted themselves).
 -- -----------------------------------------------------------------------------
 DROP POLICY IF EXISTS "Anon can read pending receipts" ON public.payment_receipts;
-CREATE POLICY "Anon can read pending receipts"
+-- SECURITY FIX: the previous policy let ANY anonymous visitor read every
+-- pending bank receipt (amounts + payer identity) with the anon key. Receipts
+-- are now visible ONLY to admins / the moderation token. A user views their own
+-- upload through the signed URL returned at upload time (no table read needed).
+CREATE POLICY "Admins can read receipts"
 ON public.payment_receipts FOR SELECT
-USING (status = 'pending_verification' OR public.is_admin_or_token());
+USING (public.is_admin_or_token());

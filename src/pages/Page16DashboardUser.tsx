@@ -141,7 +141,7 @@ export const Page16DashboardUser: React.FC = () => {
               onClick={() => navigateTo('page-23-my-collaborations')}
               className="text-xs font-bold text-kiri-green-900 dark:text-kiri-gold-400 hover:underline flex items-center gap-1"
             >
-              <span>Lihat Semua (PAGE 23)</span>
+              <span>Lihat Semua</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>

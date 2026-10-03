@@ -52,7 +52,7 @@ export const Page18DashboardCommunity: React.FC = () => {
             className="px-5 py-2.5 rounded-xl bg-kiri-gold-500 hover:bg-kiri-gold-400 text-kiri-dark-950 text-xs font-bold transition-all shadow-subtle flex items-center gap-1.5"
           >
             <Users className="w-3.5 h-3.5" />
-            <span>Database Anggota (PAGE 19)</span>
+            <span>Database Anggota</span>
           </button>
           <button
             onClick={() => navigateTo('page-03-community-profile', community.id)}

@@ -215,6 +215,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Allow the anon/authenticated API roles to call the admin check used by every
+-- moderation policy. Without this every RLS `USING (public.is_admin())` call
+-- errors with "permission denied for schema public".
+GRANT EXECUTE ON FUNCTION public.is_admin() TO anon, authenticated;
+
 -- --- ENTITIES POLICIES ---
 -- 1. Public can view approved entities
 CREATE POLICY "Public can view approved entities" 
@@ -281,6 +286,9 @@ WITH CHECK (status = 'pending');
 CREATE POLICY "Anyone can submit pending payment receipt" 
 ON public.payment_receipts FOR INSERT 
 WITH CHECK (status = 'pending_verification');
+
+-- NOTE: the public directory read is already gated by
+-- "Public can view approved entities" above (approved OR owner OR admin).
 
 -- --- STORAGE UPLOAD POLICIES (LAUNCH) ---
 -- Without INSERT grants on storage.objects every upload 403s, even on public buckets.

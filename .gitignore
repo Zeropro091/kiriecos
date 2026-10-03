@@ -41,3 +41,7 @@ lerna-debug.log*
 
 # Large binary dumps / zips if not needed
 kiri_project_images.zip
+# UI/UX reference dump (regenerable source material, keep repo lean)
+KIRI_PROJECT_UIUX_FOUNDATION_COMPLETE_VISUAL_ALL_ASSETS.docx
+extracted_images/
+extracted_doc_text.txt

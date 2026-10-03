@@ -21,10 +21,6 @@ export const Page20CollabGateway: React.FC = () => {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
       {/* Header */}
       <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-kiri-green-800/10 dark:bg-kiri-gold-500/20 text-kiri-green-900 dark:text-kiri-gold-300 text-xs font-semibold">
-          <Sparkles className="w-3.5 h-3.5 text-kiri-gold-600 dark:text-kiri-gold-400" />
-          <span>PAGE 20 — Gerbang Mediasi Kolaborasi KIRI PROJECT</span>
-        </div>
         <h1 className="font-serif text-3xl sm:text-4xl font-bold text-kiri-green-950 dark:text-white">
           Request Through KIRI Project
         </h1>
@@ -110,7 +106,7 @@ export const Page20CollabGateway: React.FC = () => {
             Siap Memulai Kolaborasi?
           </h3>
           <p className="text-xs text-gray-300 mt-1">
-            Langkah selanjutnya: Lengkapi formulir brief proyek terstruktur (PAGE 21).
+            Langkah selanjutnya: Lengkapi formulir brief proyek terstruktur.
           </p>
         </div>
         <button

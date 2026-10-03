@@ -26,11 +26,6 @@ export const Page03CommunityProfile: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
       {/* Page Badge */}
-      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-kiri-green-800/10 dark:bg-kiri-gold-500/20 text-kiri-green-900 dark:text-kiri-gold-300 text-xs font-semibold">
-        <Sparkles className="w-3.5 h-3.5 text-kiri-gold-600 dark:text-kiri-gold-400" />
-        <span>PAGE 03 — Public Community Profile (Landing Entity)</span>
-      </div>
-
       {/* Cover & Profile Header */}
       <div className="rounded-3xl bg-white dark:bg-kiri-dark-800 border border-gray-200 dark:border-kiri-dark-700 overflow-hidden shadow-subtle">
         <div className="h-64 sm:h-80 relative overflow-hidden bg-kiri-green-950">
@@ -191,7 +186,7 @@ export const Page03CommunityProfile: React.FC = () => {
                   onClick={() => navigateTo('page-19-community-members')}
                   className="text-amber-800 dark:text-amber-300 font-bold underline text-[11px] block pt-1"
                 >
-                  Kelola Database Anggota (PAGE 19) →
+                  Kelola Database Anggota →
                 </button>
               </div>
             </div>
@@ -214,7 +209,7 @@ export const Page03CommunityProfile: React.FC = () => {
             onClick={() => navigateTo('page-19-community-members')}
             className="text-xs font-bold text-kiri-green-900 dark:text-kiri-gold-400 hover:underline flex items-center gap-1"
           >
-            <span>Buka Roster Lengkap (PAGE 19)</span>
+            <span>Buka Roster Lengkap</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>

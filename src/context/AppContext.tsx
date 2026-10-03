@@ -160,6 +160,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const loginAs = (user: UserSession) => {
     setCurrentUser(user);
+    try { localStorage.setItem('kiri_user', JSON.stringify(user)); } catch {}
     showToast(`Selamat datang kembali, ${user.name}! (${user.membershipTier})`, 'success');
     if (user.role === 'admin') {
       navigateTo('page-25-dashboard-admin');
@@ -172,6 +173,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const logout = () => {
     setCurrentUser(null);
+    try { localStorage.removeItem('kiri_user'); } catch {}
     showToast('Anda telah keluar dari sesi.', 'info');
     navigateTo('page-01-home');
   };

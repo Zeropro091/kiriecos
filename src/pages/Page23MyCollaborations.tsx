@@ -58,10 +58,6 @@ export const Page23MyCollaborations: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-kiri-green-800/10 dark:bg-kiri-gold-500/20 text-kiri-green-900 dark:text-kiri-gold-300 text-xs font-semibold mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-kiri-gold-600 dark:text-kiri-gold-400" />
-            <span>PAGE 23 — Manajemen Kolaborasi & Deliverables</span>
-          </div>
           <h1 className="font-serif text-3xl font-bold text-kiri-green-950 dark:text-white">
             Kolaborasi Saya (My Collaborations)
           </h1>

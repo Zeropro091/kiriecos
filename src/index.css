@@ -4,15 +4,40 @@
 
 @layer base {
   body {
-    @apply font-sans bg-kiri-ivory text-kiri-dark-900;
+    @apply font-sans bg-[#FAF8F5] text-kiri-dark-900 selection:bg-kiri-gold-500/30 selection:text-kiri-green-950;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4 {
-    @apply font-serif;
+    @apply font-serif tracking-tight;
   }
 }
 
-/* Custom Scrollbar */
+/* Glassmorphism & Modern Card Accents */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dark .glass-panel {
+  background: rgba(22, 19, 12, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.subtle-mesh {
+  background-image: radial-gradient(at 0% 0%, rgba(34, 139, 107, 0.08) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(216, 174, 90, 0.08) 0px, transparent 50%);
+}
+
+.dark .subtle-mesh {
+  background-image: radial-gradient(at 0% 0%, rgba(34, 139, 107, 0.12) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(216, 174, 90, 0.1) 0px, transparent 50%);
+}
+
+/* Custom Smooth Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -31,14 +56,14 @@
   background: #A07828;
 }
 
-/* Animations for Drawers, Modals & Micro-interactions */
+/* Keyframes & Micro-interactions */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes zoomIn95 {
-  from { opacity: 0; transform: scale(0.95); }
+  from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
 }
 
@@ -57,8 +82,13 @@
   to { transform: rotate(360deg); }
 }
 
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
 .animate-in {
-  animation-duration: 250ms;
+  animation-duration: 300ms;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   animation-fill-mode: forwards;
 }
@@ -80,6 +110,10 @@
 }
 
 .animate-spin-slow {
-  animation: spinSlow 20s linear infinite;
+  animation: spinSlow 24s linear infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 4s ease-in-out infinite;
 }
 

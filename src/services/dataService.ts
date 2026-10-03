@@ -53,9 +53,7 @@ class DataService {
         }
 
         const { data, error } = await query;
-        if (!error && data && data.length > 0) {
-          return data.map(item => this.mapSupabaseEntity(item));
-        }
+        if (!error && data) return data.map(item => this.mapSupabaseEntity(item));
         if (error) {
           console.error('Supabase directory query error:', error.message);
         }

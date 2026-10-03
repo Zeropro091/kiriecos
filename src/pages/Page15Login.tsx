@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { DEFAULT_USERS } from '../data/mockData';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import {
   Sparkles,
+  AlertCircle,
   Lock,
   Mail,
   ArrowRight,
@@ -13,26 +15,86 @@ import {
   Users
 } from 'lucide-react';
 
+/**
+ * Demo accounts only exist in Local Mock Mode. Once the real Supabase backend
+ * is configured they are disabled so the hardcoded identities in the bundle
+ * can never be used to log into production.
+ */
+const DEMO_MODE = !isSupabaseConfigured;
+
+interface UserSessionLike {
+  name?: string;
+  role?: string;
+  entityType?: string;
+  entityId?: string;
+  avatar?: string;
+  membershipTier?: string;
+}
+
 export const Page15Login: React.FC = () => {
   const { loginAs, navigateTo } = useApp();
-  const [email, setEmail] = useState('raka@dewantara.id');
-  const [password, setPassword] = useState('••••••••');
+  const [email, setEmail] = useState(DEMO_MODE ? 'raka@dewantara.id' : '');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleManualLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Default to first user or matched email
-    const found = DEFAULT_USERS.find((u) => u.email === email) || DEFAULT_USERS[0];
-    loginAs(found);
+    setError('');
+    const normalized = email.trim().toLowerCase();
+    const matched = DEFAULT_USERS.find((u) => u.email.toLowerCase() === normalized);
+
+    // 1) Supabase Auth path — real credential verification (when wired).
+    if (isSupabaseConfigured && supabase) {
+      supabase.auth
+        .signInWithPassword({ email: normalized, password })
+        .then(({ data, error: authError }) => {
+          if (authError) {
+            setError(
+              authError.message.toLowerCase().includes('invalid')
+                ? 'Email atau kata sandi salah.'
+                : authError.message
+            );
+            return;
+          }
+          const meta = (data.user?.user_metadata || {}) as Partial<UserSessionLike>;
+          const identity =
+            DEFAULT_USERS.find((u) => u.email.toLowerCase() === normalized) ||
+            ({
+              id: data.user?.id || `user-${Date.now()}`,
+              name: meta.name || normalized.split('@')[0],
+              email: normalized,
+              role: (meta.role as any) || 'creator',
+              entityType: (meta.entityType as any) || 'creator',
+              entityId: (meta.entityId as any) || `entity-${data.user?.id || Date.now()}`,
+              avatar: meta.avatar || '',
+              membershipTier: (meta.membershipTier as any) || 'Free Member',
+              isVerified: false,
+            } as any);
+          loginAs(identity);
+        });
+      return;
+    }
+
+    // 2) Local Mock Mode — demo identities, guarded so it never runs in prod.
+    if (!DEMO_MODE) {
+      setError('Backend belum terkonfigurasi. Hubungi administrator KIRI.');
+      return;
+    }
+    if (!matched) {
+      setError('Akun demo tidak ditemukan. Gunakan salah satu email demo yang tersedia.');
+      return;
+    }
+    if (!password.trim()) {
+      setError('Masukkan kata sandi (mode demo: kata sandi apa pun diterima).');
+      return;
+    }
+    loginAs(matched);
   };
 
   return (
     <div className="max-w-md mx-auto px-4 py-16 space-y-8">
       {/* Header */}
       <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-kiri-green-800/10 dark:bg-kiri-gold-500/20 text-kiri-green-900 dark:text-kiri-gold-300 text-xs font-semibold">
-          <Sparkles className="w-3.5 h-3.5 text-kiri-gold-600 dark:text-kiri-gold-400" />
-          <span>PAGE 15 — Portal Masuk Anggota Ekosistem</span>
-        </div>
         <h1 className="font-serif text-3xl font-bold text-kiri-green-950 dark:text-white">
           Masuk ke Akun Anda
         </h1>

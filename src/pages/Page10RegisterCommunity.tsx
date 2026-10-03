@@ -53,10 +53,6 @@ export const Page10RegisterCommunity: React.FC = () => {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
       {/* Header */}
       <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-kiri-green-800/10 dark:bg-kiri-gold-500/20 text-kiri-green-900 dark:text-kiri-gold-300 text-xs font-semibold">
-          <Sparkles className="w-3.5 h-3.5 text-kiri-gold-600 dark:text-kiri-gold-400" />
-          <span>PAGE 10 — Pendaftaran Komunitas Kreatif</span>
-        </div>
         <h1 className="font-serif text-3xl font-bold text-kiri-green-950 dark:text-white">
           Daftarkan Komunitas Anda
         </h1>
@@ -174,7 +170,7 @@ export const Page10RegisterCommunity: React.FC = () => {
                 <span>Ketentuan Database Anggota Komunitas:</span>
               </div>
               <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-[11px]">
-                Sesuai standar pengembang KIRI PROJECT, database anggota komunitas Anda akan dilindungi dan hanya dapat diakses oleh admin komunitas Anda (melalui PAGE 19). Tidak dipublikasikan sebagai kontak terbuka.
+                Sesuai standar pengembang KIRI PROJECT, database anggota komunitas Anda akan dilindungi dan hanya dapat diakses oleh admin komunitas Anda . Tidak dipublikasikan sebagai kontak terbuka.
               </p>
             </div>
           </div>
