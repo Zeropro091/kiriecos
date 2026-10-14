@@ -78,23 +78,21 @@ export const Page24LoginAdmin: React.FC = () => {
       return;
     }
 
-    // Local Mock Mode only.
-    if (!DEMO_MODE) {
-      setError('Backend belum terkonfigurasi. Hubungi super-admin KIRI.');
+    // Local Authentication Mode
+    const validEmails = ['admin@kiriproject.id', 'admin@projectkiri.id', 'drini562@gmail.com'];
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!validEmails.includes(normalizedEmail)) {
+      setError('Email admin tidak terdaftar.');
       return;
     }
-    if (ADMIN_PASSWORD && password !== ADMIN_PASSWORD) {
-      setError('Kunci akses admin tidak valid.');
+
+    const expectedPassword = ADMIN_PASSWORD || '@projectkiri.id';
+    if (password !== expectedPassword) {
+      setError('Kata sandi admin tidak valid.');
       return;
     }
-    if (!password.trim()) {
-      setError('Masukkan kunci akses admin.');
-      return;
-    }
-    if (email.trim().toLowerCase() !== adminUser.email.toLowerCase()) {
-      setError('Email admin tidak dikenali.');
-      return;
-    }
+
     loginAs(adminUser);
     navigateTo('page-25-dashboard-admin');
   };

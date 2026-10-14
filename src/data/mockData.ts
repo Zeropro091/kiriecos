@@ -1,3 +1,4 @@
+import { MASTER_IMPORTED_CREATORS } from './importedMasterCreators';
 import { Entity, CommunityMember, CollaborationRequest, RegistrationApplication, UserSession } from '../types';
 
 export const MASTER_PAGES = [
@@ -31,7 +32,7 @@ export const MASTER_PAGES = [
   { id: 'page-28-brand-landing-page', num: '28', title: 'Brand Landing Page', group: 'Admin & Operations', desc: 'Custom brand landing page builder & developer sandbox preview' },
 ];
 
-export const INITIAL_ENTITIES: Entity[] = [
+const BASE_ENTITIES: Entity[] = [
   {
     id: 'creator-1',
     type: 'creator',
@@ -366,6 +367,11 @@ export const INITIAL_ENTITIES: Entity[] = [
     tags: ['Technology Partner', 'Digital Platform', 'MOU Signed', 'Creator Infrastructure'],
     featured: true,
   }
+];
+
+export const INITIAL_ENTITIES: Entity[] = [
+  ...BASE_ENTITIES,
+  ...MASTER_IMPORTED_CREATORS,
 ];
 
 export const INITIAL_COMMUNITY_MEMBERS: CommunityMember[] = [

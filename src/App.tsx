@@ -35,6 +35,7 @@ import { Page25DashboardAdmin } from './pages/Page25DashboardAdmin';
 import { Page26AdminReviews } from './pages/Page26AdminReviews';
 import { Page27RequestFlowchart } from './pages/Page27RequestFlowchart';
 import { Page28BrandLandingPage } from './pages/Page28BrandLandingPage';
+import { Page29Broadcast } from './pages/Page29Broadcast';
 
 import { FolderGit2, Sparkles } from 'lucide-react';
 
@@ -99,13 +100,15 @@ const MainContent: React.FC = () => {
         return <Page27RequestFlowchart />;
       case 'page-28-brand-landing-page':
         return <Page28BrandLandingPage />;
+      case 'page-29-broadcast':
+        return <Page29Broadcast />;
       default:
         return <Page01Home />;
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-kiri-ivory dark:bg-kiri-dark-900 text-kiri-dark-900 dark:text-kiri-ivory transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-200">
       <Navbar />
 
       <main className="flex-1">

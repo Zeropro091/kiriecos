@@ -10,13 +10,13 @@ export const Footer: React.FC = () => {
   const waUrl = `https://wa.me/${waNumber}?text=${waText}`;
 
   return (
-    <footer className="bg-kiri-green-950 text-white pt-16 pb-12 border-t border-kiri-gold-500/20">
+    <footer className="bg-granite-900 text-white pt-16 pb-12 border-t border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-white/10">
           {/* Brand Col */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-white/10 p-2 flex items-center justify-center border border-kiri-gold-500/40">
+              <div className="w-12 h-12 rounded-xl bg-white/10 p-2 flex items-center justify-center border border-white/20">
                 <img
                   src="/assets/logo/kiri-logo.png"
                   alt="KIRI PROJECT"
@@ -25,9 +25,9 @@ export const Footer: React.FC = () => {
               </div>
               <div>
                 <span className="font-serif text-2xl font-bold text-white tracking-tight">
-                  KIRI <span className="text-kiri-gold-400">PROJECT</span>
+                  KIRI <span className="text-olive-400">PROJECT</span>
                 </span>
-                <p className="text-xs text-kiri-gold-300 font-medium tracking-wide">
+                <p className="text-xs text-olive-300 font-medium tracking-wide">
                   Connect. Collaborate. Impact.
                 </p>
               </div>
@@ -38,12 +38,12 @@ export const Footer: React.FC = () => {
             </p>
 
             {/* Official Contact Person Card */}
-            <div className="p-4 rounded-xl bg-white/5 border border-kiri-gold-500/30 max-w-sm space-y-2.5">
+            <div className="p-4 rounded-xl bg-white/5 border border-white/15 max-w-sm space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-kiri-gold-300 uppercase tracking-wider">
+                <span className="text-xs font-semibold text-olive-300 uppercase tracking-wider">
                   Contact Person Resmi
                 </span>
-                <span className="px-2 py-0.5 rounded text-[10px] bg-kiri-green-800 text-kiri-gold-200 font-medium">
+                <span className="px-2 py-0.5 rounded text-[10px] bg-granite-800 text-kiri-gold-200 font-medium">
                   Founder Liaison
                 </span>
               </div>
@@ -67,7 +67,7 @@ export const Footer: React.FC = () => {
 
           {/* Direktori Ekosistem */}
           <div>
-            <h4 className="text-xs font-bold text-kiri-gold-400 uppercase tracking-wider mb-4">
+            <h4 className="text-xs font-bold text-olive-400 uppercase tracking-wider mb-4">
               Direktori Ekosistem
             </h4>
             <ul className="space-y-2.5 text-sm text-gray-300">
@@ -124,7 +124,7 @@ export const Footer: React.FC = () => {
 
           {/* Onboarding & Membership */}
           <div>
-            <h4 className="text-xs font-bold text-kiri-gold-400 uppercase tracking-wider mb-4">
+            <h4 className="text-xs font-bold text-olive-400 uppercase tracking-wider mb-4">
               Bergabung & Registrasi
             </h4>
             <ul className="space-y-2.5 text-sm text-gray-300">
@@ -173,7 +173,7 @@ export const Footer: React.FC = () => {
                   onClick={() => navigateTo('page-27-request-flowchart')}
                   className="hover:text-white transition-colors flex items-center gap-1"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-kiri-gold-400" />
+                  <Sparkles className="w-3.5 h-3.5 text-olive-400" />
                   <span>Alur Permintaan Layanan</span>
                 </button>
               </li>
@@ -182,7 +182,7 @@ export const Footer: React.FC = () => {
 
           {/* Area Pengguna & Admin */}
           <div>
-            <h4 className="text-xs font-bold text-kiri-gold-400 uppercase tracking-wider mb-4">
+            <h4 className="text-xs font-bold text-olive-400 uppercase tracking-wider mb-4">
               Area Khusus
             </h4>
             <ul className="space-y-2.5 text-sm text-gray-300">

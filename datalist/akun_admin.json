@@ -1,0 +1,23 @@
+[
+  {
+    "id": "user-admin",
+    "nama": "Admin KIRI (Kak Rini & Team)",
+    "role": "Super Administrator / System Master",
+    "email": "admin@kiriproject.id",
+    "email_alternatif": "admin@projectkiri.id",
+    "username": "admin",
+    "password": "@projectkiri.id",
+    "hakAkses": "Akses penuh pengawasan ekosistem, matching, review pendaftaran, escrow, dan Siaran Komunitas Nasional/Regional",
+    "urlLogin": "/page-24-login-admin"
+  },
+  {
+    "id": "user-community",
+    "nama": "Kak Rini",
+    "role": "Community Lead (Bali Creative Circle)",
+    "email": "drini562@gmail.com",
+    "username": "kakrini",
+    "password": "@projectkiri.id",
+    "hakAkses": "Kelola database anggota komunitas, review verifikasi, dan Siaran Komunitas Regional",
+    "urlLogin": "/page-15-login"
+  }
+]

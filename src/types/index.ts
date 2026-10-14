@@ -26,7 +26,25 @@ export type PageId =
   | 'page-25-dashboard-admin'
   | 'page-26-admin-reviews'
   | 'page-27-request-flowchart'
-  | 'page-28-brand-landing-page';
+  | 'page-28-brand-landing-page'
+  | 'page-29-broadcast';
+
+export interface BroadcastMessage {
+  id: string;
+  scope: 'indonesia' | 'regional';
+  region?: string; // e.g. 'Jawa Barat', 'Bali', 'Sulawesi Tengah', etc.
+  senderId: string;
+  senderName: string;
+  senderRole: string;
+  senderAvatar: string;
+  senderBadge?: string;
+  content: string;
+  attachments?: string[];
+  timestamp: string; // ISO or readable
+  timeFormatted: string; // e.g. '18:25'
+  dateFormatted: string; // e.g. '14 Okt 2026'
+  likesCount?: number;
+}
 
 export type EntityType = 'creator' | 'community' | 'business' | 'media' | 'strategic';
 

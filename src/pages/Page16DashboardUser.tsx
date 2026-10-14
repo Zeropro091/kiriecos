@@ -12,8 +12,15 @@ import {
   Plus,
   Clock,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  ShieldCheck,
+  SlidersHorizontal,
+  FolderGit2
 } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 
 export const Page16DashboardUser: React.FC = () => {
   const { currentUser, collabRequests, navigateTo, openCollabModalFor, entities } = useApp();
@@ -24,34 +31,48 @@ export const Page16DashboardUser: React.FC = () => {
 
   const creatorEntity = entities.find((e) => e.id === currentUser?.entityId) || entities[0];
 
+  const getInitials = (name?: string) => {
+    if (!name) return 'KP';
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-      {/* Header Profile Summary */}
-      <div className="bg-gradient-to-r from-kiri-green-950 via-kiri-green-900 to-kiri-green-950 text-white rounded-3xl p-8 sm:p-10 border border-kiri-gold-500/30 shadow-subtle flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-5">
-          <img
-            src={currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80'}
-            alt={currentUser?.name}
-            className="w-20 h-20 rounded-2xl object-cover border-2 border-kiri-gold-400 shadow-md shrink-0"
-          />
+      {/* Header Profile Summary with Matte Granite */}
+      <section className="relative overflow-hidden rounded-3xl bg-granite-900 text-white p-8 sm:p-10 border border-granite-800 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="absolute -right-10 -bottom-10 w-72 h-72 rounded-full bg-olive-500/10 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex items-center gap-5">
+          <Avatar className="w-20 h-20 rounded-2xl border-2 border-olive-400 ring-2 ring-olive-500/30 shadow-md shrink-0">
+            <AvatarImage src={currentUser?.avatar} alt={currentUser?.name} />
+            <AvatarFallback className="bg-granite-950 text-olive-300 font-bold text-xl">
+              {getInitials(currentUser?.name)}
+            </AvatarFallback>
+          </Avatar>
+
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <h1 className="font-serif text-2xl sm:text-3xl font-bold text-white">
                 {currentUser?.name || 'Raka Dewantara'}
               </h1>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-kiri-gold-500 text-kiri-dark-950">
+              <Badge variant="outline" className="bg-olive-500/20 text-olive-300 border-olive-500/40 text-[10px] font-bold">
                 {currentUser?.membershipTier || 'Creator Pro'}
-              </span>
+              </Badge>
             </div>
-            <p className="text-xs text-gray-300 mt-1">
-              Akun Privat Terverifikasi KIRI PROJECT • ID: KP-USR-2026-041
+            <p className="text-xs text-granite-300 mt-1">
+              Akun Privat Terverifikasi KIRI PROJECT • Role: <span className="font-semibold text-white uppercase">{currentUser?.role}</span>
             </p>
-            <div className="flex items-center gap-4 mt-3 text-xs text-kiri-gold-300">
-              <span>Kekuatan Profil: <strong>88%</strong> (Lengkap)</span>
+            <div className="flex items-center gap-3 mt-3 text-xs text-olive-300 font-medium">
+              <span>Kekuatan Profil: <strong className="text-white">92%</strong> (Lengkap)</span>
               <span>•</span>
               <button
                 onClick={() => navigateTo('page-04-creator-profile', creatorEntity.id)}
-                className="underline hover:text-white flex items-center gap-1"
+                className="underline hover:text-white flex items-center gap-1 font-bold text-white transition-colors"
               >
                 Lihat Tampilan Publik <ExternalLink className="w-3 h-3" />
               </button>
@@ -60,190 +81,140 @@ export const Page16DashboardUser: React.FC = () => {
         </div>
 
         {/* Quick Top Actions */}
-        <div className="flex flex-wrap gap-2.5">
-          <button
+        <div className="relative z-10 flex flex-wrap gap-2.5">
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => navigateTo('page-17-profile-editor')}
-            className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 transition-all"
+            className="border-granite-700 bg-granite-800/80 hover:bg-granite-700 text-white text-xs font-semibold"
           >
-            Edit Profil & Portofolio
-          </button>
-          <button
+            <SlidersHorizontal className="w-3.5 h-3.5 mr-1.5" />
+            <span>Edit Profil & Portofolio</span>
+          </Button>
+          <Button
+            size="sm"
             onClick={() => navigateTo('page-02-directory')}
-            className="px-5 py-2.5 rounded-xl bg-kiri-gold-500 hover:bg-kiri-gold-400 text-kiri-dark-950 text-xs font-bold transition-all shadow-subtle flex items-center gap-1.5"
+            className="bg-olive-600 hover:bg-olive-500 text-white font-bold text-xs gap-1.5 shadow-sm"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>Eksplor Kolaborasi</span>
-          </button>
+          </Button>
         </div>
-      </div>
+      </section>
 
       {/* Metrics Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-6 rounded-2xl bg-white dark:bg-kiri-dark-800 border border-gray-200 dark:border-kiri-dark-700 shadow-subtle">
-          <div className="flex items-center justify-between text-gray-400 mb-2">
+        <Card className="p-6 border-border shadow-xs bg-card">
+          <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-medium uppercase">Kunjungan Profil</span>
-            <Eye className="w-4 h-4 text-kiri-gold-600" />
+            <Eye className="w-4 h-4 text-olive-600 dark:text-olive-400" />
           </div>
-          <p className="font-serif text-2xl sm:text-3xl font-bold text-kiri-green-950 dark:text-white">
+          <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground">
             1.420
           </p>
-          <span className="text-[11px] text-emerald-600 font-medium">↑ +24% bulan ini</span>
-        </div>
+          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">↑ +24% bulan ini</span>
+        </Card>
 
-        <div className="p-6 rounded-2xl bg-white dark:bg-kiri-dark-800 border border-gray-200 dark:border-kiri-dark-700 shadow-subtle">
-          <div className="flex items-center justify-between text-gray-400 mb-2">
+        <Card className="p-6 border-border shadow-xs bg-card">
+          <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-medium uppercase">Permintaan Masuk</span>
-            <MessageSquare className="w-4 h-4 text-kiri-gold-600" />
+            <MessageSquare className="w-4 h-4 text-olive-600 dark:text-olive-400" />
           </div>
-          <p className="font-serif text-2xl sm:text-3xl font-bold text-kiri-green-950 dark:text-white">
+          <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground">
             {userCollabs.length} Brief
           </p>
-          <span className="text-[11px] text-gray-400">Terkurasi via KIRI</span>
-        </div>
+          <span className="text-[11px] text-olive-700 dark:text-olive-400 font-semibold">2 menunggu respons</span>
+        </Card>
 
-        <div className="p-6 rounded-2xl bg-white dark:bg-kiri-dark-800 border border-gray-200 dark:border-kiri-dark-700 shadow-subtle">
-          <div className="flex items-center justify-between text-gray-400 mb-2">
-            <span className="text-xs font-medium uppercase">Proyek Berjalan</span>
-            <FileCheck2 className="w-4 h-4 text-kiri-green-700 dark:text-kiri-green-400" />
+        <Card className="p-6 border-border shadow-xs bg-card">
+          <div className="flex items-center justify-between text-muted-foreground mb-2">
+            <span className="text-xs font-medium uppercase">Proyek Aktif</span>
+            <FileCheck2 className="w-4 h-4 text-olive-600 dark:text-olive-400" />
           </div>
-          <p className="font-serif text-2xl sm:text-3xl font-bold text-kiri-green-950 dark:text-white">
-            {userCollabs.filter((c) => c.status === 'in_progress').length || 1} Proyek
+          <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground">
+            3 Berjalan
           </p>
-          <span className="text-[11px] text-amber-600 font-medium">1 deliverable minggu ini</span>
-        </div>
+          <span className="text-[11px] text-muted-foreground font-medium">Dalam escrow KIRI</span>
+        </Card>
 
-        <div className="p-6 rounded-2xl bg-white dark:bg-kiri-dark-800 border border-gray-200 dark:border-kiri-dark-700 shadow-subtle">
-          <div className="flex items-center justify-between text-gray-400 mb-2">
-            <span className="text-xs font-medium uppercase">Estimasi Revenue</span>
-            <DollarSign className="w-4 h-4 text-kiri-gold-600" />
+        <Card className="p-6 border-border shadow-xs bg-card">
+          <div className="flex items-center justify-between text-muted-foreground mb-2">
+            <span className="text-xs font-medium uppercase">Estimasi Revenu</span>
+            <DollarSign className="w-4 h-4 text-olive-600 dark:text-olive-400" />
           </div>
-          <p className="font-serif text-2xl sm:text-3xl font-bold text-kiri-green-950 dark:text-white">
-            Rp 10.5M
+          <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground">
+            Rp 18.5 Jt
           </p>
-          <span className="text-[11px] text-emerald-600 font-medium">Terlindungi Escrow</span>
-        </div>
+          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">100% aman terlindungi</span>
+        </Card>
       </div>
 
-      {/* Main Dashboard Columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left: Active Collaborations */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-serif text-xl font-bold text-kiri-green-950 dark:text-white">
-                Status Kolaborasi Aktif Anda
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Semua proyek diawasi langsung oleh tim kurasi KIRI PROJECT
-              </p>
-            </div>
-            <button
-              onClick={() => navigateTo('page-23-my-collaborations')}
-              className="text-xs font-bold text-kiri-green-900 dark:text-kiri-gold-400 hover:underline flex items-center gap-1"
-            >
-              <span>Lihat Semua</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+      {/* Main Collaborations Management Card */}
+      <Card className="border-border shadow-xs bg-card">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
+          <div>
+            <CardTitle className="text-base font-bold text-foreground">
+              Kolaborasi & Proyek Terkini
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Status mediasi, alur escrow, dan pengiriman karya
+            </CardDescription>
           </div>
 
-          <div className="space-y-3">
-            {userCollabs.slice(0, 3).map((collab) => (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigateTo('page-23-my-collaborations')}
+            className="text-xs font-semibold gap-1.5"
+          >
+            <span>Buka Hub Kolaborasi Penuh</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Button>
+        </CardHeader>
+
+        <CardContent className="pt-4 space-y-3">
+          {userCollabs.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground text-xs space-y-2">
+              <FolderGit2 className="w-10 h-10 mx-auto text-muted-foreground/40" />
+              <p className="font-bold text-foreground">Belum ada proyek kolaborasi aktif.</p>
+              <p>Mulai tawarkan keahlianmu atau ajak kolaborasi brand di katalog direktori.</p>
+            </div>
+          ) : (
+            userCollabs.map((collab) => (
               <div
                 key={collab.id}
-                className="p-5 rounded-2xl bg-white dark:bg-kiri-dark-800 border border-gray-200 dark:border-kiri-dark-700 shadow-subtle space-y-3"
+                className="p-4 rounded-xl border border-border hover:border-olive-500/50 bg-background transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-[10px] text-gray-400 font-bold">
-                        {collab.trackingCode}
-                      </span>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                        collab.status === 'in_progress'
-                          ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300'
-                          : collab.status === 'matched'
-                          ? 'bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-300'
-                          : 'bg-emerald-100 text-emerald-800'
-                      }`}>
-                        {collab.status.replace('_', ' ')}
-                      </span>
-                    </div>
-                    <h4 className="font-serif font-bold text-base text-kiri-green-950 dark:text-white mt-1">
-                      {collab.title}
-                    </h4>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Partner: <strong>{collab.requesterName}</strong> • Kategori: {collab.category}
-                    </p>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="text-[10px] font-mono font-bold">
+                      {collab.trackingCode}
+                    </Badge>
+                    <Badge variant="outline" className="text-[10px] uppercase font-bold text-olive-700 dark:text-olive-400 border-olive-500/40">
+                      {collab.status.replace('_', ' ')}
+                    </Badge>
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="font-bold text-xs text-kiri-green-900 dark:text-kiri-gold-400">
-                      {collab.budget}
-                    </p>
-                    <p className="text-[10px] text-gray-400">{collab.timeline}</p>
-                  </div>
+                  <h4 className="font-bold text-sm text-foreground">
+                    {collab.title}
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    Klien / Mitra: <strong className="text-foreground">{collab.requesterName}</strong> • Anggaran: <strong className="text-foreground">{collab.budget}</strong>
+                  </p>
                 </div>
 
-                <div className="p-3 rounded-xl bg-gray-50 dark:bg-kiri-dark-750 text-xs text-gray-600 dark:text-gray-300 flex items-center justify-between">
-                  <span>{collab.adminNotes || 'Brief disetujui kurator KIRI.'}</span>
-                  <button
-                    onClick={() => navigateTo('page-23-my-collaborations')}
-                    className="font-bold text-kiri-green-900 dark:text-kiri-gold-400 hover:underline shrink-0 ml-3"
-                  >
-                    Detail Brief →
-                  </button>
-                </div>
+                <Button
+                  size="sm"
+                  onClick={() => navigateTo('page-23-my-collaborations')}
+                  className="bg-granite-900 hover:bg-granite-800 text-white dark:bg-olive-500 dark:text-granite-950 font-semibold text-xs shrink-0"
+                >
+                  <span>Detail & Checklist</span>
+                  <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                </Button>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right Sidebar: Quick Actions & Ecosystem Notices */}
-        <div className="space-y-6">
-          <div className="p-6 rounded-2xl bg-white dark:bg-kiri-dark-800 border border-gray-200 dark:border-kiri-dark-700 shadow-subtle space-y-4">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-kiri-green-950 dark:text-white">
-              Aksi Cepat Dasbor
-            </h4>
-            <div className="space-y-2 text-xs">
-              <button
-                onClick={() => navigateTo('page-17-profile-editor')}
-                className="w-full p-3 rounded-xl bg-gray-50 dark:bg-kiri-dark-750 hover:bg-gray-100 dark:hover:bg-kiri-dark-700 text-left font-medium text-gray-800 dark:text-gray-200 flex items-center justify-between transition-all"
-              >
-                <span>Perbarui Rate Card & Layanan</span>
-                <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
-              </button>
-
-              <button
-                onClick={() => navigateTo('page-02-directory')}
-                className="w-full p-3 rounded-xl bg-gray-50 dark:bg-kiri-dark-750 hover:bg-gray-100 dark:hover:bg-kiri-dark-700 text-left font-medium text-gray-800 dark:text-gray-200 flex items-center justify-between transition-all"
-              >
-                <span>Cari Mitra Brand / UMKM</span>
-                <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
-              </button>
-
-              <button
-                onClick={() => navigateTo('page-27-request-flowchart')}
-                className="w-full p-3 rounded-xl bg-gray-50 dark:bg-kiri-dark-750 hover:bg-gray-100 dark:hover:bg-kiri-dark-700 text-left font-medium text-gray-800 dark:text-gray-200 flex items-center justify-between transition-all"
-              >
-                <span>Simulasi Alur Proyek KIRI</span>
-                <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
-              </button>
-            </div>
-          </div>
-
-          {/* Agenda KIRI Academy Notice */}
-          <div className="p-6 rounded-2xl bg-kiri-ivory-warm dark:bg-kiri-dark-800 border border-kiri-gold-500/30 space-y-3">
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-kiri-gold-500 text-kiri-dark-950 uppercase">
-              Agenda KIRI Academy
-            </span>
-            <h4 className="font-serif font-bold text-base text-kiri-green-950 dark:text-white">
-              Workshop: Standar Rate Card & Kontrak Hak Cipta Kreator Bali
-            </h4>
-            <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
-              Jumat, 25 September 2026 • Bersama Kak Rini & DGT Team di Denpasar Creative Hub.
-            </p>
-          </div>
-        </div>
-      </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
