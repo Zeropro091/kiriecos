@@ -1,46 +1,120 @@
+﻿@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/nunito-sans";
+@import "@fontsource-variable/instrument-sans";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   body {
-    @apply font-sans bg-[#FAF8F5] text-kiri-dark-900 selection:bg-kiri-gold-500/30 selection:text-kiri-green-950;
+    @apply font-sans selection:bg-olive-500/30 selection:text-granite-950 bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4 {
-    @apply font-serif tracking-tight;
+    @apply font-serif tracking-tight text-foreground;
+  }
+
+  :root {
+    /* MINIMALIST MATTE GRANITE & CRISP WHITE WITH REFINED OLIVE ACCENT (Light Mode) */
+    --background: oklch(0.978 0.003 250);
+    --foreground: oklch(0.14 0.006 260);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.14 0.006 260);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.14 0.006 260);
+    --primary: oklch(0.34 0.075 138);
+    --primary-foreground: oklch(0.99 0 0);
+    --secondary: oklch(0.93 0.004 250);
+    --secondary-foreground: oklch(0.18 0.006 260);
+    --muted: oklch(0.94 0.003 250);
+    --muted-foreground: oklch(0.42 0.012 260);
+    --accent: oklch(0.48 0.09 138);
+    --accent-foreground: oklch(0.99 0 0);
+    --destructive: oklch(0.55 0.22 27);
+    --border: oklch(0.89 0.005 250);
+    --input: oklch(0.89 0.005 250);
+    --ring: oklch(0.48 0.09 138);
+    --chart-1: oklch(0.34 0.075 138);
+    --chart-2: oklch(0.48 0.09 138);
+    --chart-3: oklch(0.60 0.10 138);
+    --chart-4: oklch(0.30 0.01 260);
+    --chart-5: oklch(0.20 0.01 260);
+    --radius: 0.75rem;
+    --sidebar: oklch(0.978 0.003 250);
+    --sidebar-foreground: oklch(0.14 0.006 260);
+    --sidebar-primary: oklch(0.34 0.075 138);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-accent: oklch(0.93 0.004 250);
+    --sidebar-accent-foreground: oklch(0.18 0.006 260);
+    --sidebar-border: oklch(0.89 0.005 250);
+    --sidebar-ring: oklch(0.48 0.09 138);
+  }
+
+  .dark {
+    /* MATTE GRANITE & CRISP WHITE WITH OLIVE GLOW (Dark Mode) */
+    --background: oklch(0.13 0.005 260);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.18 0.006 260);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.18 0.006 260);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.58 0.11 138);
+    --primary-foreground: oklch(0.12 0.005 260);
+    --secondary: oklch(0.24 0.008 260);
+    --secondary-foreground: oklch(0.97 0 0);
+    --muted: oklch(0.22 0.007 260);
+    --muted-foreground: oklch(0.70 0.01 250);
+    --accent: oklch(0.58 0.11 138);
+    --accent-foreground: oklch(0.12 0.005 260);
+    --destructive: oklch(0.68 0.20 22);
+    --border: oklch(0.27 0.008 260);
+    --input: oklch(0.27 0.008 260);
+    --ring: oklch(0.58 0.11 138);
+    --sidebar: oklch(0.15 0.005 260);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.58 0.11 138);
+    --sidebar-primary-foreground: oklch(0.12 0.005 260);
+    --sidebar-accent: oklch(0.23 0.007 260);
+    --sidebar-accent-foreground: oklch(0.97 0 0);
+    --sidebar-border: oklch(0.27 0.008 260);
+    --sidebar-ring: oklch(0.58 0.11 138);
+  }
+
+  * {
+    @apply border-border;
   }
 }
 
-/* Glassmorphism & Modern Card Accents */
+/* Glassmorphism & High-Contrast Cards */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .dark .glass-panel {
-  background: rgba(22, 19, 12, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(24, 26, 31, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .subtle-mesh {
-  background-image: radial-gradient(at 0% 0%, rgba(34, 139, 107, 0.08) 0px, transparent 50%),
-                    radial-gradient(at 100% 100%, rgba(216, 174, 90, 0.08) 0px, transparent 50%);
+  background-image: radial-gradient(at 0% 0%, rgba(92, 130, 78, 0.12) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(61, 66, 80, 0.12) 0px, transparent 50%);
 }
 
 .dark .subtle-mesh {
-  background-image: radial-gradient(at 0% 0%, rgba(34, 139, 107, 0.12) 0px, transparent 50%),
-                    radial-gradient(at 100% 100%, rgba(216, 174, 90, 0.1) 0px, transparent 50%);
+  background-image: radial-gradient(at 0% 0%, rgba(92, 130, 78, 0.16) 0px, transparent 50%),
+                    radial-gradient(at 100% 100%, rgba(35, 38, 47, 0.4) 0px, transparent 50%);
 }
 
-/* Custom Smooth Scrollbar */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
@@ -48,15 +122,15 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #C29947;
+  background: #535A6C;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #A07828;
+  background: #3D4250;
 }
 
-/* Keyframes & Micro-interactions */
+/* Animations */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
@@ -67,28 +141,13 @@
   to { opacity: 1; transform: scale(1); }
 }
 
-@keyframes slideInRight {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
-}
-
 @keyframes slideInUp {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes spinSlow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes pulseGlow {
-  0%, 100% { opacity: 0.4; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.05); }
-}
-
 .animate-in {
-  animation-duration: 300ms;
+  animation-duration: 250ms;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   animation-fill-mode: forwards;
 }
@@ -101,19 +160,6 @@
   animation-name: zoomIn95;
 }
 
-.slide-in-from-right {
-  animation-name: slideInRight;
-}
-
 .slide-in-from-bottom-4 {
   animation-name: slideInUp;
 }
-
-.animate-spin-slow {
-  animation: spinSlow 24s linear infinite;
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 4s ease-in-out infinite;
-}
-

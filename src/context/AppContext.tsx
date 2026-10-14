@@ -6,11 +6,13 @@ import {
   CollaborationRequest,
   RegistrationApplication,
   UserSession,
+  BroadcastMessage,
 } from '../types';
 import {
   INITIAL_COMMUNITY_MEMBERS,
   DEFAULT_USERS,
 } from '../data/mockData';
+import { INITIAL_BROADCAST_MESSAGES } from '../data/broadcastData';
 import { dataService } from '../services/dataService';
 
 interface ToastInfo {
@@ -51,6 +53,9 @@ interface AppContextType {
   submitRegistration: (data: Partial<RegistrationApplication>) => void;
   reviewRegistration: (id: string, status: 'approved' | 'rejected') => void;
   updateEntityProfile: (entityId: string, updates: Partial<Entity>) => void;
+  broadcastMessages: BroadcastMessage[];
+  sendBroadcastMessage: (data: { scope: 'indonesia' | 'regional'; region?: string; content: string }) => void;
+  likeBroadcastMessage: (id: string) => void;
   isMasterNavOpen: boolean;
   setIsMasterNavOpen: (open: boolean) => void;
 }
@@ -78,8 +83,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [collabTargetEntity, setCollabTargetEntity] = useState<Entity | null>(null);
   const [toasts, setToasts] = useState<ToastInfo[]>([]);
   const [isMasterNavOpen, setIsMasterNavOpen] = useState<boolean>(false);
+  const [broadcastMessages, setBroadcastMessages] = useState<BroadcastMessage[]>(() => {
+    const saved = localStorage.getItem('kiri_broadcasts');
+    return saved ? JSON.parse(saved) : INITIAL_BROADCAST_MESSAGES;
+  });
 
   // Sync state to localStorage
+  useEffect(() => {
+    localStorage.setItem('kiri_broadcasts', JSON.stringify(broadcastMessages));
+  }, [broadcastMessages]);
   useEffect(() => {
     localStorage.setItem('kiri_user', JSON.stringify(currentUser));
   }, [currentUser]);
@@ -369,6 +381,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast('Perubahan profil berhasil disimpan!', 'success');
   };
 
+  const sendBroadcastMessage = (data: { scope: 'indonesia' | 'regional'; region?: string; content: string }) => {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const timeFormatted = `${hours}:${minutes}`;
+    const dateFormatted = 'Hari ini';
+
+    const newMessage: BroadcastMessage = {
+      id: `bc-${Date.now()}`,
+      scope: data.scope,
+      region: data.scope === 'regional' ? (data.region || 'Jawa Barat') : undefined,
+      senderId: currentUser?.id || 'guest-user',
+      senderName: currentUser?.name || 'Kreator KIRI',
+      senderRole: currentUser?.role || 'creator',
+      senderAvatar: currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+      senderBadge: currentUser?.membershipTier || 'Anggota Ekosistem',
+      content: data.content.trim(),
+      timestamp: now.toISOString(),
+      timeFormatted,
+      dateFormatted,
+      likesCount: 0
+    };
+
+    setBroadcastMessages((prev) => [...prev, newMessage]);
+    showToast('Pesan siaran berhasil dikirim!', 'success');
+  };
+
+  const likeBroadcastMessage = (id: string) => {
+    setBroadcastMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === id ? { ...msg, likesCount: (msg.likesCount || 0) + 1 } : msg
+      )
+    );
+  };
+
   const selectedEntity = entities.find((e) => e.id === selectedEntityId) || entities[0];
 
   return (
@@ -404,6 +451,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         submitRegistration,
         reviewRegistration,
         updateEntityProfile,
+        broadcastMessages,
+        sendBroadcastMessage,
+        likeBroadcastMessage,
         isMasterNavOpen,
         setIsMasterNavOpen,
       }}

@@ -1,3 +1,4 @@
+import masterGeoCreators from './masterGeoCreators.json';
 // Integrated Creator Geo Data for KIRI Project Ecosystem Map
 export type CreatorGeoData = {
   name: string;
@@ -22,7 +23,7 @@ export type ProvinceGeoData = {
   coordinates: [number, number]; // [lng, lat]
 };
 
-const rawCreators = [
+const baseSampleCreators = [
   {
     "Nama Lengkap": "Derini",
     "Domisili (Kota dan Provinsi)": "Sumedang Jawa Barat ",
@@ -175,6 +176,8 @@ const rawCreators = [
   }
 ];
 
+const rawCreators = [...baseSampleCreators, ...masterGeoCreators];
+
 export const parseFollowers = (val: string | number | null): number => {
   if (!val) return 0;
   if (typeof val === 'number') return val;
@@ -311,7 +314,7 @@ export const getFilteredGeoMapData = (nicheFilter: string, minFollowers: number)
         followers: creator['Jumlah Followers per Platform'] || null,
         portfolio: creator['Link Portofolio'] || null,
         profilePic: creator['Upload Foto Profil'] || null,
-        whatsapp: creator['Kontak WhatsApp'] || null
+        whatsapp: creator['Kontak WhatsApp'] ? (String(creator['Kontak WhatsApp']).replace(/\D/g, '').slice(0, 4) + '****' + String(creator['Kontak WhatsApp']).replace(/\D/g, '').slice(-3)) : null
       });
     }
   });

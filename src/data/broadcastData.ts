@@ -1,0 +1,96 @@
+import { BroadcastMessage } from '../types';
+
+export const INITIAL_BROADCAST_MESSAGES: BroadcastMessage[] = [
+  {
+    id: 'bc-1',
+    scope: 'indonesia',
+    senderId: 'admin-kiri',
+    senderName: 'Admin KIRI (Kak Rini & Team)',
+    senderRole: 'admin',
+    senderAvatar: '/assets/logo/kiri-logo.png',
+    senderBadge: 'Official Announcement',
+    content: '🎉 Selamat datang di KIRI Broadcast Nasional! Kanal ini digunakan untuk pengumuman resmi peluang kampanye nasional, kolaborasi lintas provinsi, dan agenda inkubasi bersama KIRI PROJECT.',
+    timestamp: '2026-10-14T08:00:00.000Z',
+    timeFormatted: '08:00',
+    dateFormatted: 'Hari ini',
+    likesCount: 38
+  },
+  {
+    id: 'bc-2',
+    scope: 'indonesia',
+    senderId: 'user-biz',
+    senderName: 'Wayan Kintamani (Kopi Kintamani Organic)',
+    senderRole: 'umkm_owner',
+    senderAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&q=80',
+    senderBadge: 'Brand Collab Offer',
+    content: '☕ Panggilan untuk kreator kuliner & lifestyle se-Indonesia! Kami membuka barter & paid endorsement produk Cold Brew Batur Organic untuk 10 kreator terpilih bulan ini. Yang tertarik silakan kirim brief melalui profil kami.',
+    timestamp: '2026-10-14T09:30:00.000Z',
+    timeFormatted: '09:30',
+    dateFormatted: 'Hari ini',
+    likesCount: 24
+  },
+  {
+    id: 'bc-3',
+    scope: 'regional',
+    region: 'Jawa Barat',
+    senderId: 'creator-kp-00001',
+    senderName: 'Dede Rini',
+    senderRole: 'creator',
+    senderAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80',
+    senderBadge: 'Regional Creator',
+    content: 'Halo teman-teman kreator Jawa Barat (Bandung, Sumedang, Garut, Subang)! Ada rencana meetup santai akhir pekan ini untuk sharing seputar content workflow reels. Ada yang mau join?',
+    timestamp: '2026-10-14T10:15:00.000Z',
+    timeFormatted: '10:15',
+    dateFormatted: 'Hari ini',
+    likesCount: 15
+  },
+  {
+    id: 'bc-4',
+    scope: 'regional',
+    region: 'Bali',
+    senderId: 'user-creator',
+    senderName: 'Raka Dewantara',
+    senderRole: 'creator',
+    senderAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+    senderBadge: 'Creator Pro',
+    content: 'Ada proyek sinematografi resort di Ubud yang membutuhkan 1 fotografer food & beverage untuk tanggal 20 Oktober. Rekan-rekan kreator Bali yang available bisa co-collab yuk!',
+    timestamp: '2026-10-14T11:45:00.000Z',
+    timeFormatted: '11:45',
+    dateFormatted: 'Hari ini',
+    likesCount: 19
+  },
+  {
+    id: 'bc-5',
+    scope: 'regional',
+    region: 'Sulawesi Tengah',
+    senderId: 'creator-kp-00002',
+    senderName: 'Siti Maemunah',
+    senderRole: 'creator',
+    senderAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+    senderBadge: 'Regional Creator',
+    content: 'Salam dari Palu! Senang sekali sekarang bisa terhubung dengan sesama kreator lewat KIRI Broadcast daerah. UMKM lokal Palu yang butuh exposure wisata pantai mari merapat.',
+    timestamp: '2026-10-14T14:10:00.000Z',
+    timeFormatted: '14:10',
+    dateFormatted: 'Hari ini',
+    likesCount: 8
+  }
+];
+
+export const INDONESIA_REGIONS = [
+  'Semua Daerah',
+  'Jawa Barat',
+  'DKI Jakarta',
+  'Jawa Tengah',
+  'Jawa Timur',
+  'DI Yogyakarta',
+  'Banten',
+  'Bali',
+  'Sulawesi Tengah',
+  'Sulawesi Selatan',
+  'Sumatera Utara',
+  'Sumatera Barat',
+  'Riau',
+  'Kalimantan Timur',
+  'Nusa Tenggara Barat',
+  'Papua'
+];
