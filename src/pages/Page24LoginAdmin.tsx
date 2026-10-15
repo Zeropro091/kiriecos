@@ -42,71 +42,69 @@ export const Page24LoginAdmin: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-16 space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-900 dark:text-amber-300 text-xs font-semibold">
-          <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
-          <span>PAGE 24 — Gerbang Otoritas Admin KIRI</span>
+    <div className="mx-auto max-w-sm px-5 py-16 lg:py-24">
+      <div className="mb-8">
+        <div className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground mb-4">
+          <ShieldAlert className="w-4 h-4" />
+          <span>Portal Admin</span>
         </div>
-        <h1 className="font-serif text-3xl font-bold text-kiri-green-950 dark:text-white">
-          Portal Operasional Admin
-        </h1>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          Area terbatas untuk Kak Rini & Tim Kurasi KIRI PROJECT
+        <h1 className="font-serif text-3xl text-foreground">Masuk sebagai Admin</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Area terbatas untuk tim kurasi KIRI Project.
         </p>
       </div>
 
-      {/* Admin Card */}
-      <div className="bg-gradient-to-b from-kiri-green-950 to-kiri-green-900 text-white rounded-3xl p-8 border border-kiri-gold-500/40 shadow-elevated space-y-6">
-        <div className="flex items-center gap-3 pb-4 border-b border-white/10">
-          <div className="w-12 h-12 rounded-xl bg-kiri-gold-500/20 border border-kiri-gold-400 flex items-center justify-center text-kiri-gold-300">
-            <ShieldCheck className="w-6 h-6" />
-          </div>
+      <div className="rounded-xl border border-border bg-card p-6 space-y-5">
+        <div className="flex items-center gap-3 pb-4 border-b border-border">
+          <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-secondary text-primary">
+            <ShieldCheck className="w-5 h-5" />
+          </span>
           <div>
-            <h3 className="font-serif font-bold text-base text-white">
-              Sistem Kurasi & Matching
-            </h3>
-            <p className="text-xs text-kiri-gold-300">Akses Pengawasan Ekosistem</p>
+            <h2 className="text-sm font-medium text-foreground">Sistem Kurasi &amp; Matching</h2>
+            <p className="text-xs text-muted-foreground">Akses pengawasan ekosistem</p>
           </div>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-gray-300 mb-1">
-              Email Administrator
+          <div className="space-y-1.5">
+            <label htmlFor="admin-email" className="block text-sm font-medium text-foreground">
+              Email administrator
             </label>
             <div className="relative">
-              <Mail className="w-4 h-4 absolute left-3.5 top-3 text-gray-400" />
+              <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
+                id="admin-email"
                 type="email"
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:border-kiri-gold-400"
+                className="w-full pl-9 pr-3 py-2.5 text-sm rounded-lg bg-background border border-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary"
                 required
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-300 mb-1">
-              Security Key / Password
+          <div className="space-y-1.5">
+            <label htmlFor="admin-password" className="block text-sm font-medium text-foreground">
+              Kata sandi
             </label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3.5 top-3 text-gray-400" />
+              <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
+                id="admin-password"
                 type="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:border-kiri-gold-400"
+                className="w-full pl-9 pr-3 py-2.5 text-sm rounded-lg bg-background border border-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 focus:border-primary"
                 required
               />
             </div>
           </div>
 
           {error && (
-            <div className="flex items-start gap-2 p-3 rounded-xl bg-red-500/15 border border-red-400/30 text-red-200 text-[11px] leading-relaxed">
-              <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
+              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
               <span>{error}</span>
             </div>
           )}
@@ -114,17 +112,12 @@ export const Page24LoginAdmin: React.FC = () => {
           <button
             type="submit"
             disabled={busy}
-            className="w-full py-3 rounded-xl bg-kiri-gold-500 hover:bg-kiri-gold-400 text-kiri-dark-950 font-bold text-xs shadow-gold-glow transition-all flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full h-11 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <span>{busy ? 'Memverifikasi…' : 'Masuk ke Admin Request Center'}</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <span>{busy ? 'Memverifikasi…' : 'Masuk'}</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
         </form>
-
-        <p className="pt-2 border-t border-white/10 text-[11px] text-center text-gray-400 leading-relaxed">
-          Kredensial diverifikasi terhadap penyimpanan akun lokal di perangkat ini.
-          Hubungi super-admin KIRI bila Anda kehilangan akses.
-        </p>
       </div>
     </div>
   );
