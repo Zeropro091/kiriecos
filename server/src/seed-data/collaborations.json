@@ -1,0 +1,74 @@
+[
+  {
+    "id": "req-1",
+    "trackingCode": "KP-REQ-2026-0812",
+    "title": "Peluncuran Cold Brew Organik Batur",
+    "category": "F&B Review & Cinematic Reel",
+    "requesterId": "biz-1",
+    "requesterName": "Kopi Kintamani Organic",
+    "requesterType": "business",
+    "targetId": "creator-1",
+    "targetName": "Raka Dewantara",
+    "targetType": "creator",
+    "budget": "Rp 6.500.000",
+    "timeline": "15 Sep 2026 - 30 Sep 2026",
+    "scope": "Produksi 1x video sinematik 4K reels tentang proses cold brew di kebun Kintamani dan review honest tasting.",
+    "deliverables": [
+      "1x Instagram 4K Reel",
+      "1x TikTok Cut (9:16)",
+      "5x Raw Story Snippets",
+      "Usage Rights 6 Bulan"
+    ],
+    "status": "in_progress",
+    "createdAt": "28 Agu 2026",
+    "adminNotes": "Telah dikonfirmasi oleh Kak Rini. Brief lengkap telah disepakati kedua belah pihak.",
+    "matchedTalentName": "Raka Dewantara"
+  },
+  {
+    "id": "req-2",
+    "trackingCode": "KP-REQ-2026-0819",
+    "title": "Liputan Media Pembukaan Roastery Baru",
+    "category": "Press Release & Media Feature",
+    "requesterId": "biz-1",
+    "requesterName": "Kopi Kintamani Organic",
+    "requesterType": "business",
+    "targetId": "media-1",
+    "targetName": "CreativeBali News",
+    "targetType": "media",
+    "budget": "Rp 2.500.000",
+    "timeline": "20 Sep 2026 - 25 Sep 2026",
+    "scope": "Publikasi artikel feature peluncuran outlet roastery baru di Renon, Denpasar dan liputan wawancara founder.",
+    "deliverables": [
+      "1x Web Article (Permanent)",
+      "Google News Syndication",
+      "1x Instagram Carousel feature"
+    ],
+    "status": "matched",
+    "createdAt": "01 Sep 2026",
+    "adminNotes": "Tim CreativeBali telah menyetujui jadwal liputan tanggal 22 September.",
+    "matchedTalentName": "Redaksi CreativeBali"
+  },
+  {
+    "id": "req-3",
+    "trackingCode": "KP-REQ-2026-0834",
+    "title": "Visual Branding Sabun Herbal Organik Tabanan",
+    "category": "Product Photography & UGC",
+    "requesterId": "biz-2",
+    "requesterName": "Sari Bumi Natural Skincare",
+    "requesterType": "business",
+    "targetId": "creator-2",
+    "targetName": "Ayu Laksmi Dewi",
+    "targetType": "creator",
+    "budget": "Rp 4.000.000",
+    "timeline": "01 Okt 2026 - 15 Okt 2026",
+    "scope": "Foto produk konsep alam dan carousel edukasi bahan organik lokal.",
+    "deliverables": [
+      "8x High-res photo catalog",
+      "1x Instagram Carousel post",
+      "3x Stories"
+    ],
+    "status": "submitted",
+    "createdAt": "07 Sep 2026",
+    "adminNotes": "Sedang dalam proses kurasi internal KIRI Project."
+  }
+]

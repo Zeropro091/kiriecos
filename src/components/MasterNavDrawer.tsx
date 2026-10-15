@@ -35,7 +35,12 @@ export const MasterNavDrawer: React.FC = () => {
   });
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-sm flex justify-end animate-in fade-in duration-200">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Master Page Navigator"
+      className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-sm flex justify-end animate-in fade-in duration-200"
+    >
       <div className="w-full max-w-2xl bg-white dark:bg-kiri-dark-900 h-full shadow-2xl flex flex-col border-l border-kiri-green-900/10 dark:border-kiri-gold-500/20">
         {/* Header */}
         <div className="p-6 border-b border-gray-100 dark:border-kiri-dark-700 flex items-center justify-between bg-kiri-ivory-warm dark:bg-kiri-dark-850">
@@ -54,6 +59,7 @@ export const MasterNavDrawer: React.FC = () => {
           </div>
           <button
             onClick={() => setIsMasterNavOpen(false)}
+            aria-label="Tutup peta halaman"
             className="p-2 rounded-xl text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-kiri-dark-750 transition-all"
           >
             <X className="w-5 h-5" />

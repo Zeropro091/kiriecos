@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: kiri-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kiri
+      POSTGRES_PASSWORD: kiri_dev_password
+      POSTGRES_DB: kiri
+    ports:
+      - "5433:5432"
+    volumes:
+      - kiri_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kiri -d kiri"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  kiri_pgdata:

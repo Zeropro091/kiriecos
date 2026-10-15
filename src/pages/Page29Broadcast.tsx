@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import { canBroadcast } from '../lib/access';
 import { INDONESIA_REGIONS } from '../data/broadcastData';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -35,15 +36,7 @@ export const Page29Broadcast: React.FC = () => {
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Authority Gate: Hanya Admin KIRI & Community Lead (atau akun dengan hak siar khusus) yang dapat membroadcast
-  const canBroadcast = currentUser && (
-    currentUser.role === 'admin' ||
-    currentUser.role === 'community_lead' ||
-    currentUser.email.toLowerCase() === 'admin@kiriproject.id' ||
-    currentUser.email.toLowerCase() === 'drini562@gmail.com' ||
-    currentUser.membershipTier === 'System Master' ||
-    currentUser.membershipTier === 'Community Verified'
-  );
+  const canBroadcastNow = canBroadcast(currentUser);
 
   // Auto scroll to bottom when new messages arrive
   useEffect(() => {
@@ -54,7 +47,7 @@ export const Page29Broadcast: React.FC = () => {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim()) return;
+    if (!inputText.trim() || !canBroadcastNow) return;
 
     sendBroadcastMessage({
       scope: activeScope,
@@ -303,7 +296,7 @@ export const Page29Broadcast: React.FC = () => {
         </div>
 
         {/* Input Bar or Restricted Notice */}
-        {canBroadcast ? (
+            {canBroadcastNow ? (
           <div className="p-3 sm:p-4 border-t border-border bg-card">
             <form onSubmit={handleSendMessage} className="flex items-center gap-2">
               <div className="flex-1 relative">

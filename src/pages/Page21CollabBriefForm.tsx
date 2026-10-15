@@ -48,7 +48,7 @@ export const Page21CollabBriefForm: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    submitCollabRequest({
+    const requestId = submitCollabRequest({
       title,
       category,
       targetId: targetEntity.id,
@@ -59,7 +59,9 @@ export const Page21CollabBriefForm: React.FC = () => {
       scope,
       deliverables,
     });
-    navigateTo('page-22-collab-success');
+    if (requestId) {
+      navigateTo('page-22-collab-success');
+    }
   };
 
   return (

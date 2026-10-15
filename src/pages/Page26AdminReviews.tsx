@@ -14,10 +14,11 @@ import {
   FileCheck
 } from 'lucide-react';
 import { dataService } from '../services/dataService';
+import { isAdmin } from '../lib/access';
 import { PaymentReceipt } from '../types';
 
 export const Page26AdminReviews: React.FC = () => {
-  const { registrations, reviewRegistration, navigateTo, showToast } = useApp();
+  const { registrations, reviewRegistration, navigateTo, showToast, currentUser } = useApp();
   const [activeTab, setActiveTab] = useState<'registrations' | 'payments'>('registrations');
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [payments, setPayments] = useState<PaymentReceipt[]>([]);
@@ -51,6 +52,23 @@ export const Page26AdminReviews: React.FC = () => {
     if (filter === 'all') return true;
     return r.status === filter;
   });
+
+  if (!isAdmin(currentUser)) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-24 text-center space-y-4">
+        <h1 className="font-serif text-2xl font-bold text-foreground">Akses Ditolak</h1>
+        <p className="text-sm text-muted-foreground">
+          Pusat verifikasi hanya dapat dibuka oleh administrator KIRI.
+        </p>
+        <button
+          onClick={() => navigateTo('page-24-login-admin')}
+          className="px-6 py-2.5 rounded-xl bg-granite-900 text-white dark:bg-olive-500 dark:text-granite-950 text-xs font-bold"
+        >
+          Masuk sebagai Admin
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">

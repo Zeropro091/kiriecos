@@ -23,12 +23,18 @@ export const CollabRequestModal: React.FC = () => {
   if (!isCollabModalOpen || !collabTargetEntity) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Request Through KIRI Project"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in"
+    >
       <div className="bg-white dark:bg-kiri-dark-850 rounded-2xl max-w-xl w-full border border-kiri-green-900/20 dark:border-kiri-gold-500/30 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Modal Header */}
         <div className="bg-gradient-to-r from-kiri-green-950 to-kiri-green-900 text-white p-6 relative">
           <button
             onClick={() => setIsCollabModalOpen(false)}
+            aria-label="Tutup dialog kolaborasi"
             className="absolute top-5 right-5 p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all"
           >
             <X className="w-5 h-5" />

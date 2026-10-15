@@ -33,6 +33,20 @@ import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 
 const ITEMS_PER_PAGE = 12;
 
+/**
+ * Maps an entity to its public profile page. Every entity type needs an
+ * explicit branch — routing by a trailing `else` silently sent `strategic`
+ * partners to the media profile, making page-07-partner-profile unreachable
+ * from the directory.
+ */
+const PROFILE_PAGE_BY_TYPE: Record<EntityType, string> = {
+  creator: 'page-04-creator-profile',
+  community: 'page-03-community-profile',
+  business: 'page-05-business-profile',
+  media: 'page-06-media-profile',
+  strategic: 'page-07-partner-profile',
+};
+
 export const Page02Directory: React.FC = () => {
   const { entities, navigateTo, openCollabModalFor } = useApp();
 
@@ -394,12 +408,7 @@ export const Page02Directory: React.FC = () => {
                       </div>
 
                       <h3
-                        onClick={() => {
-                          if (entity.type === 'creator') navigateTo('page-04-creator-profile', entity.id);
-                          else if (entity.type === 'business') navigateTo('page-05-business-profile', entity.id);
-                          else if (entity.type === 'community') navigateTo('page-03-community-profile', entity.id);
-                          else navigateTo('page-06-media-profile', entity.id);
-                        }}
+                        onClick={() => navigateTo(PROFILE_PAGE_BY_TYPE[entity.type] as any, entity.id)}
                         className="font-serif font-bold text-base text-foreground group-hover:text-olive-600 dark:group-hover:text-olive-400 transition-colors cursor-pointer"
                       >
                         {entity.name}
@@ -434,12 +443,7 @@ export const Page02Directory: React.FC = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        if (entity.type === 'creator') navigateTo('page-04-creator-profile', entity.id);
-                        else if (entity.type === 'business') navigateTo('page-05-business-profile', entity.id);
-                        else if (entity.type === 'community') navigateTo('page-03-community-profile', entity.id);
-                        else navigateTo('page-06-media-profile', entity.id);
-                      }}
+                      onClick={() => navigateTo(PROFILE_PAGE_BY_TYPE[entity.type] as any, entity.id)}
                       className="text-xs font-semibold text-foreground hover:text-olive-600 dark:hover:text-olive-400 gap-1 px-2.5"
                     >
                       <span>Lihat Profil</span>

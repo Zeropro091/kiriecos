@@ -31,16 +31,13 @@ export const Navbar: React.FC = () => {
     toggleTheme,
     isMasterNavOpen,
     setIsMasterNavOpen,
-    openCollabModalFor,
-    entities,
   } = useApp();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
   const handleCollabClick = () => {
-    const creator = entities.find((e) => e.type === 'creator') || entities[0];
-    openCollabModalFor(creator);
+    navigateTo('page-02-directory');
   };
 
   const navItems = [
@@ -119,6 +116,19 @@ export const Navbar: React.FC = () => {
 
           {/* Right Action Stack */}
           <div className="flex items-center gap-2.5">
+            {/* Master Page Navigator */}
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setIsMasterNavOpen(true)}
+              aria-label="Buka peta semua halaman"
+              aria-expanded={isMasterNavOpen}
+              className="text-foreground hover:bg-muted"
+              title="Peta Semua Halaman Ekosistem"
+            >
+              <Layers className="w-4 h-4 text-olive-600 dark:text-olive-400" />
+            </Button>
+
             {/* Theme Toggle Button */}
             <Button
               variant="ghost"
@@ -291,6 +301,18 @@ export const Navbar: React.FC = () => {
           >
             <Sparkles className="w-3.5 h-3.5 mr-1.5" />
             <span>Ajak Kolaborasi Sekarang</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => {
+              setIsMasterNavOpen(true);
+              setIsMobileMenuOpen(false);
+            }}
+            className="w-full text-xs font-semibold text-foreground gap-2"
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Peta Semua Halaman</span>
           </Button>
         </div>
       )}

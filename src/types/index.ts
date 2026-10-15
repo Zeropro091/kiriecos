@@ -131,6 +131,7 @@ export interface CommunityMember {
   email: string;
   instagram: string;
   status: 'active' | 'pending' | 'inactive';
+  entityId?: string;
 }
 
 export interface CollaborationRequest {
@@ -152,6 +153,8 @@ export interface CollaborationRequest {
   createdAt: string;
   adminNotes?: string;
   matchedTalentName?: string;
+  /** True when the local write failed (storage full / unavailable). */
+  syncError?: boolean;
 }
 
 export interface RegistrationApplication {
@@ -169,7 +172,7 @@ export interface RegistrationApplication {
   submittedAt: string;
   verificationDocumentUrl?: string;
   rejectionReason?: string;
-  /** True when the Supabase insert failed and the data only lives locally. */
+  /** True when the local write failed (storage full / unavailable). */
   syncError?: boolean;
 }
 
@@ -186,6 +189,6 @@ export interface PaymentReceipt {
   status: 'pending_verification' | 'verified' | 'rejected';
   adminNotes?: string;
   submittedAt: string;
-  /** True when the Supabase insert failed and the data only lives locally. */
+  /** True when the local write failed (storage full / unavailable). */
   syncError?: boolean;
 }

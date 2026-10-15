@@ -1,0 +1,68 @@
+[
+  {
+    "id": "mem-1",
+    "name": "Raka Dewantara",
+    "role": "Core Team",
+    "category": "Cinematography",
+    "avatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
+    "joinedDate": "15 Jan 2026",
+    "email": "raka@dewantara.id",
+    "instagram": "@rakadewantara",
+    "status": "active"
+  },
+  {
+    "id": "mem-2",
+    "name": "Ayu Laksmi Dewi",
+    "role": "Leader",
+    "category": "Cultural Craft",
+    "avatar": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80",
+    "joinedDate": "10 Des 2025",
+    "email": "ayu.laksmi@craftbali.com",
+    "instagram": "@ayudewi.craft",
+    "status": "active"
+  },
+  {
+    "id": "mem-3",
+    "name": "Putu Surya Adi",
+    "role": "Core Team",
+    "category": "Graphic Design & 3D",
+    "avatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80",
+    "joinedDate": "02 Feb 2026",
+    "email": "surya.putu@gmail.com",
+    "instagram": "@suryagraph",
+    "status": "active"
+  },
+  {
+    "id": "mem-4",
+    "name": "Ni Wayan Sintya",
+    "role": "Active Creator",
+    "category": "Fashion & Model",
+    "avatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=300&q=80",
+    "joinedDate": "18 Feb 2026",
+    "email": "sintya.wayan@gmail.com",
+    "instagram": "@sintya.style",
+    "status": "active"
+  },
+  {
+    "id": "mem-5",
+    "name": "Made Dwi Cahyadi",
+    "role": "Contributor",
+    "category": "Drone & Landscape",
+    "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80",
+    "joinedDate": "05 Mar 2026",
+    "email": "dwi.cahyadi@droner.id",
+    "instagram": "@dwicahyadi.drone",
+    "status": "active"
+  },
+  {
+    "id": "mem-6",
+    "name": "Ketut Bagus Mahardika",
+    "role": "New Member",
+    "category": "Sound Design & Podcast",
+    "avatar": "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=300&q=80",
+    "joinedDate": "28 Agu 2026",
+    "email": "ketut.sound@gmail.com",
+    "instagram": "@ketutwaves",
+    "status": "pending"
+  }
+]

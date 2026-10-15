@@ -1,5 +1,7 @@
 import React from 'react';
 import { AppProvider, useApp } from './context/AppContext';
+import { isAdmin } from './lib/access';
+import { PageId } from './types';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { CollabRequestModal } from './components/CollabRequestModal';
@@ -37,12 +39,41 @@ import { Page27RequestFlowchart } from './pages/Page27RequestFlowchart';
 import { Page28BrandLandingPage } from './pages/Page28BrandLandingPage';
 import { Page29Broadcast } from './pages/Page29Broadcast';
 
-import { FolderGit2, Sparkles } from 'lucide-react';
+import { FolderGit2, Sparkles, ShieldAlert } from 'lucide-react';
+
+const ADMIN_PAGES: PageId[] = ['page-25-dashboard-admin', 'page-26-admin-reviews'];
+
+const AdminAccessDenied: React.FC = () => {
+  const { navigateTo, currentUser } = useApp();
+  return (
+    <div className="max-w-lg mx-auto px-4 py-24 text-center space-y-4">
+      <div className="w-14 h-14 mx-auto rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center">
+        <ShieldAlert className="w-7 h-7" />
+      </div>
+      <h1 className="font-serif text-2xl font-bold text-foreground">Akses Ditolak</h1>
+      <p className="text-sm text-muted-foreground">
+        {currentUser
+          ? 'Akun Anda tidak memiliki hak administrator KIRI untuk membuka halaman ini.'
+          : 'Halaman ini hanya untuk administrator KIRI. Silakan masuk dengan akun admin terlebih dahulu.'}
+      </p>
+      <button
+        onClick={() => navigateTo(currentUser ? 'page-01-home' : 'page-24-login-admin')}
+        className="px-6 py-2.5 rounded-xl bg-granite-900 text-white dark:bg-olive-500 dark:text-granite-950 text-xs font-bold"
+      >
+        {currentUser ? 'Kembali ke Beranda' : 'Masuk sebagai Admin'}
+      </button>
+    </div>
+  );
+};
 
 const MainContent: React.FC = () => {
-  const { currentPage, setIsMasterNavOpen } = useApp();
+  const { currentPage, currentUser } = useApp();
 
   const renderCurrentPage = () => {
+    if (ADMIN_PAGES.includes(currentPage) && !isAdmin(currentUser)) {
+      return <AdminAccessDenied />;
+    }
+
     switch (currentPage) {
       case 'page-01-home':
         return <Page01Home />;

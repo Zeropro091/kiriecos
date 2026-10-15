@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { DEFAULT_USERS } from '../data/mockData';
-import { MASTER_CREATOR_ACCOUNTS } from '../data/masterCreatorAccounts';
-import { sha256, normalizePhone } from '../lib/security';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { localAuth } from '../lib/localAuth';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -27,70 +24,19 @@ export const Page15Login: React.FC = () => {
   const handleManualLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const term = identifier.trim().toLowerCase().replace(/^@/, '');
 
+    const term = identifier.trim();
     if (!term) {
       setError('Masukkan Username, Email, atau ID Akun Anda.');
       return;
     }
 
-    // 1) Cek apakah cocok dengan admin / core users
-    const matchedCore = DEFAULT_USERS.find(
-      (u) =>
-        u.email.toLowerCase() === term ||
-        u.name.toLowerCase() === term ||
-        (u.role === 'admin' && (term === 'admin' || term === 'admin@projectkiri.id'))
-    );
-
-    if (matchedCore) {
-      if (matchedCore.role === 'admin') {
-        const expectedAdminPw = (import.meta as any).env?.VITE_KIRI_ADMIN_PASSWORD || '@projectkiri.id';
-        if (password.trim() !== expectedAdminPw) {
-          setError('Kata sandi admin tidak valid.');
-          return;
-        }
-      }
-      loginAs(matchedCore);
-      if (matchedCore.role === 'admin') navigateTo('page-25-dashboard-admin');
-      else if (matchedCore.role === 'community_lead') navigateTo('page-18-dashboard-community');
-      else navigateTo('page-16-dashboard-user');
+    const { session, error: authError } = await localAuth.verify(term, password);
+    if (session) {
+      loginAs(session);
       return;
     }
-
-    // 2) Cek dari 526 Kreator terdaftar: Username (IG/TikTok), Email, atau ID Creator (KP-xxxxx)
-    const matchedCreator = MASTER_CREATOR_ACCOUNTS.find(
-      (c) =>
-        c.username.toLowerCase() === term ||
-        c.email.toLowerCase() === term ||
-        c.kpId.toLowerCase() === term
-    );
-
-    if (matchedCreator) {
-      // Verifikasi Password via SHA-256 Hash
-      const cleanInputPhone = normalizePhone(password);
-      const inputHash = await sha256(cleanInputPhone);
-
-      if (inputHash !== matchedCreator.passwordHash) {
-        setError('Kata sandi tidak valid. Pastikan memasukkan nomor WhatsApp terdaftar Anda.');
-        return;
-      }
-
-      loginAs({
-        id: matchedCreator.id,
-        name: matchedCreator.name,
-        email: matchedCreator.email,
-        role: 'creator',
-        entityType: 'creator',
-        entityId: matchedCreator.id,
-        avatar: matchedCreator.avatar,
-        membershipTier: matchedCreator.membershipTier,
-        isVerified: true
-      });
-      navigateTo('page-16-dashboard-user');
-      return;
-    }
-
-    setError('Akun tidak terdaftar. Periksa kembali Username, Email, atau ID Akun Anda.');
+    setError(authError ?? 'Login gagal.');
   };
 
   return (

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "reg-1",
+    "type": "creator",
+    "name": "Gede Arimbawa Putra",
+    "contactPerson": "Gede Arimbawa",
+    "email": "gede.visual@gmail.com",
+    "phone": "081234567890",
+    "city": "Singaraja, Bali",
+    "category": "Underwater & Ocean Filmmaking",
+    "socialLink": "instagram.com/gedeocean",
+    "details": "Penyelam bersertifikat dan videografer bawah laut. Ingin berkolaborasi dengan resort pesisir dan program konservasi karang.",
+    "status": "pending",
+    "submittedAt": "08 Sep 2026"
+  },
+  {
+    "id": "reg-2",
+    "type": "community",
+    "name": "Komunitas Mural Bali Dwipa",
+    "contactPerson": "Komang Krisna",
+    "email": "muralbalidwipa@gmail.com",
+    "phone": "087811223344",
+    "city": "Denpasar, Bali",
+    "category": "Street Art & Mural",
+    "socialLink": "instagram.com/muralbali",
+    "details": "Komunitas 75 seniman mural yang aktif mengubah ruang publik kusam menjadi karya seni inspiratif.",
+    "status": "pending",
+    "submittedAt": "07 Sep 2026"
+  },
+  {
+    "id": "reg-3",
+    "type": "business",
+    "name": "Warung Nasi Campur Ibu Made",
+    "contactPerson": "Ibu Made Ratna",
+    "email": "nasimaderatna@gmail.com",
+    "phone": "085799887766",
+    "city": "Sanur, Bali",
+    "category": "F&B Warung Legendaris",
+    "socialLink": "instagram.com/nasicampur.ibumade",
+    "details": "UMKM kuliner khas Bali yang beroperasi sejak 1998. Ingin menjangkau wisatawan muda melalui food reviewers TikTok.",
+    "status": "pending",
+    "submittedAt": "06 Sep 2026"
+  }
+]

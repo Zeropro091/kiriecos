@@ -1,5 +1,6 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
+import { isAdmin } from '../lib/access';
 import {
   Sparkles,
   CheckCircle2,
@@ -13,7 +14,7 @@ import {
 } from 'lucide-react';
 
 export const Page22CollabSuccess: React.FC = () => {
-  const { collabRequests, selectedCollabId, navigateTo, updateCollabStatus, showToast } = useApp();
+  const { collabRequests, selectedCollabId, navigateTo, updateCollabStatus, showToast, currentUser } = useApp();
 
   const currentCollab =
     collabRequests.find((r) => r.id === selectedCollabId) || collabRequests[0];
@@ -36,6 +37,7 @@ export const Page22CollabSuccess: React.FC = () => {
   };
 
   const handleSimulateNextStage = () => {
+    if (!isAdmin(currentUser)) return;
     const nextIndex = Math.min(activeIndex + 1, steps.length - 1);
     const nextStatus = steps[nextIndex].id as any;
     updateCollabStatus(
@@ -116,13 +118,15 @@ export const Page22CollabSuccess: React.FC = () => {
             </p>
           </div>
 
-          <button
-            onClick={handleSimulateNextStage}
-            className="px-3.5 py-1.5 rounded-lg bg-kiri-gold-500/20 hover:bg-kiri-gold-500/30 text-kiri-green-900 dark:text-kiri-gold-300 font-bold text-xs border border-kiri-gold-500/40 transition-all"
-            title="Klik untuk mensimulasikan langkah berikutnya"
-          >
-            ⚡ Simulasikan Progres Berikutnya
-          </button>
+          {isAdmin(currentUser) && (
+            <button
+              onClick={handleSimulateNextStage}
+              className="px-3.5 py-1.5 rounded-lg bg-kiri-gold-500/20 hover:bg-kiri-gold-500/30 text-kiri-green-900 dark:text-kiri-gold-300 font-bold text-xs border border-kiri-gold-500/40 transition-all"
+              title="Khusus admin: majukan status kolaborasi ke tahap berikutnya"
+            >
+              ⚡ Majukan Status (Admin)
+            </button>
+          )}
         </div>
 
         {/* Stepper Steps */}
@@ -187,12 +191,14 @@ export const Page22CollabSuccess: React.FC = () => {
         </button>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigateTo('page-25-dashboard-admin')}
-            className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold"
-          >
-            Review di Admin Center
-          </button>
+          {currentUser?.role === 'admin' && (
+            <button
+              onClick={() => navigateTo('page-25-dashboard-admin')}
+              className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold"
+            >
+              Review di Admin Center
+            </button>
+          )}
           <button
             onClick={() => navigateTo('page-23-my-collaborations')}
             className="px-6 py-2.5 rounded-xl bg-kiri-green-900 text-white dark:bg-kiri-gold-500 dark:text-kiri-dark-950 text-xs font-bold shadow-subtle hover:opacity-90 flex items-center gap-2"

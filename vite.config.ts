@@ -14,6 +14,16 @@ export default defineConfig({
     port: 5173,
     host: true,
     allowedHosts: true,
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_PROXY_TARGET ?? 'http://localhost:4000',
+        changeOrigin: true,
+      },
+      '/uploads': {
+        target: process.env.VITE_API_PROXY_TARGET ?? 'http://localhost:4000',
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     chunkSizeWarningLimit: 1000,
@@ -22,7 +32,6 @@ export default defineConfig({
         manualChunks: {
           'vendor-react': ['react', 'react-dom'],
           'vendor-icons': ['lucide-react'],
-          'vendor-supabase': ['@supabase/supabase-js'],
         }
       }
     }

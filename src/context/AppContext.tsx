@@ -8,12 +8,9 @@ import {
   UserSession,
   BroadcastMessage,
 } from '../types';
-import {
-  INITIAL_COMMUNITY_MEMBERS,
-  DEFAULT_USERS,
-} from '../data/mockData';
-import { INITIAL_BROADCAST_MESSAGES } from '../data/broadcastData';
 import { dataService } from '../services/dataService';
+import { localAuth } from '../lib/localAuth';
+import { canBroadcast, canManageCollaborations } from '../lib/access';
 
 interface ToastInfo {
   id: number;
@@ -65,16 +62,10 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentPage, setCurrentPage] = useState<PageId>('page-01-home');
   const [selectedEntityId, setSelectedEntityId] = useState<string>('creator-1');
-  const [currentUser, setCurrentUser] = useState<UserSession | null>(() => {
-    const saved = localStorage.getItem('kiri_user');
-    return saved ? JSON.parse(saved) : null; // no silent demo login in production
-  });
+  const [currentUser, setCurrentUser] = useState<UserSession | null>(() => localAuth.loadSession());
   const [themeMode, setThemeMode] = useState<'heritage' | 'nocturnal'>('heritage');
   const [entities, setEntities] = useState<Entity[]>([]);
-  const [communityMembers, setCommunityMembers] = useState<CommunityMember[]>(() => {
-    const saved = localStorage.getItem('kiri_members');
-    return saved ? JSON.parse(saved) : INITIAL_COMMUNITY_MEMBERS;
-  });
+  const [communityMembers, setCommunityMembers] = useState<CommunityMember[]>([]);
   const [collabRequests, setCollabRequests] = useState<CollaborationRequest[]>([]);
   const [registrations, setRegistrations] = useState<RegistrationApplication[]>([]);
   const [directoryLoading, setDirectoryLoading] = useState(true);
@@ -83,34 +74,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [collabTargetEntity, setCollabTargetEntity] = useState<Entity | null>(null);
   const [toasts, setToasts] = useState<ToastInfo[]>([]);
   const [isMasterNavOpen, setIsMasterNavOpen] = useState<boolean>(false);
-  const [broadcastMessages, setBroadcastMessages] = useState<BroadcastMessage[]>(() => {
-    const saved = localStorage.getItem('kiri_broadcasts');
-    return saved ? JSON.parse(saved) : INITIAL_BROADCAST_MESSAGES;
-  });
-
-  // Sync state to localStorage
-  useEffect(() => {
-    localStorage.setItem('kiri_broadcasts', JSON.stringify(broadcastMessages));
-  }, [broadcastMessages]);
-  useEffect(() => {
-    localStorage.setItem('kiri_user', JSON.stringify(currentUser));
-  }, [currentUser]);
-
-  useEffect(() => {
-    localStorage.setItem('kiri_entities', JSON.stringify(entities));
-  }, [entities]);
-
-  useEffect(() => {
-    localStorage.setItem('kiri_members', JSON.stringify(communityMembers));
-  }, [communityMembers]);
-
-  useEffect(() => {
-    localStorage.setItem('kiri_collabs', JSON.stringify(collabRequests));
-  }, [collabRequests]);
-
-  useEffect(() => {
-    localStorage.setItem('kiri_registrations', JSON.stringify(registrations));
-  }, [registrations]);
+  const [broadcastMessages, setBroadcastMessages] = useState<BroadcastMessage[]>([]);
 
   // Handle Theme class on body
   useEffect(() => {
@@ -121,32 +85,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [themeMode]);
 
-  // Load directory from Supabase on boot (mock fallback inside dataService)
+  // Hydrate every collection from the backend on boot.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const approved = await dataService.getApprovedEntities();
-        const pending = await dataService.getPendingEntities();
+        const [approved, broadcasts, members] = await Promise.all([
+          dataService.getApprovedEntities(),
+          dataService.getBroadcasts().catch(() => [] as BroadcastMessage[]),
+          dataService.getMembers().catch(() => [] as CommunityMember[]),
+        ]);
         if (cancelled) return;
-        setEntities([...approved, ...pending]);
-        const localPending: RegistrationApplication[] = pending
-          .filter(e => e.verificationStatus === 'pending_review')
-          .map(e => ({
-            id: e.id,
-            type: e.type,
-            name: e.name,
-            contactPerson: e.name,
-            email: '-',
-            phone: '-',
-            city: e.location,
-            category: e.category,
-            socialLink: e.instagram || '-',
-            details: e.bio,
-            status: 'pending' as const,
-            submittedAt: new Date().toISOString().split('T')[0]
-          }));
-        setRegistrations(localPending);
+        setEntities(approved);
+        setBroadcastMessages(broadcasts);
+        setCommunityMembers(members);
+      } catch (err) {
+        if (!cancelled) {
+          console.error('[KIRI] Gagal memuat data dari server:', err);
+          showToast('Tidak dapat memuat data dari server KIRI. Pastikan backend berjalan.', 'error');
+        }
       } finally {
         if (!cancelled) setDirectoryLoading(false);
       }
@@ -172,7 +129,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const loginAs = (user: UserSession) => {
     setCurrentUser(user);
-    try { localStorage.setItem('kiri_user', JSON.stringify(user)); } catch {}
+    localAuth.saveSession(user);
     showToast(`Selamat datang kembali, ${user.name}! (${user.membershipTier})`, 'success');
     if (user.role === 'admin') {
       navigateTo('page-25-dashboard-admin');
@@ -185,7 +142,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const logout = () => {
     setCurrentUser(null);
-    try { localStorage.removeItem('kiri_user'); } catch {}
+    localAuth.clearSession();
     showToast('Anda telah keluar dari sesi.', 'info');
     navigateTo('page-01-home');
   };
@@ -196,20 +153,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const openCollabModalFor = (entity: Entity) => {
+    if (!currentUser) {
+      showToast('Masuk atau daftar terlebih dahulu untuk mengajukan kolaborasi.', 'warning');
+      navigateTo('page-15-login');
+      return;
+    }
     setCollabTargetEntity(entity);
     setIsCollabModalOpen(true);
   };
 
   const submitCollabRequest = (data: Partial<CollaborationRequest>): string => {
+    if (!currentUser) {
+      showToast('Sesi tidak ditemukan. Silakan masuk kembali sebelum mengirim brief.', 'error');
+      navigateTo('page-15-login');
+      return '';
+    }
+
     const trackingCode = `KP-REQ-2026-${Math.floor(1000 + Math.random() * 9000)}`;
     const newReq: CollaborationRequest = {
       id: `req-${Date.now()}`,
       trackingCode,
       title: data.title || 'Inisiatif Kolaborasi Ekosistem',
       category: data.category || 'Creative Campaign',
-      requesterId: currentUser?.entityId || 'biz-user',
-      requesterName: currentUser?.name || 'Partner Pengaju',
-      requesterType: (currentUser?.entityType as any) || 'business',
+      requesterId: currentUser.entityId || currentUser.id,
+      requesterName: currentUser.name,
+      requesterType: (currentUser.entityType as any) || 'creator',
       targetId: data.targetId || (collabTargetEntity?.id ?? 'creator-1'),
       targetName: data.targetName || (collabTargetEntity?.name ?? 'Talenta KIRI'),
       targetType: data.targetType || (collabTargetEntity?.type ?? 'creator'),
@@ -222,8 +190,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       adminNotes: 'Permintaan baru masuk. Menunggu verifikasi tim kurasi KIRI Project.',
     };
 
-    // Persist to Supabase (fire-and-forget; errors logged in dataService)
-    dataService.submitCollaboration(newReq).catch(() => {});
+    dataService
+      .submitCollaboration({
+        title: newReq.title,
+        category: newReq.category,
+        targetId: newReq.targetId,
+        targetName: newReq.targetName,
+        targetType: newReq.targetType,
+        budget: newReq.budget,
+        timeline: newReq.timeline,
+        scope: newReq.scope,
+        deliverables: newReq.deliverables,
+      })
+      .then((saved) => {
+        setCollabRequests((prev) =>
+          prev.map((r) => (r.id === newReq.id ? { ...r, id: saved.id, trackingCode: saved.trackingCode } : r))
+        );
+        setSelectedCollabId(saved.id);
+      })
+      .catch(() => showToast('Brief tersimpan lokal, tetapi gagal dikirim ke server KIRI.', 'warning'));
 
     setCollabRequests((prev) => [newReq, ...prev]);
     setSelectedCollabId(newReq.id);
@@ -232,6 +217,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateCollabStatus = (id: string, status: CollaborationRequest['status'], adminNotes?: string) => {
+    if (!canManageCollaborations(currentUser)) {
+      showToast('Hanya admin KIRI yang dapat mengubah status kolaborasi.', 'error');
+      return;
+    }
     setCollabRequests((prev) =>
       prev.map((req) =>
         req.id === id
@@ -243,57 +232,71 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           : req
       )
     );
+    dataService.updateCollaboration(id, { status, adminNotes }).catch(() => {
+      showToast('Gagal menyimpan perubahan status ke server.', 'error');
+    });
     showToast(`Status kolaborasi diperbarui menjadi: ${status.toUpperCase()}`, 'info');
   };
 
   const addCommunityMember = (member: Partial<CommunityMember>) => {
-    const newMember: CommunityMember = {
-      id: `mem-${Date.now()}`,
-      name: member.name || 'Anggota Baru',
-      role: member.role || 'Active Creator',
-      category: member.category || 'Visual Art',
-      avatar: member.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=300&q=80',
-      joinedDate: 'Hari ini',
-      email: member.email || 'member@kiri.id',
-      instagram: member.instagram || '@memberkiri',
-      status: member.status || 'active',
-    };
-    setCommunityMembers((prev) => [newMember, ...prev]);
-    showToast(`Anggota "${newMember.name}" berhasil ditambahkan ke database komunitas.`, 'success');
+    dataService
+      .addMember({
+        entityId: currentUser?.entityId,
+        name: member.name,
+        role: member.role,
+        category: member.category,
+        avatar: member.avatar,
+        email: member.email,
+        instagram: member.instagram,
+        joinedDate: 'Hari ini',
+        status: 'active',
+      })
+      .then((saved) => {
+        setCommunityMembers((prev) => [saved, ...prev]);
+        showToast(`Anggota "${saved.name}" berhasil ditambahkan ke database komunitas.`, 'success');
+      })
+      .catch(() => showToast('Gagal menambahkan anggota ke server.', 'error'));
   };
 
   const importCommunityMembers = (importedList: Partial<CommunityMember>[]) => {
-    const formatted = importedList.map((m, idx) => ({
-      id: `mem-${Date.now()}-${idx}`,
-      name: m.name || 'Member Terimpor',
-      role: m.role || 'Contributor',
-      category: m.category || 'Creative General',
-      avatar: m.avatar || 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=300&q=80',
-      joinedDate: 'Import 2026',
-      email: m.email || `imported${idx}@kiri.id`,
-      instagram: m.instagram || '@kiri.creator',
-      status: 'active' as const,
-    }));
-    setCommunityMembers((prev) => [...formatted, ...prev]);
-    showToast(`Berhasil mengimpor ${formatted.length} data anggota secara simultan!`, 'success');
+    Promise.all(
+      importedList.map((m) =>
+        dataService
+          .addMember({
+            entityId: currentUser?.entityId,
+            name: m.name,
+            role: m.role,
+            category: m.category,
+            avatar: m.avatar,
+            email: m.email,
+            instagram: m.instagram,
+            joinedDate: 'Import',
+            status: 'active',
+          })
+          .catch(() => null)
+      )
+    ).then((savedList) => {
+      const ok = savedList.filter((m): m is CommunityMember => m !== null);
+      setCommunityMembers((prev) => [...ok, ...prev]);
+      showToast(`Berhasil mengimpor ${ok.length} data anggota.`, 'success');
+    });
   };
 
   const updateMemberStatus = (id: string, status: CommunityMember['status']) => {
-    setCommunityMembers((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, status } : m))
-    );
+    setCommunityMembers((prev) => prev.map((m) => (m.id === id ? { ...m, status } : m)));
+    dataService.updateMemberStatus(id, status).catch(() => showToast('Gagal menyimpan status anggota.', 'error'));
     showToast('Status anggota diperbarui.', 'info');
   };
 
   const deleteMember = (id: string) => {
     setCommunityMembers((prev) => prev.filter((m) => m.id !== id));
+    dataService.deleteMember(id).catch(() => showToast('Gagal menghapus anggota dari server.', 'error'));
     showToast('Anggota dihapus dari database terkontrol.', 'warning');
   };
 
   const submitRegistration = (data: Partial<RegistrationApplication>) => {
-    const newApp: RegistrationApplication = {
-      id: `reg-${Date.now()}`,
-      type: data.type || 'creator',
+    const payload = {
+      type: (data.type || 'creator') as RegistrationApplication['type'],
       name: data.name || 'Pendaftar Baru',
       contactPerson: data.contactPerson || data.name || 'Pemohon',
       email: data.email || 'applicant@kiri.id',
@@ -302,60 +305,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       category: data.category || 'Creative',
       socialLink: data.socialLink || 'instagram.com/kiri',
       details: data.details || 'Permohonan pendaftaran akun ekosistem KIRI Project.',
-      status: 'pending',
-      submittedAt: 'Hari ini',
     };
 
-    // Persist to Supabase, then reflect in the admin queue
-    dataService.submitRegistration({
-      type: newApp.type,
-      name: newApp.name,
-      contactPerson: newApp.contactPerson,
-      email: newApp.email,
-      phone: newApp.phone,
-      city: newApp.city,
-      category: newApp.category,
-      socialLink: newApp.socialLink,
-      details: newApp.details
-    }).then((saved) => {
-      newApp.id = saved.id;
-      if (saved.syncError) {
-        showToast('Pendaftaran tersimpan lokal — sinkronisasi ke server gagal. Hubungi admin.', 'warning');
-      }
-      setRegistrations((prev) => {
-        const exists = prev.some(r => r.id === newApp.id);
-        return exists ? prev : [newApp, ...prev];
+    dataService
+      .submitRegistration(payload)
+      .then((saved) => {
+        setRegistrations((prev) => {
+          const exists = prev.some((r) => r.id === saved.id);
+          return exists ? prev : [saved, ...prev];
+        });
+        showToast('Pendaftaran Anda telah diterima untuk verifikasi kurasi KIRI Project.', 'success');
+      })
+      .catch(() => {
+        showToast('Gagal mengirim pendaftaran ke server KIRI.', 'error');
       });
-      setEntities((prev) => {
-        if (prev.some(e => e.name === newApp.name)) return prev;
-        return [...prev, {
-          id: newApp.id,
-          type: newApp.type,
-          name: newApp.name,
-          handle: newApp.name.toLowerCase().replace(/\s+/g, '_'),
-          category: newApp.category,
-          verified: false,
-          verificationStatus: 'pending_review' as const,
-          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-          coverImage: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200',
-          bio: newApp.details,
-          location: newApp.city,
-          stats: [{ label: 'Kolaborasi Aktif', value: '0' }],
-          tags: [newApp.category]
-        }];
-      });
-    }).catch(() => {});
-
-    setRegistrations((prev) => [newApp, ...prev]);
-    showToast('Pendaftaran Anda telah diterima untuk verifikasi kurasi KIRI Project.', 'success');
   };
 
   const reviewRegistration = (id: string, status: 'approved' | 'rejected') => {
-    // Persist moderation to Supabase (this is what makes the entity
-    // publicly visible in the directory — the RLS policy requires 'approved')
+    if (!canManageCollaborations(currentUser)) {
+      showToast('Hanya admin KIRI yang dapat memutuskan moderasi pendaftaran.', 'error');
+      return;
+    }
     dataService.reviewEntity(id, status === 'approved' ? 'approve' : 'reject').then((ok) => {
       if (!ok) {
-        showToast('Gagal menyimpan keputusan ke server.', 'error');
+        showToast('Gagal menyimpan keputusan moderasi.', 'error');
         return;
       }
       setRegistrations((prev) =>
@@ -370,50 +343,49 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       );
       showToast(`Pendaftaran telah di-${status === 'approved' ? 'SETUJUI & DIAKTIFKAN' : 'TOLAK'}.`, status === 'approved' ? 'success' : 'warning');
     }).catch(() => {
-      showToast('Gagal menghubungi server untuk moderasi.', 'error');
+      showToast('Gagal menyimpan keputusan moderasi.', 'error');
     });
   };
 
   const updateEntityProfile = (entityId: string, updates: Partial<Entity>) => {
-    setEntities((prev) =>
-      prev.map((ent) => (ent.id === entityId ? { ...ent, ...updates } : ent))
-    );
+    setEntities((prev) => prev.map((ent) => (ent.id === entityId ? { ...ent, ...updates } : ent)));
+    dataService
+      .updateEntity(entityId, {
+        name: updates.name,
+        handle: updates.handle,
+        category: updates.category,
+        bio: updates.bio,
+        location: updates.location,
+        website: updates.website,
+      })
+      .catch(() => showToast('Gagal menyimpan profil ke server.', 'error'));
     showToast('Perubahan profil berhasil disimpan!', 'success');
   };
 
   const sendBroadcastMessage = (data: { scope: 'indonesia' | 'regional'; region?: string; content: string }) => {
-    const now = new Date();
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const timeFormatted = `${hours}:${minutes}`;
-    const dateFormatted = 'Hari ini';
+    if (!currentUser || !canBroadcast(currentUser)) {
+      showToast('Anda tidak memiliki hak untuk mengirim siaran komunitas.', 'error');
+      return;
+    }
 
-    const newMessage: BroadcastMessage = {
-      id: `bc-${Date.now()}`,
-      scope: data.scope,
-      region: data.scope === 'regional' ? (data.region || 'Jawa Barat') : undefined,
-      senderId: currentUser?.id || 'guest-user',
-      senderName: currentUser?.name || 'Kreator KIRI',
-      senderRole: currentUser?.role || 'creator',
-      senderAvatar: currentUser?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-      senderBadge: currentUser?.membershipTier || 'Anggota Ekosistem',
-      content: data.content.trim(),
-      timestamp: now.toISOString(),
-      timeFormatted,
-      dateFormatted,
-      likesCount: 0
-    };
-
-    setBroadcastMessages((prev) => [...prev, newMessage]);
-    showToast('Pesan siaran berhasil dikirim!', 'success');
+    dataService
+      .sendBroadcast({
+        scope: data.scope,
+        region: data.scope === 'regional' ? data.region : undefined,
+        content: data.content,
+      })
+      .then((saved) => {
+        setBroadcastMessages((prev) => [...prev, saved]);
+        showToast('Pesan siaran berhasil dikirim!', 'success');
+      })
+      .catch(() => showToast('Gagal mengirim siaran ke server.', 'error'));
   };
 
   const likeBroadcastMessage = (id: string) => {
     setBroadcastMessages((prev) =>
-      prev.map((msg) =>
-        msg.id === id ? { ...msg, likesCount: (msg.likesCount || 0) + 1 } : msg
-      )
+      prev.map((msg) => (msg.id === id ? { ...msg, likesCount: (msg.likesCount || 0) + 1 } : msg))
     );
+    dataService.likeBroadcast(id).catch(() => undefined);
   };
 
   const selectedEntity = entities.find((e) => e.id === selectedEntityId) || entities[0];
