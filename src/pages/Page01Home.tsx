@@ -185,14 +185,16 @@ export const Page01Home: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {PILLARS.map((p) => {
+          <div className="grid sm:grid-cols-2 lg:grid-cols-6 gap-4">
+            {PILLARS.map((p, i) => {
               const Icon = p.icon;
               return (
                 <button
                   key={p.n}
                   onClick={() => navigateTo(p.page, p.id)}
-                  className="group text-left rounded-xl border border-border bg-background p-6 hover:border-primary/40 transition-colors"
+                  className={`group text-left rounded-xl border border-border bg-background p-6 hover:border-primary/40 transition-colors ${
+                    i < 3 ? 'lg:col-span-2' : 'lg:col-span-3'
+                  }`}
                 >
                   <div className="flex items-center justify-between mb-5">
                     <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-secondary text-primary">
@@ -312,7 +314,7 @@ export const Page01Home: React.FC = () => {
                 onClick={() => navigateTo('page-08-join-select')}
                 className="bg-background text-foreground hover:bg-background/90 gap-2"
               >
-                <span>Daftar sekarang</span>
+                <span>Bergabung</span>
                 <ArrowRight className="w-4 h-4" />
               </Button>
               <Button

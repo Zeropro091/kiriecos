@@ -120,11 +120,11 @@ export const Navbar: React.FC = () => {
             </Button>
 
             <Button
-              onClick={() => navigateTo('page-02-directory')}
+              onClick={() => navigateTo('page-08-join-select')}
               size="sm"
               className="hidden sm:inline-flex"
             >
-              Ajak Kolaborasi
+              Bergabung
             </Button>
 
             <div className="relative">
@@ -228,12 +228,12 @@ export const Navbar: React.FC = () => {
 
           <button
             onClick={() => {
-              navigateTo('page-02-directory');
+              navigateTo('page-08-join-select');
               setIsMobileMenuOpen(false);
             }}
             className="w-full mt-2 h-11 rounded-lg bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-2"
           >
-            <span>Ajak Kolaborasi</span>
+            <span>Bergabung</span>
             <ArrowRight className="w-4 h-4" />
           </button>
 
