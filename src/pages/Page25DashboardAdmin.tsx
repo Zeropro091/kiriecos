@@ -37,6 +37,16 @@ export const Page25DashboardAdmin: React.FC = () => {
 
   const pendingRegistrationsCount = registrations.filter((r) => r.status === 'pending').length;
 
+  const parseRupiah = (value: string) => {
+    const digits = (value || '').replace(/[^\d]/g, '');
+    return digits ? Number(digits) : 0;
+  };
+  const activeCollabCount = collabRequests.filter((r) => r.status === 'in_progress').length;
+  const escrowTotal = collabRequests
+    .filter((r) => r.status === 'connected' || r.status === 'in_progress' || r.status === 'completed')
+    .reduce((sum, r) => sum + parseRupiah(r.budget), 0);
+  const escrowLabel = escrowTotal > 0 ? `Rp ${escrowTotal.toLocaleString('id-ID')}` : '—';
+
   const filteredRequests = collabRequests.filter((req) => {
     const matchesSearch =
       req.trackingCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -140,7 +150,7 @@ export const Page25DashboardAdmin: React.FC = () => {
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
           </div>
           <p className="font-serif text-3xl font-bold text-kiri-green-950 dark:text-white">
-            {collabRequests.filter((r) => r.status === 'in_progress').length || 1}
+            {activeCollabCount}
           </p>
           <span className="text-[11px] text-emerald-600 font-medium">Escrow Terkunci</span>
         </div>
@@ -151,7 +161,7 @@ export const Page25DashboardAdmin: React.FC = () => {
             <DollarSign className="w-4 h-4 text-kiri-gold-600" />
           </div>
           <p className="font-serif text-2xl font-bold text-kiri-green-950 dark:text-white">
-            Rp 14.5M
+            {escrowLabel}
           </p>
           <span className="text-[11px] text-emerald-600 font-medium">Aman di Rekening Bersama</span>
         </div>

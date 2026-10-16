@@ -61,7 +61,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentPage, setCurrentPage] = useState<PageId>('page-01-home');
-  const [selectedEntityId, setSelectedEntityId] = useState<string>('creator-1');
+  const [selectedEntityId, setSelectedEntityId] = useState<string>('');
   const [currentUser, setCurrentUser] = useState<UserSession | null>(() => localAuth.loadSession());
   const [themeMode, setThemeMode] = useState<'heritage' | 'nocturnal'>('heritage');
   const [entities, setEntities] = useState<Entity[]>([]);
@@ -110,6 +110,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     })();
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    if (!currentUser) {
+      setCollabRequests([]);
+      setRegistrations([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const [collabs, regs] = await Promise.all([
+        dataService.getCollaborationRequests().catch(() => [] as CollaborationRequest[]),
+        dataService.getRegistrations().catch(() => [] as RegistrationApplication[]),
+      ]);
+      if (cancelled) return;
+      setCollabRequests(collabs);
+      setRegistrations(regs);
+    })();
+    return () => { cancelled = true; };
+  }, [currentUser?.id]);
 
   const showToast = (message: string, type: 'success' | 'info' | 'warning' | 'error' = 'success') => {
     const id = Date.now() + Math.random();

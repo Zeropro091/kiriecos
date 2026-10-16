@@ -38,7 +38,7 @@ export const Page18DashboardCommunity: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-gray-300 mt-1">
-              Dipimpin oleh <strong>Kak Rini</strong> • 1.240 Anggota Terdaftar
+              Dipimpin oleh <strong>Kak Rini</strong> • {communityMembers.length} Anggota Terdaftar
             </p>
             <p className="text-xs text-kiri-gold-300 mt-2">
               Status Ekosistem: Partner Komunitas Resmi KIRI PROJECT

@@ -2,9 +2,11 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pool, closePool } from './pool.js';
+import { logger } from '../logger.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const migrationsDir = join(here, 'migrations');
+const log = logger.child({ component: 'migrate' });
 
 async function ensureMigrationsTable(): Promise<void> {
   await pool.query(`
@@ -30,7 +32,7 @@ export async function runMigrations(): Promise<void> {
 
   for (const file of files) {
     if (done.has(file)) {
-      console.log(`[migrate] skip ${file} (already applied)`);
+      log.debug({ file }, 'migration already applied, skipping');
       continue;
     }
 
@@ -41,10 +43,10 @@ export async function runMigrations(): Promise<void> {
       await client.query(sql);
       await client.query('INSERT INTO schema_migrations (name) VALUES ($1)', [file]);
       await client.query('COMMIT');
-      console.log(`[migrate] applied ${file}`);
+      log.info({ file }, 'migration applied');
     } catch (err) {
       await client.query('ROLLBACK').catch(() => undefined);
-      console.error(`[migrate] FAILED ${file}:`, err);
+      log.error({ file, err }, 'migration failed');
       throw err;
     } finally {
       client.release();
@@ -57,11 +59,11 @@ const isDirectRun = process.argv[1] && fileURLToPath(import.meta.url) === proces
 if (isDirectRun) {
   runMigrations()
     .then(async () => {
-      console.log('[migrate] done');
+      log.info('migrations complete');
       await closePool();
     })
     .catch(async (err) => {
-      console.error('[migrate] aborted:', err);
+      log.error({ err }, 'migration run aborted');
       await closePool();
       process.exit(1);
     });

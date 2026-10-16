@@ -31,6 +31,35 @@ export const Page16DashboardUser: React.FC = () => {
 
   const creatorEntity = entities.find((e) => e.id === currentUser?.entityId) || entities[0];
 
+  const profileChecks = creatorEntity
+    ? [
+        Boolean(creatorEntity.bio && creatorEntity.bio.length > 40),
+        Boolean(creatorEntity.avatar),
+        Boolean(creatorEntity.coverImage),
+        (creatorEntity.tags?.length ?? 0) > 0,
+        (creatorEntity.services?.length ?? 0) > 0,
+        (creatorEntity.portfolio?.length ?? 0) > 0,
+        Boolean(creatorEntity.location),
+        Boolean(creatorEntity.website || creatorEntity.instagram),
+      ]
+    : [];
+  const profileStrength = profileChecks.length
+    ? Math.round((profileChecks.filter(Boolean).length / profileChecks.length) * 100)
+    : 0;
+
+  const incomingRequests = userCollabs.filter((c) => c.status === 'submitted' || c.status === 'in_review').length;
+  const activeProjects = userCollabs.filter((c) => c.status === 'connected' || c.status === 'in_progress').length;
+  const completedProjects = userCollabs.filter((c) => c.status === 'completed').length;
+
+  const parseRupiah = (value: string) => {
+    const digits = (value || '').replace(/[^\d]/g, '');
+    return digits ? Number(digits) : 0;
+  };
+  const escrowValue = userCollabs
+    .filter((c) => c.status === 'connected' || c.status === 'in_progress')
+    .reduce((sum, c) => sum + parseRupiah(c.budget), 0);
+  const escrowLabel = escrowValue > 0 ? `Rp ${escrowValue.toLocaleString('id-ID')}` : '—';
+
   const getInitials = (name?: string) => {
     if (!name) return 'KP';
     return name
@@ -68,7 +97,7 @@ export const Page16DashboardUser: React.FC = () => {
               Akun Privat Terverifikasi KIRI PROJECT • Role: <span className="font-semibold text-white uppercase">{currentUser?.role}</span>
             </p>
             <div className="flex items-center gap-3 mt-3 text-xs text-olive-300 font-medium">
-              <span>Kekuatan Profil: <strong className="text-white">92%</strong> (Lengkap)</span>
+              <span>Kekuatan Profil: <strong className="text-white">{profileStrength}%</strong></span>
               <span>•</span>
               <button
                 onClick={() => navigateTo('page-04-creator-profile', creatorEntity.id)}
@@ -106,24 +135,11 @@ export const Page16DashboardUser: React.FC = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-6 border-border shadow-xs bg-card">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
-            <span className="text-xs font-medium uppercase">Kunjungan Profil</span>
-            <Eye className="w-4 h-4 text-olive-600 dark:text-olive-400" />
-          </div>
-          <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground">
-            1.420
-          </p>
-          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">↑ +24% bulan ini</span>
-        </Card>
-
-        <Card className="p-6 border-border shadow-xs bg-card">
-          <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-medium uppercase">Permintaan Masuk</span>
             <MessageSquare className="w-4 h-4 text-olive-600 dark:text-olive-400" />
           </div>
-          <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground">
-            {userCollabs.length} Brief
-          </p>
-          <span className="text-[11px] text-olive-700 dark:text-olive-400 font-semibold">2 menunggu respons</span>
+          <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{incomingRequests}</p>
+          <span className="text-[11px] text-muted-foreground font-medium">Menunggu kurasi</span>
         </Card>
 
         <Card className="p-6 border-border shadow-xs bg-card">
@@ -131,21 +147,26 @@ export const Page16DashboardUser: React.FC = () => {
             <span className="text-xs font-medium uppercase">Proyek Aktif</span>
             <FileCheck2 className="w-4 h-4 text-olive-600 dark:text-olive-400" />
           </div>
-          <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground">
-            3 Berjalan
-          </p>
+          <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{activeProjects}</p>
           <span className="text-[11px] text-muted-foreground font-medium">Dalam escrow KIRI</span>
         </Card>
 
         <Card className="p-6 border-border shadow-xs bg-card">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
-            <span className="text-xs font-medium uppercase">Estimasi Revenu</span>
+            <span className="text-xs font-medium uppercase">Selesai</span>
+            <CheckCircle2 className="w-4 h-4 text-olive-600 dark:text-olive-400" />
+          </div>
+          <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{completedProjects}</p>
+          <span className="text-[11px] text-muted-foreground font-medium">Total {userCollabs.length} kolaborasi</span>
+        </Card>
+
+        <Card className="p-6 border-border shadow-xs bg-card">
+          <div className="flex items-center justify-between text-muted-foreground mb-2">
+            <span className="text-xs font-medium uppercase">Nilai Escrow</span>
             <DollarSign className="w-4 h-4 text-olive-600 dark:text-olive-400" />
           </div>
-          <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground">
-            Rp 18.5 Jt
-          </p>
-          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">100% aman terlindungi</span>
+          <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{escrowLabel}</p>
+          <span className="text-[11px] text-muted-foreground font-medium">Dana proyek berjalan</span>
         </Card>
       </div>
 

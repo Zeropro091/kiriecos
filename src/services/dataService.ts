@@ -104,6 +104,16 @@ class DataService {
     }
   }
 
+  async getRegistrations(): Promise<RegistrationApplication[]> {
+    try {
+      const res = await api.get<{ registrations: RegistrationApplication[] }>('/registrations');
+      return res.registrations;
+    } catch (err) {
+      if (isForbidden(err)) return [];
+      throw err;
+    }
+  }
+
   // ==========================================
   // 3. COLLABORATION REQUESTS
   // ==========================================

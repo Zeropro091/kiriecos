@@ -1,5 +1,6 @@
 import pg from 'pg';
 import { env } from '../config.js';
+import { logger } from '../logger.js';
 
 const { Pool } = pg;
 
@@ -9,6 +10,10 @@ export const pool = new Pool({
   max: 10,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 10_000,
+});
+
+pool.on('error', (err) => {
+  logger.error({ err }, 'idle postgres client error (connection will be recycled)');
 });
 
 export async function query<T extends pg.QueryResultRow = pg.QueryResultRow>(

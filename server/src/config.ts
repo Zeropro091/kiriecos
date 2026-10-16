@@ -36,5 +36,8 @@ export const env = {
   SEED_ADMIN_EMAIL: process.env.SEED_ADMIN_EMAIL ?? 'admin@kiriproject.id',
   SEED_ADMIN_PASSWORD: process.env.SEED_ADMIN_PASSWORD ?? 'kiri-admin',
   FRONTEND_DIST: process.env.FRONTEND_DIST ?? '',
+  LOG_LEVEL: process.env.LOG_LEVEL ?? (isProduction ? 'info' : 'debug'),
+  SENTRY_DSN: process.env.SENTRY_DSN ?? '',
+  SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT ?? NODE_ENV,
 } as const;
 

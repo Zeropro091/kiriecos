@@ -1,11 +1,16 @@
 import { existsSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import pinoHttp from 'pino-http';
 import { env } from './config.js';
+import { logger } from './logger.js';
+import { captureError } from './observability/sentry.js';
+import { pool } from './db/pool.js';
 import { attachUser } from './auth/middleware.js';
 import { authRouter } from './routes/auth.routes.js';
 import { entityRouter } from './routes/entities.routes.js';
@@ -25,12 +30,40 @@ export function createApp(): express.Express {
   app.set('trust proxy', 1);
 
   app.use(
-    helmet({
-      contentSecurityPolicy: false,
-      crossOriginResourcePolicy: { policy: 'cross-origin' },
-      crossOriginEmbedderPolicy: false,
+    pinoHttp({
+      logger,
+      genReqId: (req) => (req.headers['x-request-id'] as string) || randomUUID(),
+      autoLogging: { ignore: (req) => req.url === '/api/health' },
+      customLogLevel: (_req, res, err) => {
+        if (err || res.statusCode >= 500) return 'error';
+        if (res.statusCode >= 400) return 'warn';
+        return 'info';
+      },
     })
   );
+
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      crossOriginEmbedderPolicy: false,
+      contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+          'default-src': ["'self'"],
+          'script-src': ["'self'", 'https://cdn.tailwindcss.com'],
+          'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdn.tailwindcss.com'],
+          'font-src': ["'self'", 'data:', 'https://fonts.gstatic.com'],
+          'img-src': ["'self'", 'data:', 'blob:', 'https://images.unsplash.com', 'https://*.unsplash.com'],
+          'connect-src': ["'self'"],
+          'frame-src': ["'self'"],
+          'object-src': ["'none'"],
+          'base-uri': ["'self'"],
+          'form-action': ["'self'"],
+        },
+      },
+    })
+  );
+
   app.use(
     cors({
       origin(origin, callback) {
@@ -64,8 +97,14 @@ export function createApp(): express.Express {
     message: { error: 'Terlalu banyak percobaan. Coba lagi nanti.' },
   });
 
-  app.get('/api/health', (_req, res) => {
-    res.json({ ok: true, service: 'kiri-server', time: new Date().toISOString() });
+  app.get('/api/health', async (_req, res) => {
+    try {
+      await pool.query('SELECT 1');
+      res.json({ ok: true, db: 'up', service: 'kiri-server', time: new Date().toISOString() });
+    } catch (err) {
+      logger.error({ err }, 'health check failed: database unreachable');
+      res.status(503).json({ ok: false, db: 'down', service: 'kiri-server', time: new Date().toISOString() });
+    }
   });
 
   app.use('/api/auth', authLimiter, authRouter);
@@ -92,13 +131,15 @@ export function createApp(): express.Express {
     });
   }
 
-  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
-    console.error('[error]', err);
+  app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+    const status = res.statusCode >= 400 ? res.statusCode : 500;
+    logger.error({ err, reqId: req.id, path: req.path }, 'unhandled request error');
+    captureError(err, { reqId: req.id, method: req.method, path: req.path, status });
     if (env.isProduction) {
-      res.status(500).json({ error: 'Terjadi kesalahan pada server.' });
+      res.status(status).json({ error: 'Terjadi kesalahan pada server.' });
       return;
     }
-    res.status(500).json({ error: err.message });
+    res.status(status).json({ error: err.message });
   });
 
   return app;
