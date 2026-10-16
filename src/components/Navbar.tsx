@@ -231,7 +231,7 @@ export const Navbar: React.FC = () => {
               navigateTo('page-08-join-select');
               setIsMobileMenuOpen(false);
             }}
-            className="w-full mt-2 h-11 rounded-lg bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-2"
+            className="icon-nudge w-full mt-2 h-11 rounded-lg bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-2 active:scale-[0.98] transition-transform duration-150"
           >
             <span>Bergabung</span>
             <ArrowRight className="w-4 h-4" />

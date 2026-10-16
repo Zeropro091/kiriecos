@@ -10,6 +10,7 @@ export const Page15Login: React.FC = () => {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
 
   const handleManualLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,12 +22,17 @@ export const Page15Login: React.FC = () => {
       return;
     }
 
-    const { session, error: authError } = await localAuth.verify(term, password);
-    if (session) {
-      loginAs(session);
-      return;
+    setBusy(true);
+    try {
+      const { session, error: authError } = await localAuth.verify(term, password);
+      if (session) {
+        loginAs(session);
+        return;
+      }
+      setError(authError ?? 'Login gagal.');
+    } finally {
+      setBusy(false);
     }
-    setError(authError ?? 'Login gagal.');
   };
 
   return (
@@ -96,9 +102,10 @@ export const Page15Login: React.FC = () => {
             </div>
           </div>
 
-          <Button type="submit" className="w-full gap-2">
-            <span>Masuk</span>
-            <ArrowRight className="w-4 h-4" />
+          <Button type="submit" disabled={busy} className="icon-nudge w-full gap-2">
+            {busy && <span className="spinner" />}
+            <span>{busy ? 'Memproses…' : 'Masuk'}</span>
+            {!busy && <ArrowRight className="w-4 h-4" />}
           </Button>
         </form>
       </div>

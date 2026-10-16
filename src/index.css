@@ -44,6 +44,9 @@
     --chart-4: #b4392c;
     --chart-5: #1a1d18;
     --radius: 0.625rem;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --dur-fast: 150ms;
+    --dur-med: 220ms;
     --sidebar: #fafaf7;
     --sidebar-foreground: #1a1d18;
     --sidebar-primary: #3f5d3a;
@@ -148,6 +151,44 @@
   }
   .lift:hover {
     transform: translateY(-3px);
+  }
+  .lift:active {
+    transform: translateY(-1px) scale(0.99);
+    transition-duration: var(--dur-fast);
+  }
+
+  .icon-nudge svg:last-child {
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+  .icon-nudge:hover svg:last-child {
+    transform: translateX(3px);
+  }
+
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    background-size: 0% 1px;
+    transition: background-size var(--dur-med) var(--ease-out);
+  }
+  .link-underline:hover {
+    background-size: 100% 1px;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 9999px;
+    animation: spin 0.6s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 

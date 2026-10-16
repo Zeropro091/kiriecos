@@ -135,7 +135,7 @@ export const Page01Home: React.FC = () => {
             </form>
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Button size="lg" onClick={() => navigateTo('page-02-directory')} className="gap-2">
+              <Button size="lg" onClick={() => navigateTo('page-02-directory')} className="icon-nudge gap-2">
                 <span>Jelajahi Direktori</span>
                 <ArrowRight className="w-4 h-4" />
               </Button>
@@ -313,7 +313,7 @@ export const Page01Home: React.FC = () => {
               <Button
                 size="lg"
                 onClick={() => navigateTo('page-08-join-select')}
-                className="bg-background text-foreground hover:bg-background/90 gap-2"
+                className="icon-nudge bg-background text-foreground hover:bg-background/90 gap-2"
               >
                 <span>Bergabung</span>
                 <ArrowRight className="w-4 h-4" />

@@ -112,10 +112,11 @@ export const Page24LoginAdmin: React.FC = () => {
           <button
             type="submit"
             disabled={busy}
-            className="w-full h-11 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full h-11 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 active:scale-[0.98] transition-[background-color,transform] duration-150 ease-out flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
           >
+            {busy && <span className="spinner" />}
             <span>{busy ? 'Memverifikasi…' : 'Masuk'}</span>
-            <ArrowRight className="w-4 h-4" />
+            {!busy && <ArrowRight className="w-4 h-4" />}
           </button>
         </form>
       </div>

@@ -84,7 +84,7 @@ export const Footer: React.FC = () => {
                   <li key={link.label}>
                     <button
                       onClick={link.onClick}
-                      className="text-sm text-foreground/75 hover:text-foreground transition-colors text-left"
+                      className="link-underline text-sm text-foreground/75 hover:text-foreground transition-colors text-left"
                     >
                       {link.label}
                     </button>
