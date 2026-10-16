@@ -303,7 +303,7 @@ export const Page01Home: React.FC = () => {
       <section className="mx-auto max-w-[1180px] px-5 lg:px-8 py-20 lg:py-24">
         <div className="rounded-2xl border border-border bg-primary text-primary-foreground px-8 py-14 lg:px-16 lg:py-16">
           <Reveal className="max-w-2xl">
-            <h2 className="font-serif text-3xl lg:text-4xl text-balance">
+            <h2 className="font-serif text-3xl lg:text-4xl text-primary-foreground text-balance">
               Siap memulai kolaborasi pertamamu?
             </h2>
             <p className="mt-4 text-primary-foreground/80 leading-relaxed">
