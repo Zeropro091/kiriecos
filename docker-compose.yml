@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kiri
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kiri_dev_password}
+      POSTGRES_DB: kiri
+    volumes:
+      - kiri_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kiri -d kiri"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://kiri:${POSTGRES_PASSWORD:-kiri_dev_password}@db:5432/kiri
+      DATABASE_SSL: "false"
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env before running}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@kiriproject.id}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-kiri-admin}
+      UPLOAD_DIR: uploads
+      FRONTEND_DIST: /app/dist
+    ports:
+      - "${APP_PORT:-8080}:4000"
+    volumes:
+      - kiri_uploads:/app/server/uploads
+
+volumes:
+  kiri_pgdata:
+  kiri_uploads:

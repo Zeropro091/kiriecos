@@ -1,3 +1,6 @@
+import { existsSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -13,10 +16,21 @@ import { memberRouter } from './routes/members.routes.js';
 import { broadcastRouter } from './routes/broadcasts.routes.js';
 import { UPLOAD_ROOT } from './storage/files.js';
 
+const here = dirname(fileURLToPath(import.meta.url));
+const defaultFrontendDist = resolve(join(here, '..', '..', 'dist'));
+
 export function createApp(): express.Express {
   const app = express();
 
-  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+  app.set('trust proxy', 1);
+
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      crossOriginEmbedderPolicy: false,
+    })
+  );
   app.use(
     cors({
       origin(origin, callback) {
@@ -63,9 +77,20 @@ export function createApp(): express.Express {
   app.use('/api/members', memberRouter);
   app.use('/api/broadcasts', broadcastRouter);
 
-  app.use((_req, res) => {
+  app.use('/api', (_req, res) => {
     res.status(404).json({ error: 'Endpoint tidak ditemukan.' });
   });
+
+  const frontendDist = env.FRONTEND_DIST ? resolve(env.FRONTEND_DIST) : defaultFrontendDist;
+  const indexHtml = join(frontendDist, 'index.html');
+  const hasFrontend = existsSync(indexHtml);
+
+  if (hasFrontend) {
+    app.use(express.static(frontendDist, { index: false, maxAge: '1h' }));
+    app.get('*', (_req, res) => {
+      res.sendFile(indexHtml);
+    });
+  }
 
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     console.error('[error]', err);

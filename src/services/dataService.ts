@@ -15,7 +15,7 @@ import {
   CommunityMember,
   BroadcastMessage,
 } from '../types';
-import { api, ApiError } from '../lib/api';
+import { api, ApiError, assetUrl } from '../lib/api';
 
 function isForbidden(err: unknown): boolean {
   return err instanceof ApiError && (err.status === 401 || err.status === 403);
@@ -172,7 +172,7 @@ class DataService {
   }
 
   async signReceipt(path: string): Promise<string> {
-    return path;
+    return assetUrl(path);
   }
 
   async verifyPayment(id: string, action: 'verify' | 'reject', adminNotes?: string): Promise<boolean> {

@@ -12,6 +12,15 @@ import type { UserSession } from '../types';
 const TOKEN_KEY = 'kiri.auth.token';
 const USER_KEY = 'kiri.auth.session';
 
+const RAW_BASE = (import.meta.env.VITE_API_URL ?? '').trim().replace(/\/$/, '');
+const API_BASE = RAW_BASE ? `${RAW_BASE}/api` : '/api';
+
+export function assetUrl(path: string): string {
+  if (!path) return path;
+  if (/^(https?:|data:|blob:)/.test(path)) return path;
+  return RAW_BASE ? `${RAW_BASE}${path.startsWith('/') ? '' : '/'}${path}` : path;
+}
+
 export class ApiError extends Error {
   status: number;
   constructor(status: number, message: string) {
@@ -59,7 +68,7 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 
   let res: Response;
   try {
-    res = await fetch(`/api${path}`, {
+    res = await fetch(`${API_BASE}${path}`, {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),

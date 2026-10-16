@@ -1,0 +1,16 @@
+**/node_modules
+**/dist
+**/.git
+**/.env
+**/.env.*
+!**/.env.example
+server/uploads
+.playwright-mcp
+masterbook
+extracted_images
+extracted_doc_text.txt
+*.zip
+*.docx
+*.log
+.omo
+.codegraph
