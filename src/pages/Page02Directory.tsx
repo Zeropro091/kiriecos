@@ -26,6 +26,7 @@ import {
 } from '../data/geoTalentData';
 
 import { Card, CardContent, CardFooter, CardHeader } from '../components/ui/card';
+import { Reveal, RevealGroup } from '../components/Reveal';
 import { Badge } from '../components/ui/badge';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -137,7 +138,7 @@ export const Page02Directory: React.FC = () => {
   return (
     <div className="mx-auto max-w-[1180px] px-5 lg:px-8 py-12 lg:py-16 space-y-10">
       <section>
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <RevealGroup className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div className="max-w-2xl">
             <p className="text-xs font-medium tracking-[0.14em] uppercase text-primary mb-4">
               Direktori Ekosistem
@@ -175,7 +176,7 @@ export const Page02Directory: React.FC = () => {
               <span>Peta ({totalGeoCreators})</span>
             </button>
           </div>
-        </div>
+        </RevealGroup>
       </section>
 
       {/* 2. INTERACTIVE MAP VIEW */}
@@ -353,11 +354,11 @@ export const Page02Directory: React.FC = () => {
               </div>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <RevealGroup className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {paginatedEntities.map((entity) => (
                 <Card
                   key={entity.id}
-                  className="overflow-hidden border-border hover:border-primary/40 transition-colors flex flex-col justify-between bg-card"
+                  className="lift overflow-hidden border-border hover:border-primary/40 flex flex-col justify-between bg-card"
                 >
                   <div>
                     <div className="aspect-[16/9] bg-secondary overflow-hidden">
@@ -440,7 +441,7 @@ export const Page02Directory: React.FC = () => {
                   </CardFooter>
                 </Card>
               ))}
-            </div>
+            </RevealGroup>
           )}
 
           {/* Pagination Controls */}

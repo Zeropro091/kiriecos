@@ -13,6 +13,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import { Reveal, RevealGroup } from '../components/Reveal';
 
 const PILLARS = [
   {
@@ -104,7 +105,7 @@ export const Page01Home: React.FC = () => {
     <div>
       {/* ── Hero ────────────────────────────────────────────── */}
       <section className="mx-auto max-w-[1180px] px-5 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28">
-        <div className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+        <RevealGroup className="grid lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           <div className="lg:col-span-7">
             <p className="text-xs font-medium tracking-[0.14em] uppercase text-primary mb-5">
               Bali Creative Talent &amp; Enterprise Hub
@@ -169,13 +170,13 @@ export const Page01Home: React.FC = () => {
               />
             </div>
           </div>
-        </div>
+        </RevealGroup>
       </section>
 
       {/* ── Pillars ─────────────────────────────────────────── */}
       <section className="border-t border-border bg-card">
         <div className="mx-auto max-w-[1180px] px-5 lg:px-8 py-20 lg:py-24">
-          <div className="max-w-2xl mb-12">
+          <Reveal className="max-w-2xl mb-12">
             <h2 className="font-serif text-3xl lg:text-4xl text-foreground text-balance">
               Lima pilar ekosistem KIRI
             </h2>
@@ -183,16 +184,16 @@ export const Page01Home: React.FC = () => {
               Setiap peran punya tempatnya. Bersama-sama mereka membentuk rantai kolaborasi
               yang utuh.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-6 gap-4">
+          <RevealGroup className="grid sm:grid-cols-2 lg:grid-cols-6 gap-4">
             {PILLARS.map((p, i) => {
               const Icon = p.icon;
               return (
                 <button
                   key={p.n}
                   onClick={() => navigateTo(p.page, p.id)}
-                  className={`group text-left rounded-xl border border-border bg-background p-6 hover:border-primary/40 transition-colors ${
+                  className={`lift group text-left rounded-xl border border-border bg-background p-6 hover:border-primary/40 ${
                     i < 3 ? 'lg:col-span-2' : 'lg:col-span-3'
                   }`}
                 >
@@ -211,26 +212,26 @@ export const Page01Home: React.FC = () => {
                 </button>
               );
             })}
-          </div>
+          </RevealGroup>
         </div>
       </section>
 
       {/* ── How it works ────────────────────────────────────── */}
       <section className="mx-auto max-w-[1180px] px-5 lg:px-8 py-20 lg:py-24">
-        <div className="max-w-2xl mb-12">
+        <Reveal className="max-w-2xl mb-12">
           <h2 className="font-serif text-3xl lg:text-4xl text-foreground text-balance">
             Bagaimana kolaborasi bekerja
           </h2>
           <p className="mt-3 text-muted-foreground leading-relaxed">
             Empat langkah, dari menemukan talenta sampai karya selesai.
           </p>
-        </div>
+        </Reveal>
 
-        <ol className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <RevealGroup className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {STEPS.map((s, i) => {
             const Icon = s.icon;
             return (
-              <li key={s.title} className="relative">
+              <div key={s.title} className="relative">
                 <div className="flex items-center gap-3 mb-4">
                   <span className="flex items-center justify-center w-10 h-10 rounded-full border border-border text-primary">
                     <Icon className="w-[18px] h-[18px]" />
@@ -241,17 +242,17 @@ export const Page01Home: React.FC = () => {
                 </div>
                 <h3 className="font-medium text-foreground mb-1.5">{s.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
-              </li>
+              </div>
             );
           })}
-        </ol>
+        </RevealGroup>
       </section>
 
       {/* ── Featured creators ───────────────────────────────── */}
       {featured.length > 0 && (
         <section className="border-t border-border bg-card">
           <div className="mx-auto max-w-[1180px] px-5 lg:px-8 py-20 lg:py-24">
-            <div className="flex items-end justify-between gap-4 mb-12">
+            <Reveal className="flex items-end justify-between gap-4 mb-12">
               <div>
                 <h2 className="font-serif text-3xl lg:text-4xl text-foreground">
                   Talenta pilihan
@@ -261,14 +262,14 @@ export const Page01Home: React.FC = () => {
               <Button variant="outline" size="sm" onClick={() => navigateTo('page-02-directory')} className="shrink-0">
                 Lihat semua
               </Button>
-            </div>
+            </Reveal>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <RevealGroup className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {featured.map((c) => (
                 <button
                   key={c.id}
                   onClick={() => navigateTo('page-04-creator-profile', c.id)}
-                  className="group text-left rounded-xl border border-border bg-background overflow-hidden hover:border-primary/40 transition-colors"
+                  className="lift group text-left rounded-xl border border-border bg-background overflow-hidden hover:border-primary/40"
                 >
                   <div className="aspect-[16/10] bg-secondary overflow-hidden">
                     <img
@@ -293,7 +294,7 @@ export const Page01Home: React.FC = () => {
                   </div>
                 </button>
               ))}
-            </div>
+            </RevealGroup>
           </div>
         </section>
       )}
@@ -301,7 +302,7 @@ export const Page01Home: React.FC = () => {
       {/* ── CTA ─────────────────────────────────────────────── */}
       <section className="mx-auto max-w-[1180px] px-5 lg:px-8 py-20 lg:py-24">
         <div className="rounded-2xl border border-border bg-primary text-primary-foreground px-8 py-14 lg:px-16 lg:py-16">
-          <div className="max-w-2xl">
+          <Reveal className="max-w-2xl">
             <h2 className="font-serif text-3xl lg:text-4xl text-balance">
               Siap memulai kolaborasi pertamamu?
             </h2>
@@ -326,7 +327,7 @@ export const Page01Home: React.FC = () => {
                 Lihat alur kerja sama
               </Button>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
     </div>
