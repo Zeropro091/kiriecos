@@ -57,10 +57,10 @@ export const Page27RequestFlowchart: React.FC = () => {
     },
     {
       step: '04',
-      title: 'Escrow & Kontrak Digital',
-      actor: 'KIRI Escrow System',
-      desc: 'Penandatanganan kontrak digital mengikat hak cipta dan penguncian dana aman di rekening bersama.',
-      output: 'Dana Terlindungi 100%'
+      title: 'Verifikasi Pembayaran',
+      actor: 'Tim Admin KIRI',
+      desc: 'Tim admin memverifikasi pembayaran dan mengonfirmasi kesepakatan kolaborasi.',
+      output: 'Pembayaran Terverifikasi Admin'
     },
     {
       step: '05',
@@ -198,7 +198,7 @@ export const Page27RequestFlowchart: React.FC = () => {
 
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-200/60 dark:border-kiri-dark-700">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Setiap nilai proyek difasilitasi kontrak tertulis dan garansi revisi terarah.
+            Setiap nilai proyek dicatat transparan dan garansi revisi terarah.
           </p>
           <button
             onClick={() => navigateTo('page-02-directory')}

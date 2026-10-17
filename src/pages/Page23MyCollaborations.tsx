@@ -62,7 +62,7 @@ export const Page23MyCollaborations: React.FC = () => {
             Kolaborasi Saya (My Collaborations)
           </h1>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Pantau progres proyek, checklist deliverables, pencairan rekening escrow, dan komunikasi kurasi.
+            Pantau progres proyek, checklist deliverables, verifikasi pembayaran, dan komunikasi kurasi.
           </p>
         </div>
 
@@ -173,7 +173,7 @@ export const Page23MyCollaborations: React.FC = () => {
                 </div>
 
                 <div className="text-right shrink-0">
-                  <span className="text-[10px] text-gray-400 uppercase">Nilai Kontrak:</span>
+                  <span className="text-[10px] text-gray-400 uppercase">Nilai Proyek:</span>
                   <p className="font-serif text-xl font-bold text-kiri-green-900 dark:text-kiri-gold-400">
                     {activeCollab.budget}
                   </p>
@@ -234,13 +234,13 @@ export const Page23MyCollaborations: React.FC = () => {
                 </div>
               </div>
 
-              {/* Escrow Status Banner */}
+              {/* Payment Verification Banner */}
               <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-xs flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <ShieldCheck className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
                   <div>
                     <p className="font-bold text-emerald-900 dark:text-emerald-300">
-                      Dana Aman di KIRI Escrow
+                      Pembayaran Terverifikasi Admin
                     </p>
                     <p className="text-[11px] text-gray-600 dark:text-gray-400">
                       Pencairan otomatis setelah seluruh deliverables diverifikasi.

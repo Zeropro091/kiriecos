@@ -25,7 +25,7 @@ export const Page20CollabGateway: React.FC = () => {
           Request Through KIRI Project
         </h1>
         <p className="text-xs text-gray-500 dark:text-gray-400 max-w-xl mx-auto">
-          Setiap kolaborasi di ekosistem KIRI PROJECT melalui kurasi brief terpusat untuk menjamin keamanan kontrak, proteksi pembayaran, dan output profesional.
+          Setiap kolaborasi di ekosistem KIRI PROJECT melalui kurasi brief terpusat untuk menjamin kejelasan brief, verifikasi pembayaran, dan output profesional.
         </p>
       </div>
 
@@ -67,7 +67,7 @@ export const Page20CollabGateway: React.FC = () => {
             <ShieldCheck className="w-5 h-5" />
           </div>
           <h3 className="font-serif font-bold text-base text-kiri-green-950 dark:text-white">
-            1. Perlindungan Kontrak Digital
+            1. Kurasi & Verifikasi Tim Admin
           </h3>
           <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed font-light">
             Scope of work, batas revisi, hak cipta komersial, dan hak penayangan dikunci dalam klausul resmi yang mengikat kedua belah pihak.
@@ -79,7 +79,7 @@ export const Page20CollabGateway: React.FC = () => {
             <DollarSign className="w-5 h-5" />
           </div>
           <h3 className="font-serif font-bold text-base text-kiri-green-950 dark:text-white">
-            2. Rekening Bersama (Escrow)
+            2. Pembayaran Terverifikasi Admin
           </h3>
           <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed font-light">
             Dana kampanye aman di rekening penampung KIRI PROJECT. Dana hanya diteruskan kepada kreator setelah hasil kerja disetujui.

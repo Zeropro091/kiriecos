@@ -245,7 +245,7 @@ export const Page21CollabBriefForm: React.FC = () => {
           </div>
         </div>
 
-        {/* Escrow & Verification Notice */}
+        {/* Verification Notice */}
         <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-xs flex items-start gap-3">
           <ShieldCheck className="w-5 h-5 text-emerald-700 dark:text-emerald-400 shrink-0 mt-0.5" />
           <div className="space-y-1 text-gray-700 dark:text-gray-300 leading-relaxed text-[11px]">
@@ -253,7 +253,7 @@ export const Page21CollabBriefForm: React.FC = () => {
               Jaminan Mediasi Resmi KIRI PROJECT (Kak Rini & Tim):
             </p>
             <p>
-              Setelah formulir ini dikirimkan, request akan tercatat di sistem admin KIRI. Tim kami akan memvalidasi kesiapan target talenta, mengunci rekening escrow, dan menerbitkan kontrak resmi sebelum produksi dimulai.
+              Setelah formulir ini dikirimkan, request akan tercatat di sistem admin KIRI. Tim kami akan memvalidasi kesiapan target talenta, memverifikasi pembayaran, dan mengonfirmasi kesepakatan sebelum produksi dimulai.
             </p>
           </div>
         </div>

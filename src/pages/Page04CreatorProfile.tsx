@@ -118,7 +118,7 @@ export const Page04CreatorProfile: React.FC = () => {
                 className="bg-olive-700 hover:bg-olive-600 text-white dark:bg-olive-500 dark:hover:bg-olive-400 dark:text-granite-950 text-xs font-bold shadow-sm gap-2"
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Ajak Kolaborasi (KIRI Escrow)</span>
+                <span>Ajak Kolaborasi via KIRI</span>
               </Button>
             </div>
           </div>
@@ -223,14 +223,14 @@ export const Page04CreatorProfile: React.FC = () => {
                 </div>
               </Card>
 
-              {/* Escrow Guarantee Box */}
+              {/* Verification Guarantee Box */}
               <div className="p-4 rounded-xl bg-olive-500/15 border border-olive-500/30 text-xs space-y-1">
                 <div className="flex items-center gap-2 text-olive-800 dark:text-olive-300 font-bold">
                   <ShieldCheck className="w-4 h-4 text-olive-600 dark:text-olive-400" />
-                  <span>Jaminan KIRI Escrow</span>
+                  <span>Jaminan KIRI</span>
                 </div>
                 <p className="text-muted-foreground text-[11px] leading-relaxed">
-                  Semua transaksi proyek dengan kreator ini dilindungi oleh kontrak digital dan sistem pembayaran aman KIRI PROJECT.
+                  Semua pembayaran proyek dengan kreator ini diverifikasi langsung oleh tim admin KIRI PROJECT.
                 </p>
               </div>
             </div>

@@ -1,7 +1,14 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { isAdmin } from '../lib/access';
+import { api } from '../lib/api';
 import { CollaborationRequest } from '../types';
+import {
+  fetchAdminChatThreads,
+  fetchAdminLandingOrders,
+} from '../lib/adminInbox';
+import { AdminChatInbox } from './admin/AdminChatInbox';
+import { AdminLandingOrders } from './admin/AdminLandingOrders';
 import {
   Sparkles,
   ShieldCheck,
@@ -15,7 +22,9 @@ import {
   ArrowRight,
   TrendingUp,
   AlertCircle,
-  FileText
+  FileText,
+  MessagesSquare,
+  LayoutList
 } from 'lucide-react';
 
 export const Page25DashboardAdmin: React.FC = () => {
@@ -35,17 +44,42 @@ export const Page25DashboardAdmin: React.FC = () => {
   const [adminNoteInput, setAdminNoteInput] = useState('');
   const [selectedStatusInput, setSelectedStatusInput] = useState<CollaborationRequest['status']>('matched');
 
+  // Admin console tabs: Request Center (existing) + Chat Inbox + Landing Page Orders.
+  const [activeTab, setActiveTab] = useState<'requests' | 'chat' | 'orders'>('requests');
+  const [unreadThreadsCount, setUnreadThreadsCount] = useState(0);
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
+
   const pendingRegistrationsCount = registrations.filter((r) => r.status === 'pending').length;
+
+  // Badge counts: threads with unread messages + pending landing page orders.
+  const refreshBadgeCounts = useCallback(async () => {
+    try {
+      const [threads, orders] = await Promise.all([
+        fetchAdminChatThreads(api),
+        fetchAdminLandingOrders(api),
+      ]);
+      setUnreadThreadsCount(threads.reduce((sum, t) => sum + (t.unreadCount > 0 ? 1 : 0), 0));
+      setPendingOrdersCount(orders.filter((o) => String(o.status) === 'pending').length);
+    } catch {
+      /* badge counts are best-effort; keep last known values */
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshBadgeCounts();
+    const interval = setInterval(refreshBadgeCounts, 20000);
+    return () => clearInterval(interval);
+  }, [refreshBadgeCounts]);
 
   const parseRupiah = (value: string) => {
     const digits = (value || '').replace(/[^\d]/g, '');
     return digits ? Number(digits) : 0;
   };
   const activeCollabCount = collabRequests.filter((r) => r.status === 'in_progress').length;
-  const escrowTotal = collabRequests
+  const verifiedTotal = collabRequests
     .filter((r) => r.status === 'connected' || r.status === 'in_progress' || r.status === 'completed')
     .reduce((sum, r) => sum + parseRupiah(r.budget), 0);
-  const escrowLabel = escrowTotal > 0 ? `Rp ${escrowTotal.toLocaleString('id-ID')}` : '—';
+  const verifiedLabel = verifiedTotal > 0 ? `Rp ${verifiedTotal.toLocaleString('id-ID')}` : '—';
 
   const filteredRequests = collabRequests.filter((req) => {
     const matchesSearch =
@@ -99,7 +133,7 @@ export const Page25DashboardAdmin: React.FC = () => {
             Admin Dashboard & Request Center
           </h1>
           <p className="text-xs text-gray-300 mt-1 max-w-xl font-light">
-            Pengawasan alur mediasi resmi KIRI PROJECT: Review Pengajuan ➔ Matching Talenta ➔ Otorisasi Kontrak & Escrow.
+            Pengawasan alur mediasi resmi KIRI PROJECT: Review Pengajuan ➔ Matching Talenta ➔ Verifikasi Pembayaran.
           </p>
         </div>
 
@@ -120,6 +154,53 @@ export const Page25DashboardAdmin: React.FC = () => {
         </div>
       </div>
 
+      {/* Admin Console Tabs */}
+      <div className="flex flex-wrap items-center gap-2 -mt-2">
+        {([
+          { key: 'requests', label: 'Request Center', icon: LayoutList, count: pendingRegistrationsCount },
+          { key: 'chat', label: 'Chat Member', icon: MessagesSquare, count: unreadThreadsCount },
+          { key: 'orders', label: 'Pesan Landing Page', icon: FileText, count: pendingOrdersCount },
+        ] as const).map((tab) => {
+          const Icon = tab.icon;
+          const active = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border ${
+                active
+                  ? 'bg-kiri-green-900 text-white border-kiri-green-900 dark:bg-kiri-gold-500 dark:text-kiri-dark-950 dark:border-kiri-gold-500 shadow-sm'
+                  : 'bg-white dark:bg-kiri-dark-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-kiri-dark-700 hover:bg-gray-50 dark:hover:bg-kiri-dark-750'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span>{tab.label}</span>
+              {tab.count > 0 && (
+                <span
+                  className={`min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center ${
+                    active
+                      ? 'bg-kiri-gold-500 text-kiri-dark-950 dark:bg-kiri-dark-950 dark:text-kiri-gold-400'
+                      : 'bg-kiri-gold-500 text-kiri-dark-950'
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {activeTab === 'chat' && (
+        <AdminChatInbox />
+      )}
+
+      {activeTab === 'orders' && (
+        <AdminLandingOrders />
+      )}
+
+      {activeTab === 'requests' && (
+      <>
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-6 rounded-2xl bg-white dark:bg-kiri-dark-800 border border-gray-200 dark:border-kiri-dark-700 shadow-subtle">
@@ -152,7 +233,7 @@ export const Page25DashboardAdmin: React.FC = () => {
           <p className="font-serif text-3xl font-bold text-kiri-green-950 dark:text-white">
             {activeCollabCount}
           </p>
-          <span className="text-[11px] text-emerald-600 font-medium">Escrow Terkunci</span>
+          <span className="text-[11px] text-emerald-600 font-medium">Pembayaran Terverifikasi</span>
         </div>
 
         <div className="p-6 rounded-2xl bg-white dark:bg-kiri-dark-800 border border-gray-200 dark:border-kiri-dark-700 shadow-subtle">
@@ -161,7 +242,7 @@ export const Page25DashboardAdmin: React.FC = () => {
             <DollarSign className="w-4 h-4 text-kiri-gold-600" />
           </div>
           <p className="font-serif text-2xl font-bold text-kiri-green-950 dark:text-white">
-            {escrowLabel}
+            {verifiedLabel}
           </p>
           <span className="text-[11px] text-emerald-600 font-medium">Aman di Rekening Bersama</span>
         </div>
@@ -258,6 +339,9 @@ export const Page25DashboardAdmin: React.FC = () => {
         </div>
       </div>
 
+      </>
+      )}
+
       {/* Admin Matching Modal */}
       {matchingModalCollab && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
@@ -302,7 +386,7 @@ export const Page25DashboardAdmin: React.FC = () => {
                   <option value="submitted">1. Submitted (Baru Diterima)</option>
                   <option value="in_review">2. In Review (Sedang Diteliti Kurator)</option>
                   <option value="matched">3. Matched (Talenta Telah Mengonfirmasi)</option>
-                  <option value="connected">4. Connected (Kontrak & Escrow Aktif)</option>
+                  <option value="connected">4. Connected (Pembayaran Terverifikasi)</option>
                   <option value="in_progress">5. In Progress (Produksi Berjalan)</option>
                   <option value="completed">6. Completed (Selesai & Dana Cair)</option>
                 </select>
@@ -314,7 +398,7 @@ export const Page25DashboardAdmin: React.FC = () => {
                   rows={3}
                   value={adminNoteInput}
                   onChange={(e) => setAdminNoteInput(e.target.value)}
-                  placeholder="e.g. Kak Rini telah memvalidasi jadwal talenta. Kontrak siap dikirim."
+                  placeholder="e.g. Kak Rini telah memvalidasi jadwal talenta. Kolaborasi siap dimulai."
                   className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-kiri-dark-700 bg-gray-50 dark:bg-kiri-dark-850 focus:outline-none"
                 ></textarea>
               </div>

@@ -15,7 +15,10 @@ import {
   AlertCircle,
   ShieldCheck,
   SlidersHorizontal,
-  FolderGit2
+  FolderGit2,
+  IdCard,
+  LayoutTemplate,
+  MessagesSquare
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -55,10 +58,10 @@ export const Page16DashboardUser: React.FC = () => {
     const digits = (value || '').replace(/[^\d]/g, '');
     return digits ? Number(digits) : 0;
   };
-  const escrowValue = userCollabs
+  const activeValue = userCollabs
     .filter((c) => c.status === 'connected' || c.status === 'in_progress')
     .reduce((sum, c) => sum + parseRupiah(c.budget), 0);
-  const escrowLabel = escrowValue > 0 ? `Rp ${escrowValue.toLocaleString('id-ID')}` : '—';
+  const activeLabel = activeValue > 0 ? `Rp ${activeValue.toLocaleString('id-ID')}` : '—';
 
   const getInitials = (name?: string) => {
     if (!name) return 'KP';
@@ -131,6 +134,46 @@ export const Page16DashboardUser: React.FC = () => {
         </div>
       </section>
 
+      {/* Member Tools */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <button
+          onClick={() => navigateTo('page-30-member-card')}
+          className="flex items-center gap-3 p-4 rounded-2xl border border-border bg-card hover:border-olive-500/50 transition-all text-left"
+        >
+          <span className="w-10 h-10 rounded-xl bg-olive-500/15 text-olive-700 dark:text-olive-400 flex items-center justify-center shrink-0">
+            <IdCard className="w-5 h-5" />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-sm font-bold text-foreground">Kartu Member Digital</span>
+            <span className="block text-[11px] text-muted-foreground">Lihat & tunjukkan kartu KIRI Anda</span>
+          </span>
+        </button>
+        <button
+          onClick={() => navigateTo('page-31-landing-order')}
+          className="flex items-center gap-3 p-4 rounded-2xl border border-border bg-card hover:border-olive-500/50 transition-all text-left"
+        >
+          <span className="w-10 h-10 rounded-xl bg-olive-500/15 text-olive-700 dark:text-olive-400 flex items-center justify-center shrink-0">
+            <LayoutTemplate className="w-5 h-5" />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-sm font-bold text-foreground">Pesan Landing Page</span>
+            <span className="block text-[11px] text-muted-foreground">Pilih template minimalis untuk bisnis</span>
+          </span>
+        </button>
+        <button
+          onClick={() => navigateTo('page-32-chat')}
+          className="flex items-center gap-3 p-4 rounded-2xl border border-border bg-card hover:border-olive-500/50 transition-all text-left"
+        >
+          <span className="w-10 h-10 rounded-xl bg-olive-500/15 text-olive-700 dark:text-olive-400 flex items-center justify-center shrink-0">
+            <MessagesSquare className="w-5 h-5" />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-sm font-bold text-foreground">Chat Admin</span>
+            <span className="block text-[11px] text-muted-foreground">Tanya seputar keanggotaan & program</span>
+          </span>
+        </button>
+      </div>
+
       {/* Metrics Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-6 border-border shadow-xs bg-card">
@@ -148,7 +191,7 @@ export const Page16DashboardUser: React.FC = () => {
             <FileCheck2 className="w-4 h-4 text-olive-600 dark:text-olive-400" />
           </div>
           <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{activeProjects}</p>
-          <span className="text-[11px] text-muted-foreground font-medium">Dalam escrow KIRI</span>
+          <span className="text-[11px] text-muted-foreground font-medium">Pembayaran terverifikasi</span>
         </Card>
 
         <Card className="p-6 border-border shadow-xs bg-card">
@@ -162,10 +205,10 @@ export const Page16DashboardUser: React.FC = () => {
 
         <Card className="p-6 border-border shadow-xs bg-card">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
-            <span className="text-xs font-medium uppercase">Nilai Escrow</span>
+            <span className="text-xs font-medium uppercase">Nilai Kolaborasi</span>
             <DollarSign className="w-4 h-4 text-olive-600 dark:text-olive-400" />
           </div>
-          <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{escrowLabel}</p>
+          <p className="font-serif text-2xl sm:text-3xl font-bold text-foreground">{activeLabel}</p>
           <span className="text-[11px] text-muted-foreground font-medium">Dana proyek berjalan</span>
         </Card>
       </div>
@@ -178,7 +221,7 @@ export const Page16DashboardUser: React.FC = () => {
               Kolaborasi & Proyek Terkini
             </CardTitle>
             <CardDescription className="text-xs">
-              Status mediasi, alur escrow, dan pengiriman karya
+              Status mediasi, verifikasi pembayaran, dan pengiriman karya
             </CardDescription>
           </div>
 

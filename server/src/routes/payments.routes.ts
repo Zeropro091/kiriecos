@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { asyncHandler } from '../http/asyncHandler.js';
 import { requireAuth, requireAdmin } from '../auth/middleware.js';
 import { listPayments, createPayment, verifyPayment } from '../repositories/payments.js';
-import { saveDataUrl } from '../storage/files.js';
+import { saveDataUrl, UnsupportedMediaTypeError, PayloadTooLargeError } from '../storage/files.js';
 import type { PaymentStatus } from '../types.js';
 
 export const paymentRouter = Router();
@@ -38,8 +38,16 @@ paymentRouter.post(
 
     let receiptImageUrl: string;
     try {
-      receiptImageUrl = saveDataUrl(parsed.data.receiptImageDataUrl, 'receipts');
+      receiptImageUrl = await saveDataUrl(parsed.data.receiptImageDataUrl, 'receipts');
     } catch (err) {
+      if (err instanceof UnsupportedMediaTypeError) {
+        res.status(415).json({ error: err.message });
+        return;
+      }
+      if (err instanceof PayloadTooLargeError) {
+        res.status(413).json({ error: err.message });
+        return;
+      }
       res.status(400).json({ error: err instanceof Error ? err.message : 'Gagal menyimpan bukti transfer.' });
       return;
     }

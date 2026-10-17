@@ -25,6 +25,46 @@ export type PaymentStatus = 'pending_verification' | 'verified' | 'rejected';
 
 export type BroadcastScope = 'indonesia' | 'regional';
 
+export type LandingOrderStatus = 'pending' | 'in_review' | 'in_progress' | 'done' | 'rejected';
+
+export interface MemberCardRow {
+  id: string;
+  profile_id: string;
+  card_number: string;
+  tier: string;
+  issued_at: string;
+  expires_at: string | null;
+  status: string;
+}
+
+export interface LandingPageOrderRow {
+  id: string;
+  profile_id: string;
+  template_id: string;
+  custom_notes: string;
+  status: LandingOrderStatus;
+  admin_note: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatMessageRow {
+  id: string;
+  thread_profile_id: string;
+  sender_role: 'member' | 'admin';
+  sender_profile_id: string;
+  body: string;
+  created_at: string;
+  read_at: string | null;
+}
+
+export interface ChatThreadSummaryRow {
+  profile_id: string;
+  profile_name: string;
+  profile_email: string;
+  unread_count: string | number;
+}
+
 export interface ProfileRow {
   id: string;
   email: string;

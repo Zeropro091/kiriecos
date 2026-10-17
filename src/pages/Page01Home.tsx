@@ -72,7 +72,7 @@ const STEPS = [
   {
     icon: ShieldCheck,
     title: 'Kurasi & Sepakati',
-    desc: 'Tim KIRI mencocokkan ekspektasi kedua pihak sebelum kontrak dikunci.',
+    desc: 'Tim KIRI mencocokkan ekspektasi kedua pihak sebelum kolaborasi dimulai.',
   },
   {
     icon: Wallet,

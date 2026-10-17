@@ -26,11 +26,16 @@ export const MASTER_PAGES = [
   { id: 'page-22-collab-success', num: '22', title: 'Success & Request Status', group: 'Collaboration Flow', desc: 'Confirmation screen with Tracking ID and 5-stage interactive status stepper' },
   { id: 'page-23-my-collaborations', num: '23', title: 'My Collaborations Hub', group: 'Collaboration Flow', desc: 'Ongoing collaborations tracker with interactive deliverables checklist' },
   { id: 'page-24-login-admin', num: '24', title: 'Admin Login', group: 'Admin & Operations', desc: 'Restricted administrative gateway for KIRI leadership & review team' },
-  { id: 'page-25-dashboard-admin', num: '25', title: 'Admin Request & Matching', group: 'Admin & Operations', desc: 'Central request operations: Matching talent, setting escrow, status updates' },
+  { id: 'page-25-dashboard-admin', num: '25', title: 'Admin Request & Matching', group: 'Admin & Operations', desc: 'Central request operations: Matching talent, verifikasi pembayaran, status updates' },
   { id: 'page-26-admin-reviews', num: '26', title: 'Admin Registration Review', group: 'Admin & Operations', desc: 'Registration approval queue for creators, communities, and UMKM' },
   { id: 'page-27-request-flowchart', num: '27', title: 'Ecosystem Request Flowchart', group: 'Admin & Operations', desc: 'Visual interactive workflow and dynamic timeline simulator for partners' },
   { id: 'page-28-brand-landing-page', num: '28', title: 'Brand Landing Page', group: 'Admin & Operations', desc: 'Custom brand landing page builder & developer sandbox preview' },
   { id: 'page-29-broadcast', num: '29', title: 'Community Broadcast Network', group: 'Public Experience', desc: 'Real-time national and per-region collaboration broadcast feed with persisted history' },
+  { id: 'page-14a-creator-pricing', num: '14A', title: 'Creator Pricing', group: 'Onboarding & Registration', desc: 'Annual creator membership tiers: Basic, Exclusive, Platinum with full benefit comparison' },
+  { id: 'page-14b-business-pricing', num: '14B', title: 'Business Pricing', group: 'Onboarding & Registration', desc: 'Annual business membership tiers: Basic, Exclusive, Platinum (special launching price)' },
+  { id: 'page-30-member-card', num: '30', title: 'Digital Member Card', group: 'Authentication & Dashboards', desc: 'Digital membership card: card number, tier badge, validity period, KIRI branding' },
+  { id: 'page-31-landing-order', num: '31', title: 'Landing Page Templates', group: 'Authentication & Dashboards', desc: 'Order a minimalist landing page template (minimal-01/02/03) handled by admin' },
+  { id: 'page-32-chat', num: '32', title: 'Chat dengan Admin', group: 'Authentication & Dashboards', desc: 'Member-to-admin live chat with 5s polling and message history' },
 ];
 
 const BASE_ENTITIES: Entity[] = [
@@ -51,10 +56,10 @@ const BASE_ENTITIES: Entity[] = [
     tiktok: 'rakavisuals',
     youtube: 'RakaDewantaraFilms',
     stats: [
-      { label: 'Followers Reach', value: '185K+' },
-      { label: 'Engagement Rate', value: '5.8%' },
-      { label: 'Collabs Completed', value: '42 Brand Deals' },
-      { label: 'KIRI Rating', value: '4.95 / 5.0' },
+      { label: 'Followers Reach', value: '0' },
+      { label: 'Engagement Rate', value: '0' },
+      { label: 'Collabs Completed', value: '0' },
+      { label: 'KIRI Rating', value: '0' },
     ],
     tags: ['Cinematic Reels', 'Drone 4K', 'Eco Hospitality', 'Documentary', 'Color Grading'],
     lookingFor: ['Luxury Hotel Stays', 'Eco-Tourism Brands', 'High-end Craft & Coffee'],
@@ -81,8 +86,8 @@ const BASE_ENTITIES: Entity[] = [
         type: 'video',
         imageUrl: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80',
         caption: 'Meningkatkan booking occupancy sebesar 68% dalam 14 hari peluncuran kampanye.',
-        views: '240K',
-        likes: '18.4K'
+        views: '0',
+        likes: '0'
       },
       {
         id: 'port-2',
@@ -90,8 +95,8 @@ const BASE_ENTITIES: Entity[] = [
         type: 'photo',
         imageUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80',
         caption: 'Dokumenter foto visual storytelling proses pemetikan biji kopi arabika Kintamani.',
-        views: '95K',
-        likes: '7.2K'
+        views: '0',
+        likes: '0'
       },
       {
         id: 'port-3',
@@ -99,8 +104,8 @@ const BASE_ENTITIES: Entity[] = [
         type: 'video',
         imageUrl: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=800&q=80',
         caption: 'Visualisasi tangan pengrajin tanah liat tradisional berpadu desain minimalis modern.',
-        views: '160K',
-        likes: '12.1K'
+        views: '0',
+        likes: '0'
       }
     ],
     featured: true,
@@ -121,10 +126,10 @@ const BASE_ENTITIES: Entity[] = [
     instagram: 'ayudewi.craft',
     tiktok: 'ayuceritakarya',
     stats: [
-      { label: 'Followers Reach', value: '92K+' },
-      { label: 'Engagement Rate', value: '6.2%' },
-      { label: 'Collabs Completed', value: '28 Brand Deals' },
-      { label: 'KIRI Rating', value: '4.92 / 5.0' },
+      { label: 'Followers Reach', value: '0' },
+      { label: 'Engagement Rate', value: '0' },
+      { label: 'Collabs Completed', value: '0' },
+      { label: 'KIRI Rating', value: '0' },
     ],
     tags: ['Handmade Textile', 'Tenun Bali', 'Sustainable Living', 'Workshops', 'Heritage Storytelling'],
     lookingFor: ['Ethical Fashion', 'Eco-Home Decor', 'Cultural Tourism'],
@@ -144,8 +149,8 @@ const BASE_ENTITIES: Entity[] = [
         type: 'photo',
         imageUrl: 'https://images.unsplash.com/photo-1606744837616-56c9a5c6a6eb?auto=format&fit=crop&w=800&q=80',
         caption: 'Sorotan pengrajin lokal penerus tradisi tenun pewarna alami.',
-        views: '80K',
-        likes: '6.4K'
+        views: '0',
+        likes: '0'
       }
     ],
     featured: true,
@@ -165,10 +170,10 @@ const BASE_ENTITIES: Entity[] = [
     instagram: 'bayu.eats',
     tiktok: 'bayukulinerbali',
     stats: [
-      { label: 'Followers Reach', value: '142K+' },
-      { label: 'Engagement Rate', value: '7.1%' },
-      { label: 'Collabs Completed', value: '65 F&B Brands' },
-      { label: 'KIRI Rating', value: '4.88 / 5.0' },
+      { label: 'Followers Reach', value: '0' },
+      { label: 'Engagement Rate', value: '0' },
+      { label: 'Collabs Completed', value: '0' },
+      { label: 'KIRI Rating', value: '0' },
     ],
     tags: ['Food Review', 'Cafe Hopping', 'Macro Food 4K', 'Bali Dining', 'Viral Reels'],
     lookingFor: ['Cafe & Restaurant Launches', 'Indonesian Spices & Sauces', 'Artisan Bakeries'],
@@ -188,8 +193,8 @@ const BASE_ENTITIES: Entity[] = [
         type: 'video',
         imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80',
         caption: 'Mendapat 420.000 views dalam 48 jam dan antrian pengunjung meningkat 3x lipat.',
-        views: '420K',
-        likes: '31.2K'
+        views: '0',
+        likes: '0'
       }
     ],
     featured: true,
@@ -233,7 +238,7 @@ const BASE_ENTITIES: Entity[] = [
         type: 'campaign',
         imageUrl: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=800&q=80',
         caption: 'Menghubungkan 350+ kreator dengan 25 brand sponsor lokal dan nasional.',
-        views: '500+ Attendees'
+        views: '0'
       }
     ],
     featured: true,
@@ -329,8 +334,8 @@ const BASE_ENTITIES: Entity[] = [
     website: 'https://creativebali.news',
     instagram: 'creativebali.news',
     stats: [
-      { label: 'Monthly Readers', value: '250K+' },
-      { label: 'Newsletter Subs', value: '18.500' },
+      { label: 'Monthly Readers', value: '0' },
+      { label: 'Newsletter Subs', value: '0' },
       { label: 'Media Releases Published', value: '310+ Articles' },
       { label: 'Channel Reach', value: 'Web & IG & Podcast' },
     ],

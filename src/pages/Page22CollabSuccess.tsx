@@ -23,7 +23,7 @@ export const Page22CollabSuccess: React.FC = () => {
     { id: 'submitted', title: 'Submitted', label: 'Brief Diterima', desc: 'Brief masuk antrean kurasi KIRI Project' },
     { id: 'in_review', title: 'In Review', label: 'Kurasi Admin', desc: 'Kak Rini & Tim menelaah kesesuaian brief' },
     { id: 'matched', title: 'Matched', label: 'Konfirmasi Talenta', desc: 'Talenta menyetujui jadwal dan nilai proyek' },
-    { id: 'connected', title: 'Connected', label: 'Kickoff & Escrow', desc: 'Kontrak digital ditandatangani & dana diamankan' },
+    { id: 'connected', title: 'Connected', label: 'Kickoff & Verifikasi', desc: 'Kesepakatan dikonfirmasi & pembayaran terverifikasi admin' },
     { id: 'in_progress', title: 'In Progress', label: 'Produksi Konten', desc: 'Kreator memproduksi deliverables sesuai jadwal' },
     { id: 'completed', title: 'Completed', label: 'Selesai & Dampak', desc: 'Karya disetujui, dana cair, laporan terbit' },
   ];

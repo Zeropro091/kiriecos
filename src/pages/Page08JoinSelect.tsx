@@ -18,13 +18,14 @@ export const Page08JoinSelect: React.FC = () => {
   const options = [
     {
       id: 'creator',
-      page: 'page-09-register-creator' as PageId,
+      page: 'page-14a-creator-pricing' as PageId,
       title: 'Content Creator',
+      cta: 'Lihat Harga Membership',
       subtitle: 'Untuk videografer, fotografer, desainer, dan kreator digital',
       icon: <Video className="w-8 h-8 text-kiri-gold-500" />,
       benefits: [
         'Akses proyek komersial brand & UMKM terverifikasi',
-        'Sistem pembayaran terlindungi (KIRI Escrow)',
+        'Pembayaran terverifikasi admin KIRI',
         'Showcase portofolio dan rate card resmi',
         'Pelatihan kurasi di KIRI Academy'
       ],
@@ -47,8 +48,9 @@ export const Page08JoinSelect: React.FC = () => {
     },
     {
       id: 'business',
-      page: 'page-11-register-business' as PageId,
+      page: 'page-14b-business-pricing' as PageId,
       title: 'Bisnis & UMKM',
+      cta: 'Lihat Harga Membership',
       subtitle: 'Untuk brand lokal, cafe & resto, hotel, dan usaha produk kreatif',
       icon: <Building2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />,
       benefits: [
@@ -184,7 +186,7 @@ export const Page08JoinSelect: React.FC = () => {
                     : 'bg-kiri-green-900 text-white dark:bg-kiri-gold-500 dark:text-kiri-dark-900 hover:opacity-90'
                 }`}
               >
-                <span>Pilih & Isi Formulir</span>
+                <span>{opt.cta || 'Pilih & Isi Formulir'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>

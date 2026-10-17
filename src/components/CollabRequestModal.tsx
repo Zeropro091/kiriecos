@@ -101,7 +101,7 @@ export const CollabRequestModal: React.FC = () => {
               <div className="p-3 rounded-lg bg-gray-50 dark:bg-kiri-dark-750 border border-gray-100 dark:border-kiri-dark-700">
                 <p className="font-bold text-kiri-green-950 dark:text-white">2. Keamanan Dana</p>
                 <p className="text-gray-500 dark:text-gray-400 text-[11px] mt-0.5 leading-relaxed">
-                  Sistem escrow terpercaya. Pembayaran hanya cair setelah deliverables disetujui.
+                  Pembayaran terverifikasi oleh tim admin. Pencairan dilakukan setelah deliverables disetujui.
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-gray-50 dark:bg-kiri-dark-750 border border-gray-100 dark:border-kiri-dark-700">

@@ -190,7 +190,7 @@ export const Page18DashboardCommunity: React.FC = () => {
                   Meetup Rutin Jumat Depan
                 </p>
                 <p className="text-gray-600 dark:text-gray-400 text-[11px]">
-                  Diskusi portofolio dan bedah kontrak komersial bersama Kak Rifky & Kak Rini.
+                  Diskusi portofolio dan bedah bisnis komersial bersama Kak Rifky & Kak Rini.
                 </p>
               </div>
             </div>
