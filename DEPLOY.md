@@ -33,6 +33,17 @@ cd C:\kiri
 
 Kalau `git` belum ada: `winget install Git.Git`, lalu tutup-buka PowerShell.
 
+**Kalau nggak mau install git**, pakai ZIP — hasilnya sama:
+
+```powershell
+Invoke-WebRequest https://github.com/Zeropro091/kiriecos/archive/refs/heads/main.zip -OutFile "$env:TEMP\kiri.zip"
+Expand-Archive "$env:TEMP\kiri.zip" C:\ -Force
+Rename-Item C:\kiriecos-main C:\kiri
+cd C:\kiri
+```
+
+Script deploy mendeteksi sendiri kalau foldernya bukan repo git, dan tetap jalan (cuma update kode nanti lewat download ulang).
+
 ---
 
 ## Langkah 3 — deploy (satu perintah)

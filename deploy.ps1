@@ -93,7 +93,7 @@ Say "PowerShell $($PSVersionTable.PSVersion) | $([System.Environment]::OSVersion
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 Say ("mode: " + $(if ($isAdmin) { 'Administrator (penuh)' } else { 'user biasa (cukup, kecuali Docker)' }))
 
-if (-not (Ensure-Tool 'git' 'Git.Git' 'git')) { Fail 'git wajib ada. Install: winget install Git.Git' }
+if (-not (Ensure-Tool 'git' 'Git.Git' 'git')) { Warn 'git tidak ada - pakai ZIP, atau ulangi dengan -Bootstrap' }
 if (-not (Ensure-Tool 'node' 'OpenJS.NodeJS.LTS' 'Node.js LTS')) { Fail 'Node.js wajib ada. Install: winget install OpenJS.NodeJS.LTS' }
 
 $nodeVer = (& node -v).TrimStart('v')
@@ -105,17 +105,25 @@ Ok "node $nodeVer, $(& git --version)"
 # ============================ 1. Kode ============================
 Step 'Ambil kode'
 $scriptRepo = $PSScriptRoot
-if ((Test-Path (Join-Path $scriptRepo '.git')) -and (Test-Path (Join-Path $scriptRepo 'server'))) {
+if (Test-Path (Join-Path $scriptRepo 'server\package.json')) {
   $Target = $scriptRepo
   Say "pakai folder script ini: $Target"
 } elseif (-not (Test-Path (Join-Path $Target '.git'))) {
-  if (Test-Path $Target) { Fail "$Target sudah ada tapi bukan repo git. Pindahkan/kosongkan dulu." }
+  if ((Test-Path $Target) -and (Get-ChildItem $Target -Force | Select-Object -First 1)) {
+    Fail "$Target sudah ada isinya tapi bukan repo git. Pindahkan/kosongkan dulu."
+  }
+  if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+    Fail 'git tidak ada. Download ZIP: https://github.com/Zeropro091/kiriecos/archive/refs/heads/main.zip lalu extract isinya ke C:\kiri, jalankan ulang script ini.'
+  }
   Say "clone $Repo -> $Target"
   & git clone --branch $Branch $Repo $Target
   if ($LASTEXITCODE -ne 0) { Fail 'git clone gagal (cek koneksi internet / akses repo)' }
 }
 
-if (-not $SkipPull) {
+$hasGit = Test-Path (Join-Path $Target '.git')
+if (-not $hasGit) {
+  Warn 'folder ini bukan repo git (hasil ZIP) - update kode nanti lewat download ulang'
+} elseif (-not $SkipPull) {
   Push-Location $Target
   & git fetch origin $Branch --quiet
   & git checkout $Branch --quiet
@@ -124,8 +132,8 @@ if (-not $SkipPull) {
   Pop-Location
   if ($code -ne 0) { Fail "gagal update ke origin/$Branch" }
 }
-$commit = (& git -C $Target rev-parse --short HEAD)
-$subject = (& git -C $Target log -1 --pretty=%s)
+$commit = if ($hasGit) { (& git -C $Target rev-parse --short HEAD) } else { 'zip' }
+$subject = if ($hasGit) { (& git -C $Target log -1 --pretty=%s) } else { 'tanpa git (ZIP)' }
 Ok "commit $commit - $subject"
 
 # ============================ 2. Env ============================
