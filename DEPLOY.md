@@ -1,66 +1,167 @@
-# KIRI PROJECT — Deploy Runbook
+# Deploy KIRI Project ke Server Windows
 
-Status: **DEPLOY-READY** (kode + config siap, tinggal eksekusi 4 langkah di bawah).
+Panduan ini buat siapa pun yang pegang server-nya. Nggak perlu paham kode.
+Total waktu: ~15 menit (mayoritas nunggu `npm ci`).
 
-## Arsitektur
-- **Frontend**: Vite + React + TS → static build di `dist/` (Vercel / Netlify)
-- **Backend**: Supabase (Postgres + Storage) — schema di `supabase/migrations/20260918_init_kiri_schema.sql`
-- **Mode**: kalau env Supabase kosong → app jalan dalam Mock Mode (data in-memory, hilang saat refresh). Untuk production, env WAJIB terisi.
+Yang lo butuh:
+- Server Windows 10/11 atau Windows Server, ada internet.
+- Akses Administrator di server itu.
+- **Satu file dari Ari: `kiri.env.production`** — isinya kredensial database & storage. File ini RAHASIA: jangan di-commit, jangan di-share, jangan di-upload ke mana pun.
 
-## Langkah Deploy (sekali jalan, ±30 menit)
+---
 
-### 1. Supabase Setup
-1. Buat project baru di [supabase.com](https://supabase.com) (region: Singapore)
-2. Buka **SQL Editor** → paste seluruh isi `supabase/migrations/20260918_init_kiri_schema.sql` → Run
-   - Migration ini bikin: 7 tabel, enum types, indexes, RLS policies (termasuk open-registration + storage upload untuk anon), 3 storage buckets
-3. Buat 1 admin user manual di **Table Editor → profiles** (email + full_name, role = `admin`) — dipakai `public.is_admin()` untuk approve payment/review
-4. Copy **Project URL** + **anon public key** dari Settings → API
+## Langkah 1 — buka PowerShell
 
-### 2. Repo bersih (WAJIB sebelum push)
-Repo sekarang **326 MB** karena aset docx/zip/extracted_images ter-commit. Jangan push dulu — jalankan:
+`Win + X` → **Terminal (Windows PowerShell)** → kalau bisa pilih **Administrator**.
+Administrator dipakai supaya port 4000 bisa dibuka di firewall. Kalau nggak admin, script tetap jalan, cuma akses dari mesin lain nggak terbuka.
 
-```bash
-# Lihat apa yang bikin bengkak
-git ls-files | xargs -I{} du -k "{}" 2>/dev/null | sort -rn | head -20
+```powershell
+winget --version
 ```
 
-Yang perlu di-untrack (tapi JANGAN dihapus dari lokal):
-```bash
-git rm -r --cached extracted_images extracted_doc_text.txt \
-  "KIRI_PROJECT_UIUX_FOUNDATION_COMPLETE_VISUAL_ALL_ASSETS.docx" \
-  kiri_project_images.zip 2>/dev/null
-git commit -m "chore: untrack large binary assets from repo"
+Kalau `winget` nggak ada: install "App Installer" dari Microsoft Store, atau install manual [Git](https://git-scm.com/download/win) + [Node.js LTS](https://nodejs.org) (versi 22).
+
+---
+
+## Langkah 2 — ambil kode
+
+```powershell
+cd C:\
+git clone https://github.com/Zeropro091/kiriecos.git kiri
+cd C:\kiri
 ```
 
-> Catatan: `.git` tetap bengkak secara history (326MB). Untuk clean history total, pakai `git filter-repo` atau mulai fresh repo. Untuk launch cepat: cukup untrack di atas + push (GitHub masih terima <2GB).
+Kalau `git` belum ada: `winget install Git.Git`, lalu tutup-buka PowerShell.
 
-### 3. Deploy Frontend — Vercel
-1. Push ke GitHub: `git push origin main`
-2. [vercel.com/new](https://vercel.com/new) → import repo `Zeropro091/kiriecos`
-3. Framework preset: **Vite** (auto-detect) — build `npm run build`, output `dist`
-4. **Environment Variables** (Production + Preview):
-   - `VITE_SUPABASE_URL` = (dari langkah 1)
-   - `VITE_SUPABASE_ANON_KEY` = (dari langkah 1)
-5. Deploy → dapat URL `kiriecos.vercel.app`
+---
 
-`vercel.json` sudah include SPA rewrites + cache headers (aman untuk refresh direct URL).
+## Langkah 3 — deploy (satu perintah)
 
-### 3b. Alternatif: Netlify
-`netlify.toml` sudah disiapkan (build + SPA redirect + cache). Tinggal connect repo di [netlify.com](https://netlify.com), set env variables yang sama.
+Taruh `kiri.env.production` di `C:\kiri\`, lalu:
 
-### 4. Smoke Test Production (15 menit)
-Setelah live, tes alur ini di browser (bukan localhost):
-- [ ] Home load, navigate directory → profil UMKM
-- [ ] Register satu akun creator → cek Supabase Table Editor `entities` ada row baru (status `pending_review`)
-- [ ] Submit collab request → cek `collaboration_requests`
-- [ ] Upload payment receipt → cek Storage bucket `receipts` ada file + `payment_receipts` ada row
-- [ ] Login admin (halaman admin) → approve/reject berfungsi
-- [ ] Hard refresh (F5) di sub-halaman → tidak 404 (SPA rewrite bekerja)
+```powershell
+.\deploy.ps1 -EnvFile .\kiri.env.production -Bootstrap
+```
 
-## Known Limitations (post-launch, bukan blocker)
-- **Auth**: login masih localStorage (mock). RLS open-insert policies menutup gap ini sementara — semua pendaftaran masuk sebagai `pending_review` dan dimoderasi admin manual. Integrasi Supabase Auth = prioritas pasca-launch.
-- **Payment**: verifikasi manual transfer bank (by design — sesuai brief).
-- **`sender_id`/`receiver_id` collab**: anon submit → NULL. Akan keisi setelah Auth di-wire.
+Kalau kena execution policy:
 
-## Rollback / Darurat
-Kalau Supabase bermasalah pas launch: kosongkan `VITE_SUPABASE_URL` di Vercel → redeploy → app otomatis jalan Mock Mode (demo tetap bisa, data gak persist).
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy.ps1 -EnvFile .\kiri.env.production -Bootstrap
+```
+
+Script ini jalan berurutan, dan **aman diulang** kalau gagal di tengah:
+
+1. cek/install git + Node.js LTS (kalau `-Bootstrap`)
+2. clone atau update kode ke branch `main`
+3. pasang `server\.env` dari file yang lo kasih
+4. validasi env — kalau `JWT_SECRET` masih nilai contoh, script berhenti (itu memang harus berhenti)
+5. `npm ci` + build frontend → `dist\`
+6. `npm ci` + build backend → `server\dist\`
+7. migrasi database (aditif: bikin tabel yang belum ada, **tidak menghapus data**)
+8. start app — pakai Docker kalau terpasang, kalau tidak pm2
+9. tunggu `/api/health` balas `db=up`, lalu cek halaman utama balas 200
+
+Kalau sukses, output terakhirnya:
+
+```
+==================================================
+ KIRI PROJECT - SELESAI
+==================================================
+commit   : <hash>
+runner   : pm2   (atau docker)
+folder   : C:\kiri
+akses    :
+  http://127.0.0.1:4000
+  http://<ip-lan>:4000
+```
+
+Buka URL itu di browser server — harusnya keluar landing page KIRI.
+
+---
+
+## Langkah 4 — yang dikirim balik ke Ari
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:4000/api/health | ConvertTo-Json
+```
+
+Harusnya:
+
+```json
+{ "ok": true, "db": "up", "service": "kiri-server", "time": "..." }
+```
+
+Kirim juga output akhir `deploy.ps1` (bagian "SELESAI") dan, kalau pakai Docker:
+
+```powershell
+docker ps --filter name=kiri
+```
+
+---
+
+## Akses dari internet (opsional, buat tes cepat)
+
+Cuma kalau Ari minta. Ini bikin URL publik sementara (`https://xxx.trycloudflare.com`), bukan `kiriproject.id`:
+
+```powershell
+.\deploy.ps1 -Tunnel -SkipPull
+```
+
+Domain `kiriproject.id` dipasang terpisah lewat Cloudflare Tunnel permanen — itu butuh login Cloudflare, jadi dipegang Ari.
+
+---
+
+## Yang JANGAN dilakukan
+
+| Jangan | Kenapa |
+|---|---|
+| `npm run seed` di server | Bisa menimpa/menghapus data produksi |
+| commit atau upload `kiri.env.production` / `server\.env` | Kredensial produksi — repo ini publik |
+| `git push` ke repo | Server cuma buat jalanin, bukan buat ngoding |
+| hapus `C:\kiri` waktu app jalan | Database aman (di Neon), tapi upload lokal bisa hilang |
+
+---
+
+## Kalau gagal
+
+Script selalu berhenti dengan baris `GAGAL: <alasan>` dan, kalau app-nya sudah nyala, mencetak 40 baris log terakhir.
+
+| Gejala | Penyebab | Solusi |
+|---|---|---|
+| `git` / `node` tidak ditemukan | belum terpasang | ulangi dengan `-Bootstrap` |
+| `Node vX terlalu lama` | Node < 20 | `winget install OpenJS.NodeJS.LTS`, buka PowerShell baru |
+| `npm ci (root) gagal` | koneksi / lockfile | ulangi; kalau tetap, kirim output lengkapnya |
+| `migrasi gagal` | `DATABASE_URL` salah atau `DATABASE_SSL` bukan `true` | cek `server\.env` |
+| `health check tidak pernah db=up` | DB tak terjangkau / port 4000 dipakai app lain | cek log yang dicetak; `netstat -ano \| findstr :4000` |
+| `EADDRINUSE :4000` | port dipakai proses lain | `pm2 delete kiri`, ulangi |
+| halaman kebuka tapi API 404 | build frontend gagal senyap | pastikan `C:\kiri\dist\index.html` ada |
+| `docker build` gagal soal WSL | Docker Desktop belum siap | buka Docker Desktop, tunggu "Engine running", ulangi |
+
+Kalau mentok: kirim ke Ari output `GAGAL:` + 40 baris di atasnya. Jangan kirim isi `kiri.env.production`.
+
+---
+
+## Update kode nanti
+
+```powershell
+cd C:\kiri
+.\deploy.ps1
+```
+
+Migrasi idempoten, jadi aman dijalankan tiap update. Kalau mau skip migrasi: `.\deploy.ps1 -SkipMigrate`.
+
+## Struktur singkat
+
+```
+C:\kiri\
+  deploy.ps1            <- script deploy
+  dist\                 <- hasil build frontend (otomatis)
+  server\
+    .env                <- kredensial (JANGAN di-commit)
+    dist\               <- hasil build backend (otomatis)
+    src\db\migrations\  <- SQL migrasi
+```
+
+Database **tidak** ada di server ini — pakai Neon Postgres (hosted). Server cuma jalanin app; kalau server mati, data tetap aman.
+
+Untuk detail teknis (arsitektur, variabel env, troubleshooting developer): `docs/DEPLOY_V2.md` dan `docs/SERVER_SETUP.md`.

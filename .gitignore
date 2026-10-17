@@ -21,6 +21,12 @@ build
 .env.test.local
 .env.production.local
 
+# Secret handoff files (dikirim manual ke pemegang server, JANGAN masuk repo)
+secrets/
+kiri.env.production
+*.env.production
+!server/.env.example
+
 # Log files
 npm-debug.log*
 yarn-debug.log*
