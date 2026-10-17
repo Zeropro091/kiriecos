@@ -15,7 +15,7 @@ import {
   CommunityMember,
   BroadcastMessage,
 } from '../types';
-import { api, ApiError, assetUrl } from '../lib/api';
+import { api, ApiError, assetUrl, getToken } from '../lib/api';
 
 function isForbidden(err: unknown): boolean {
   return err instanceof ApiError && (err.status === 401 || err.status === 403);
@@ -182,7 +182,19 @@ class DataService {
   }
 
   async signReceipt(path: string): Promise<string> {
-    return assetUrl(path);
+    // /uploads sekarang terautentikasi (bukan static publik lagi) — fetch dengan
+    // bearer token, lalu balikkan blob URL yang bisa dibuka di tab baru.
+    const url = assetUrl(path);
+    if (!getToken()) return url;
+    try {
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${getToken()}` } });
+      if (!res.ok) throw new ApiError(res.status, 'Gagal membuka bukti transfer.');
+      const blob = await res.blob();
+      return URL.createObjectURL(blob);
+    } catch (err) {
+      if (err instanceof ApiError) throw err;
+      throw new ApiError(0, 'Gagal membuka bukti transfer.');
+    }
   }
 
   async verifyPayment(id: string, action: 'verify' | 'reject', adminNotes?: string): Promise<boolean> {

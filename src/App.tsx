@@ -23,6 +23,8 @@ import { Page11RegisterBusiness } from './pages/Page11RegisterBusiness';
 import { Page12RegisterMedia } from './pages/Page12RegisterMedia';
 import { Page13RegisterPartner } from './pages/Page13RegisterPartner';
 import { Page14MembershipPayment } from './pages/Page14MembershipPayment';
+import { Page14ACreatorPricing } from './pages/Page14ACreatorPricing';
+import { Page14BBusinessPricing } from './pages/Page14BBusinessPricing';
 import { Page15Login } from './pages/Page15Login';
 import { Page16DashboardUser } from './pages/Page16DashboardUser';
 import { Page17ProfileEditor } from './pages/Page17ProfileEditor';
@@ -38,6 +40,9 @@ import { Page26AdminReviews } from './pages/Page26AdminReviews';
 import { Page27RequestFlowchart } from './pages/Page27RequestFlowchart';
 import { Page28BrandLandingPage } from './pages/Page28BrandLandingPage';
 import { Page29Broadcast } from './pages/Page29Broadcast';
+import { Page30MemberCard } from './pages/Page30MemberCard';
+import { Page31LandingOrder } from './pages/Page31LandingOrder';
+import { Page32Chat } from './pages/Page32Chat';
 
 import { FolderGit2, Sparkles, ShieldAlert } from 'lucide-react';
 
@@ -103,6 +108,10 @@ const MainContent: React.FC = () => {
         return <Page13RegisterPartner />;
       case 'page-14-membership-payment':
         return <Page14MembershipPayment />;
+      case 'page-14a-creator-pricing':
+        return <Page14ACreatorPricing />;
+      case 'page-14b-business-pricing':
+        return <Page14BBusinessPricing />;
       case 'page-15-login':
         return <Page15Login />;
       case 'page-16-dashboard-user':
@@ -133,6 +142,12 @@ const MainContent: React.FC = () => {
         return <Page28BrandLandingPage />;
       case 'page-29-broadcast':
         return <Page29Broadcast />;
+      case 'page-30-member-card':
+        return <Page30MemberCard />;
+      case 'page-31-landing-order':
+        return <Page31LandingOrder />;
+      case 'page-32-chat':
+        return <Page32Chat />;
       default:
         return <Page01Home />;
     }

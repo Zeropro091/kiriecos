@@ -19,6 +19,10 @@ import { registrationRouter } from './routes/registrations.routes.js';
 import { paymentRouter } from './routes/payments.routes.js';
 import { memberRouter } from './routes/members.routes.js';
 import { broadcastRouter } from './routes/broadcasts.routes.js';
+import { cardRouter } from './routes/meCard.routes.js';
+import { landingOrderRouter } from './routes/landingOrders.routes.js';
+import { chatRouter } from './routes/chat.routes.js';
+import { uploadsRouter } from './routes/uploads.routes.js';
 import { UPLOAD_ROOT } from './storage/files.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -50,8 +54,9 @@ export function createApp(): express.Express {
         useDefaults: true,
         directives: {
           'default-src': ["'self'"],
-          'script-src': ["'self'", 'https://cdn.tailwindcss.com'],
-          'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdn.tailwindcss.com'],
+          // Frontend is fully compiled — no CDN scripts exist (verified: index.html and src/ have no cdn.tailwindcss.com).
+          'script-src': ["'self'"],
+          'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
           'font-src': ["'self'", 'data:', 'https://fonts.gstatic.com'],
           'img-src': ["'self'", 'data:', 'blob:', 'https://images.unsplash.com', 'https://*.unsplash.com'],
           'connect-src': ["'self'"],
@@ -79,7 +84,8 @@ export function createApp(): express.Express {
   );
   app.use(express.json({ limit: '10mb' }));
 
-  app.use('/uploads', express.static(UPLOAD_ROOT, { maxAge: '1h' }));
+  // /uploads is no longer public — authenticated, traversal-safe route (uploads.routes.ts).
+  app.use('/uploads', uploadsRouter);
 
   const apiLimiter = rateLimit({
     windowMs: 60_000,
@@ -115,6 +121,9 @@ export function createApp(): express.Express {
   app.use('/api/payments', paymentRouter);
   app.use('/api/members', memberRouter);
   app.use('/api/broadcasts', broadcastRouter);
+  app.use('/api/me', cardRouter);
+  app.use('/api/landing-orders', landingOrderRouter);
+  app.use('/api/chat', chatRouter);
 
   app.use('/api', (_req, res) => {
     res.status(404).json({ error: 'Endpoint tidak ditemukan.' });

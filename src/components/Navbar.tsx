@@ -16,6 +16,9 @@ import {
   SlidersHorizontal,
   Radio,
   ArrowRight,
+  IdCard,
+  LayoutTemplate,
+  MessageSquare,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -174,6 +177,44 @@ export const Navbar: React.FC = () => {
                       <span>Edit Profil</span>
                     </button>
                   </div>
+
+                  {currentUser.role !== 'admin' && (
+                    <div className="p-1.5 space-y-0.5 border-t border-border">
+                      <p className="px-3 pt-1.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Menu Member
+                      </p>
+                      <button
+                        onClick={() => {
+                          setIsUserDropdownOpen(false);
+                          navigateTo('page-30-member-card');
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-lg text-sm text-foreground hover:bg-secondary flex items-center gap-2.5 transition-colors"
+                      >
+                        <IdCard className="w-4 h-4 text-muted-foreground" />
+                        <span>Kartu Member Digital</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsUserDropdownOpen(false);
+                          navigateTo('page-31-landing-order');
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-lg text-sm text-foreground hover:bg-secondary flex items-center gap-2.5 transition-colors"
+                      >
+                        <LayoutTemplate className="w-4 h-4 text-muted-foreground" />
+                        <span>Pesan Landing Page</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsUserDropdownOpen(false);
+                          navigateTo('page-32-chat');
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-lg text-sm text-foreground hover:bg-secondary flex items-center gap-2.5 transition-colors"
+                      >
+                        <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                        <span>Chat Admin</span>
+                      </button>
+                    </div>
+                  )}
 
                   <div className="p-1.5 border-t border-border">
                     <button

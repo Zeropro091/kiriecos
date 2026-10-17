@@ -4,7 +4,7 @@ import { asyncHandler } from '../http/asyncHandler.js';
 import { createProfile, findByEmail, toPublicUser } from '../repositories/profiles.js';
 import { hashPassword, verifyPassword } from '../auth/password.js';
 import { signToken } from '../auth/jwt.js';
-import { requireAuth } from '../auth/middleware.js';
+import { attachUser, requireAuth } from '../auth/middleware.js';
 
 export const authRouter = Router();
 
@@ -37,7 +37,7 @@ authRouter.post(
       name,
       role: 'creator',
       entityType,
-      membershipTier: 'free',
+      membershipTier: 'basic',
       isVerified: false,
     });
 
@@ -71,6 +71,7 @@ authRouter.post(
   })
 );
 
-authRouter.get('/me', requireAuth, (req, res) => {
+// /api/auth is mounted before the global attachUser (app.ts), so decode the JWT here.
+authRouter.get('/me', attachUser, requireAuth, (req, res) => {
   res.json({ user: req.user });
 });

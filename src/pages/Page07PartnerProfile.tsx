@@ -110,7 +110,7 @@ export const Page07PartnerProfile: React.FC = () => {
                     <strong>1. Bali UMKM Pilot Acceleration:</strong> Digitalisasi pemasaran 3–5 UMKM percontohan di Bali kuartal akhir 2026.
                   </li>
                   <li className="p-2.5 rounded-lg bg-white dark:bg-kiri-dark-800 border border-gray-100 dark:border-kiri-dark-700">
-                    <strong>2. Creator Infrastructure & Escrow:</strong> Pengembangan arsitektur transaksi yang transparan dan perlindungan hak cipta talenta kreatif.
+                    <strong>2. Creator Infrastructure & Verifikasi:</strong> Pengembangan arsitektur transaksi yang transparan dan verifikasi pembayaran oleh tim admin.
                   </li>
                 </ul>
               </div>

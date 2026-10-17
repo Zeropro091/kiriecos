@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { dataService } from '../services/dataService';
 import {
@@ -9,34 +9,164 @@ import {
   ShieldCheck,
   ArrowRight,
   Clock,
-  Zap,
   Lock,
-  Building,
+  UserRound,
+  Briefcase,
   UploadCloud,
   ChevronRight
 } from 'lucide-react';
 
+/**
+ * Page14 — Membership payment flow.
+ * Pricing follows the official KIRI poster (source of truth), ALL ANNUAL:
+ *   Creator:  Basic Rp 49.000/thn, Exclusive Rp 99.000/thn, Platinum Rp 199.000/thn
+ *   Business: Basic Rp 97.000/thn, Exclusive Rp 257.000/thn, Platinum Rp 1.299.000/thn
+ * Pricing pages (Page14A / Page14B) hand their selection over via sessionStorage.
+ */
+
+type Track = 'creator' | 'business';
+type TierKey = 'basic' | 'exclusive' | 'platinum';
+
+const PRICES: Record<Track, Record<TierKey, number>> = {
+  creator: { basic: 49000, exclusive: 99000, platinum: 199000 },
+  business: { basic: 97000, exclusive: 257000, platinum: 1299000 },
+};
+
+const TIER_LABELS: Record<TierKey, string> = {
+  basic: 'Basic',
+  exclusive: 'Exclusive',
+  platinum: 'Platinum',
+};
+
+interface TierCardConfig {
+  key: TierKey;
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  features: string[];
+  highlighted?: boolean;
+  badge?: string;
+}
+
+const TIER_CARDS: Record<Track, TierCardConfig[]> = {
+  creator: [
+    {
+      key: 'basic',
+      eyebrow: 'Basic — Get Connected',
+      title: 'Creator Basic',
+      subtitle: 'Awal terhubung ke ekosistem kreatif KIRI Project.',
+      features: [
+        'Terdaftar sebagai Member KIRI Project',
+        'Creator ID / Digital Membership Card',
+        'Profil di Creator Directory',
+        'Akses informasi campaign & job',
+      ],
+    },
+    {
+      key: 'exclusive',
+      eyebrow: 'Exclusive — Get Discovered',
+      title: 'Creator Exclusive',
+      subtitle: 'Kreator yang ingin ditemukan brand & komunitas.',
+      highlighted: true,
+      badge: 'Paling Populer',
+      features: [
+        'Lencana Resmi Verified Badge Emas',
+        'Semua benefit Creator Basic (1–8)',
+        'Creator-Brand Matching & rekomendasi ke brand',
+        'Priority campaign information',
+      ],
+    },
+    {
+      key: 'platinum',
+      eyebrow: 'Platinum — Get Featured',
+      title: 'Creator Platinum',
+      subtitle: 'Kreator yang ingin ditampilkan di channel KIRI.',
+      badge: 'Best Value',
+      features: [
+        'Semua benefit Creator Exclusive (1–14)',
+        'Creator Showcase di channel KIRI',
+        'Masuk Talent Pool & project invitation',
+        'Mentoring / sesi eksklusif',
+      ],
+    },
+  ],
+  business: [
+    {
+      key: 'basic',
+      eyebrow: 'Basic — Terhubung',
+      title: 'Business Basic',
+      subtitle: 'Awal terhubung dengan ekosistem bisnis KIRI.',
+      features: [
+        'Terdaftar sebagai member KIRI Project',
+        'Profil bisnis di direktori KIRI',
+        'Kartu member digital (berlaku 1 tahun)',
+        'Informasi peluang promo, campaign, dan kolaborasi',
+      ],
+    },
+    {
+      key: 'exclusive',
+      eyebrow: 'Exclusive — Lebih Terlihat',
+      title: 'Business Exclusive',
+      subtitle: 'Bisnis yang ingin lebih terlihat & terhubung ke creator.',
+      highlighted: true,
+      badge: 'Paling Populer',
+      features: [
+        'Profil bisnis lebih lengkap (foto, produk, kontak, sosial media, lokasi)',
+        'Rekomendasi ke calon partner yang sesuai',
+        'Terbit di media online (media partner KIRI): 1x',
+        'Optimasi visibilitas bisnis di Google & AI',
+      ],
+    },
+    {
+      key: 'platinum',
+      eyebrow: 'Platinum — Diutamakan',
+      title: 'Business Platinum',
+      subtitle: 'Bisnis yang ingin diprioritaskan dalam program KIRI.',
+      badge: 'Special Launching',
+      features: [
+        'Terbit di media online (media partner KIRI): 2x',
+        'Landing page sederhana (template KIRI Project)',
+        'Lebih diprioritaskan dalam program, peluang, dan kerjasama',
+        'Semua benefit Business Exclusive (1–10)',
+      ],
+    },
+  ],
+};
+
+const formatRupiah = (n: number) => `Rp ${n.toLocaleString('id-ID')}`;
+
 export const Page14MembershipPayment: React.FC = () => {
   const { currentUser, navigateTo, showToast } = useApp();
 
-  const [selectedTier, setSelectedTier] = useState<'free' | 'pro' | 'enterprise'>('pro');
+  const [track, setTrack] = useState<Track>('creator');
+  const [selectedTier, setSelectedTier] = useState<TierKey>('exclusive');
   const [bankName, setBankName] = useState('BCA');
   const [accountName, setAccountName] = useState(currentUser?.name || '');
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittedSuccess, setIsSubmittedSuccess] = useState(false);
 
-  const calculateAmount = () => {
-    if (selectedTier === 'free') return 0;
-    if (selectedTier === 'pro') return 149000;
-    if (selectedTier === 'enterprise') return 499000;
-    return 0;
-  };
+  // Pick up selection handed off by the pricing pages (Page14A / Page14B).
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('kiri.membership.selection');
+      if (raw) {
+        const parsed = JSON.parse(raw) as { track?: Track; tier?: TierKey };
+        if (parsed.track === 'creator' || parsed.track === 'business') setTrack(parsed.track);
+        if (parsed.tier && parsed.tier in PRICES.creator) setSelectedTier(parsed.tier);
+        sessionStorage.removeItem('kiri.membership.selection');
+      }
+    } catch {
+      /* ignore malformed selection */
+    }
+  }, []);
+
+  const calculateAmount = () => PRICES[track][selectedTier] ?? 0;
 
   const handleUploadReceipt = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedTier === 'free') {
-      showToast('Anda telah terdaftar sebagai Freemium Member!', 'success');
+    if (selectedTier === 'basic') {
+      showToast('Paket Basic dipilih. Hubungi admin KIRI untuk aktivasi keanggotaan.', 'success');
       navigateTo('page-16-dashboard-user');
       return;
     }
@@ -52,7 +182,7 @@ export const Page14MembershipPayment: React.FC = () => {
       if (receiptFile) {
         try {
           uploadedProofUrl = await dataService.uploadReceiptImage(receiptFile);
-        } catch (uploadErr) {
+        } catch {
           setIsSubmitting(false);
           showToast('Gagal mengunggah gambar bukti transfer. Cek koneksi lalu coba lagi.', 'error');
           return;
@@ -62,7 +192,7 @@ export const Page14MembershipPayment: React.FC = () => {
       const saved = await dataService.submitPaymentReceipt({
         userId: currentUser?.id || 'guest-user',
         userName: currentUser?.name || accountName || 'Member Bali',
-        tier: selectedTier,
+        tier: `${track}:${selectedTier}`,
         amount: calculateAmount(),
         receiptImageUrl: uploadedProofUrl,
         senderAccountName: accountName,
@@ -82,6 +212,8 @@ export const Page14MembershipPayment: React.FC = () => {
     }
   };
 
+  const cards = TIER_CARDS[track];
+
   return (
     <div className="min-h-screen bg-[#001710] text-white py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Dynamic Background Light Orbs */}
@@ -90,217 +222,145 @@ export const Page14MembershipPayment: React.FC = () => {
       <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#D8AE5A_1.5px,transparent_1.5px)] [background-size:24px_24px] pointer-events-none"></div>
 
       <div className="max-w-6xl mx-auto space-y-12 relative z-10">
-        {/* Header: Editorial Style without generic eyebrow pills */}
+        {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
           <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.15]">
-            Pilih Lisensi Keanggotaan{' '}
+            Pilih Keanggotaan{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-kiri-gold-300 via-kiri-gold-400 to-amber-200">
               KIRI
             </span>
           </h1>
           <p className="max-w-2xl mx-auto text-gray-300/90 text-base sm:text-lg font-light leading-relaxed">
-            Dapatkan lencana Verified Badge resmi, akses kolaborasi aman tanpa batas, dan integrasi katalog bisnis di seluruh ekosistem kreatif Bali.
+            Semua paket berlaku <span className="font-semibold text-kiri-gold-300">1 tahun (per tahun)</span>.
+            Pembayaran diverifikasi manual oleh tim admin KIRI Project.
           </p>
+
+          {/* Track toggle: Creator / Business */}
+          <div className="inline-flex items-center gap-1 mt-4 p-1 rounded-full bg-white/[0.06] border border-white/10">
+            <button
+              type="button"
+              onClick={() => setTrack('creator')}
+              className={`px-5 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all ${
+                track === 'creator' ? 'bg-kiri-gold-500 text-kiri-dark-950 shadow-md' : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              <UserRound className="w-3.5 h-3.5" />
+              <span>Creator</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTrack('business')}
+              className={`px-5 py-2 rounded-full text-xs font-bold flex items-center gap-2 transition-all ${
+                track === 'business' ? 'bg-kiri-gold-500 text-kiri-dark-950 shadow-md' : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              <Briefcase className="w-3.5 h-3.5" />
+              <span>Business</span>
+            </button>
+          </div>
         </div>
 
         {/* Pricing Cards: 3-Tier Double-Bezel Architecture */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
-          {/* Tier 1: Freemium */}
-          <div
-            onClick={() => setSelectedTier('free')}
-            className={`group rounded-[2rem] p-1.5 transition-all duration-300 cursor-pointer flex flex-col ${
-              selectedTier === 'free'
-                ? 'bg-gradient-to-b from-white/30 to-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)]'
-                : 'bg-white/[0.05] hover:bg-white/[0.12] border border-white/10'
-            }`}
-          >
-            <div className={`h-full rounded-[calc(2rem-0.375rem)] p-7 flex flex-col justify-between transition-colors ${
-              selectedTier === 'free' ? 'bg-[#002419] border border-white/20' : 'bg-[#001c13]'
-            }`}>
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs uppercase tracking-widest text-gray-400 font-semibold">Starter</span>
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                    selectedTier === 'free' ? 'border-kiri-gold-400 bg-kiri-gold-400 text-kiri-dark-950' : 'border-gray-600'
-                  }`}>
-                    {selectedTier === 'free' && <CheckCircle2 className="w-3.5 h-3.5" />}
-                  </div>
-                </div>
-                <h3 className="font-serif text-2xl font-bold text-white mt-3">Freemium Member</h3>
-                <p className="text-xs text-gray-300/80 mt-1 leading-relaxed">Eksplorasi awal untuk talenta & kreator pendatang baru di Bali.</p>
-
-                <div className="mt-6 flex items-baseline gap-1">
-                  <span className="font-serif text-4xl font-bold text-white">Gratis</span>
-                  <span className="text-xs text-gray-400">/ selamanya</span>
-                </div>
-
-                <div className="w-full h-px bg-white/10 my-6"></div>
-
-                <ul className="space-y-3.5 text-xs text-gray-200">
-                  <li className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-gray-400 shrink-0" />
-                    <span>Profil Katalog Direktori Publik</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-gray-400 shrink-0" />
-                    <span>Maksimal 3 Pengajuan Kolaborasi/Bulan</span>
-                  </li>
-                  <li className="flex items-center gap-2.5 text-gray-500">
-                    <Lock className="w-4 h-4 shrink-0" />
-                    <span>Tanpa Lencana Verified Badge</span>
-                  </li>
-                </ul>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setSelectedTier('free')}
-                className={`w-full mt-8 py-3 rounded-full text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
-                  selectedTier === 'free'
-                    ? 'bg-white text-[#001710] shadow-md font-extrabold'
-                    : 'bg-white/10 text-white hover:bg-white/20'
+          {cards.map((card) => {
+            const selected = selectedTier === card.key;
+            return (
+              <div
+                key={`${track}-${card.key}`}
+                onClick={() => setSelectedTier(card.key)}
+                className={`group rounded-[2rem] p-1.5 transition-all duration-300 cursor-pointer flex flex-col relative ${
+                  card.highlighted
+                    ? 'bg-gradient-to-b from-kiri-gold-400 via-kiri-gold-500 to-amber-600 shadow-[0_12px_40px_rgba(216,174,90,0.3)] lg:-translate-y-2'
+                    : selected
+                      ? 'bg-gradient-to-b from-white/30 to-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)]'
+                      : 'bg-white/[0.05] hover:bg-white/[0.12] border border-white/10'
                 }`}
               >
-                <span>Pilih Freemium</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Tier 2: Verified Pro (Signature Highlight) */}
-          <div
-            onClick={() => setSelectedTier('pro')}
-            className={`group rounded-[2rem] p-1.5 transition-all duration-300 cursor-pointer flex flex-col relative transform lg:-translate-y-2 ${
-              selectedTier === 'pro'
-                ? 'bg-gradient-to-b from-kiri-gold-400 via-kiri-gold-500 to-amber-600 shadow-[0_12px_40px_rgba(216,174,90,0.3)]'
-                : 'bg-gradient-to-b from-kiri-gold-500/40 to-transparent border border-kiri-gold-500/30 hover:border-kiri-gold-500/60'
-            }`}
-          >
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-kiri-gold-400 text-kiri-dark-950 font-extrabold text-[10px] uppercase tracking-wider shadow-lg flex items-center gap-1.5 z-20">
-              <Sparkles className="w-3 h-3 fill-kiri-dark-950" />
-              Paling Populer
-            </div>
-
-            <div className={`h-full rounded-[calc(2rem-0.375rem)] p-7 flex flex-col justify-between transition-colors ${
-              selectedTier === 'pro' ? 'bg-[#002b1e]' : 'bg-[#001f15]'
-            }`}>
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs uppercase tracking-widest text-kiri-gold-300 font-bold">Kreator & UMKM</span>
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                    selectedTier === 'pro' ? 'border-kiri-gold-400 bg-kiri-gold-400 text-kiri-dark-950' : 'border-gray-600'
-                  }`}>
-                    {selectedTier === 'pro' && <CheckCircle2 className="w-3.5 h-3.5" />}
+                {card.badge && (
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-kiri-gold-400 text-kiri-dark-950 font-extrabold text-[10px] uppercase tracking-wider shadow-lg flex items-center gap-1.5 z-20 whitespace-nowrap">
+                    <Sparkles className="w-3 h-3 fill-kiri-dark-950" />
+                    {card.badge}
                   </div>
-                </div>
-                <h3 className="font-serif text-2xl font-bold text-white mt-3">Verified Pro Member</h3>
-                <p className="text-xs text-kiri-gold-200/80 mt-1 leading-relaxed">Kreator, fotografer, komunitas & UMKM yang ingin eksposur terpercaya.</p>
+                )}
 
-                <div className="mt-6 flex items-baseline gap-1">
-                  <span className="font-serif text-4xl font-bold text-kiri-gold-300">Rp 149.000</span>
-                  <span className="text-xs text-gray-400">/ bulan</span>
-                </div>
+                <div className={`h-full rounded-[calc(2rem-0.375rem)] p-7 flex flex-col justify-between transition-colors ${
+                  selected || card.highlighted ? 'bg-[#002b1e]' : 'bg-[#001c13]'
+                }`}>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className={`text-[10px] uppercase tracking-widest font-semibold ${
+                        card.highlighted ? 'text-kiri-gold-300' : 'text-gray-400'
+                      }`}>
+                        {card.eyebrow}
+                      </span>
+                      <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
+                        selected ? 'border-kiri-gold-400 bg-kiri-gold-400 text-kiri-dark-950' : 'border-gray-600'
+                      }`}>
+                        {selected && <CheckCircle2 className="w-3.5 h-3.5" />}
+                      </div>
+                    </div>
+                    <h3 className="font-serif text-2xl font-bold text-white mt-3">{card.title}</h3>
+                    <p className="text-xs text-gray-300/80 mt-1 leading-relaxed">{card.subtitle}</p>
 
-                <div className="w-full h-px bg-kiri-gold-500/20 my-6"></div>
+                    <div className="mt-6 flex items-baseline gap-1">
+                      <span className={`font-serif text-4xl font-bold ${card.highlighted ? 'text-kiri-gold-300' : 'text-white'}`}>
+                        {formatRupiah(PRICES[track][card.key])}
+                      </span>
+                      <span className="text-xs text-gray-400">/ tahun</span>
+                    </div>
 
-                <ul className="space-y-3.5 text-xs text-gray-200">
-                  <li className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-kiri-gold-400 shrink-0" />
-                    <span className="font-semibold text-white">Lencana Resmi Verified Badge Emas</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-kiri-gold-400 shrink-0" />
-                    <span>Pengajuan Kolaborasi & Kontrak Tanpa Batas</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-kiri-gold-400 shrink-0" />
-                    <span>Prioritas Kurasi di Top Search Direktori Bali</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-kiri-gold-400 shrink-0" />
-                    <span>Akses Fasilitas Rekening Escrow & Legal Template</span>
-                  </li>
-                </ul>
-              </div>
+                    <div className="w-full h-px bg-white/10 my-6"></div>
 
-              <button
-                type="button"
-                onClick={() => setSelectedTier('pro')}
-                className="w-full mt-8 py-3 rounded-full text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 bg-kiri-gold-500 hover:bg-kiri-gold-400 text-kiri-dark-950 shadow-[0_4px_16px_rgba(216,174,90,0.3)] font-extrabold"
-              >
-                <span>Pilih Lisensi Pro</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Tier 3: Enterprise / Agency */}
-          <div
-            onClick={() => setSelectedTier('enterprise')}
-            className={`group rounded-[2rem] p-1.5 transition-all duration-300 cursor-pointer flex flex-col ${
-              selectedTier === 'enterprise'
-                ? 'bg-gradient-to-b from-white/40 to-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)]'
-                : 'bg-white/[0.05] hover:bg-white/[0.12] border border-white/10'
-            }`}
-          >
-            <div className={`h-full rounded-[calc(2rem-0.375rem)] p-7 flex flex-col justify-between transition-colors ${
-              selectedTier === 'enterprise' ? 'bg-[#002419] border border-white/20' : 'bg-[#001c13]'
-            }`}>
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs uppercase tracking-widest text-emerald-400 font-semibold">Institutional</span>
-                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                    selectedTier === 'enterprise' ? 'border-kiri-gold-400 bg-kiri-gold-400 text-kiri-dark-950' : 'border-gray-600'
-                  }`}>
-                    {selectedTier === 'enterprise' && <CheckCircle2 className="w-3.5 h-3.5" />}
+                    <ul className="space-y-3.5 text-xs text-gray-200">
+                      {card.features.map((feature) => (
+                        <li key={feature} className="flex items-start gap-2.5">
+                          <CheckCircle2 className={`w-4 h-4 shrink-0 mt-0.5 ${card.highlighted ? 'text-kiri-gold-400' : 'text-emerald-400'}`} />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedTier(card.key);
+                    }}
+                    className={`w-full mt-8 py-3 rounded-full text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
+                      card.highlighted || selected
+                        ? 'bg-kiri-gold-500 hover:bg-kiri-gold-400 text-kiri-dark-950 shadow-[0_4px_16px_rgba(216,174,90,0.3)] font-extrabold'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    <span>Pilih {TIER_LABELS[card.key]}</span>
+                    {!card.highlighted && <ArrowRight className="w-4 h-4" />}
+                  </button>
                 </div>
-                <h3 className="font-serif text-2xl font-bold text-white mt-3">Strategic Partner</h3>
-                <p className="text-xs text-gray-300/80 mt-1 leading-relaxed">Brand besar, agensi pemasaran & sponsor korporasi institusional.</p>
-
-                <div className="mt-6 flex items-baseline gap-1">
-                  <span className="font-serif text-4xl font-bold text-white">Rp 499.000</span>
-                  <span className="text-xs text-gray-400">/ bulan</span>
-                </div>
-
-                <div className="w-full h-px bg-white/10 my-6"></div>
-
-                <ul className="space-y-3.5 text-xs text-gray-200">
-                  <li className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Seluruh Fitur Verified Pro</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Dedicated Account Manager KIRI</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Multi-Creator Campaign Matching</span>
-                  </li>
-                  <li className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>MOU Kemitraan Resmi & Faktur Pajak</span>
-                  </li>
-                </ul>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setSelectedTier('enterprise')}
-                className={`w-full mt-8 py-3 rounded-full text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
-                  selectedTier === 'enterprise'
-                    ? 'bg-white text-[#001710] shadow-md font-extrabold'
-                    : 'bg-white/10 text-white hover:bg-white/20'
-                }`}
-              >
-                <span>Pilih Strategic</span>
-              </button>
-            </div>
-          </div>
+            );
+          })}
         </div>
 
+        {/* Basic (admin activation) note */}
+        {selectedTier === 'basic' && (
+          <div className="text-center pt-4">
+            <button
+              onClick={() => {
+                showToast('Paket Basic dipilih. Hubungi admin KIRI untuk aktivasi keanggotaan.', 'success');
+                navigateTo('page-16-dashboard-user');
+              }}
+              className="px-8 py-3.5 rounded-full bg-white hover:bg-gray-100 text-kiri-dark-950 font-bold text-sm transition-all shadow-lg inline-flex items-center gap-2"
+            >
+              <Lock className="w-4 h-4" />
+              <span>Lanjut sebagai {track === 'creator' ? 'Creator' : 'Business'} Basic</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         {/* Payment & Transfer Area */}
-        {selectedTier !== 'free' ? (
+        {selectedTier !== 'basic' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-4">
             {/* Left: Bank Details & Upload Form */}
             <div className="lg:col-span-8 rounded-[2rem] p-1.5 bg-white/10 backdrop-blur-xl border border-white/15 shadow-2xl">
@@ -333,12 +393,15 @@ export const Page14MembershipPayment: React.FC = () => {
                     <div>
                       <span className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Nominal yang Ditransfer</span>
                       <p className="font-serif text-2xl font-extrabold text-kiri-gold-300 mt-1">
-                        Rp {calculateAmount().toLocaleString('id-ID')}
+                        {formatRupiah(calculateAmount())}
                       </p>
+                      <span className="text-[11px] text-gray-400">
+                        {track === 'creator' ? 'Creator' : 'Business'} {TIER_LABELS[selectedTier]} — per tahun
+                      </span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-300 bg-white/5 px-3 py-2 rounded-xl">
                       <Clock className="w-4 h-4 text-kiri-gold-400 shrink-0" />
-                      <span>Verifikasi otomatis maks. 1x24 jam</span>
+                      <span>Verifikasi manual oleh tim admin, maks. 1x24 jam kerja</span>
                     </div>
                   </div>
                 </div>
@@ -413,7 +476,8 @@ export const Page14MembershipPayment: React.FC = () => {
                     </div>
                     <h5 className="font-serif text-lg font-bold text-emerald-300">Bukti Pembayaran Diterima</h5>
                     <p className="text-xs text-gray-300 max-w-md mx-auto leading-relaxed">
-                      Tim Kurasi KIRI Project sedang memverifikasi pembayaran Anda. Lisensi dan lencana Verified Badge akan aktif maksimal dalam 1x24 jam kerja.
+                      Tim Admin KIRI Project sedang memverifikasi pembayaran Anda. Keanggotaan dan lencana
+                      Verified Badge akan aktif maksimal dalam 1x24 jam kerja.
                     </p>
                     <button
                       onClick={() => navigateTo('page-16-dashboard-user')}
@@ -431,47 +495,37 @@ export const Page14MembershipPayment: React.FC = () => {
             <div className="lg:col-span-4 space-y-6">
               <div className="rounded-[2rem] p-1.5 bg-white/10 backdrop-blur-xl border border-white/15">
                 <div className="rounded-[calc(2rem-0.375rem)] bg-[#001f15] p-6 space-y-5">
-                  <h4 className="font-serif text-base font-bold text-white">Ringkasan Lisensi</h4>
+                  <h4 className="font-serif text-base font-bold text-white">Ringkasan Keanggotaan</h4>
                   <div className="space-y-3 text-xs divide-y divide-white/10">
                     <div className="flex justify-between pt-1">
                       <span className="text-gray-400">Jenis Keanggotaan</span>
-                      <span className="font-semibold text-white capitalize">{selectedTier} Tier</span>
+                      <span className="font-semibold text-white capitalize">
+                        {track === 'creator' ? 'Creator' : 'Business'} {TIER_LABELS[selectedTier]}
+                      </span>
                     </div>
                     <div className="flex justify-between pt-3">
                       <span className="text-gray-400">Durasi Akses</span>
-                      <span className="font-semibold text-white">1 Bulan (Aktif Seketika)</span>
+                      <span className="font-semibold text-white">1 Tahun (Aktif Seketika)</span>
                     </div>
                     <div className="flex justify-between pt-3 text-sm font-bold text-kiri-gold-300">
                       <span>Total Investasi</span>
-                      <span>Rp {calculateAmount().toLocaleString('id-ID')}</span>
+                      <span>{formatRupiah(calculateAmount())}</span>
                     </div>
                   </div>
 
                   <div className="bg-white/[0.04] p-4 rounded-xl border border-white/10 text-xs text-gray-300 space-y-2">
                     <div className="flex items-center gap-2 text-kiri-gold-300 font-semibold">
                       <ShieldCheck className="w-4 h-4" />
-                      <span>Garansi Ekosistem Resmi</span>
+                      <span>Verifikasi Pembayaran Manual oleh Tim Admin</span>
                     </div>
                     <p className="text-[11px] text-gray-400 leading-relaxed font-light">
-                      Setiap profil terverifikasi mendapatkan proteksi identitas dan akses legal standardisasi kolaborasi di Bali.
+                      Setiap pembayaran diperiksa langsung oleh tim admin KIRI Project sebelum keanggotaan
+                      Anda diaktifkan.
                     </p>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="text-center pt-4">
-            <button
-              onClick={() => {
-                showToast('Akun Anda telah diaktifkan sebagai Freemium Member.', 'success');
-                navigateTo('page-16-dashboard-user');
-              }}
-              className="px-8 py-3.5 rounded-full bg-white hover:bg-gray-100 text-kiri-dark-950 font-bold text-sm transition-all shadow-lg inline-flex items-center gap-2"
-            >
-              <span>Lanjutkan dengan Freemium</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
           </div>
         )}
       </div>

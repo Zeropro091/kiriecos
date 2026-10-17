@@ -27,7 +27,12 @@ export type PageId =
   | 'page-26-admin-reviews'
   | 'page-27-request-flowchart'
   | 'page-28-brand-landing-page'
-  | 'page-29-broadcast';
+  | 'page-29-broadcast'
+  | 'page-14a-creator-pricing'
+  | 'page-14b-business-pricing'
+  | 'page-30-member-card'
+  | 'page-31-landing-order'
+  | 'page-32-chat';
 
 export interface BroadcastMessage {
   id: string;

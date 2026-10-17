@@ -51,7 +51,7 @@ export async function createProfile(input: {
       input.entityType ?? null,
       input.entityId ?? null,
       input.avatar ?? '',
-      input.membershipTier ?? 'free',
+      input.membershipTier ?? 'basic',
       input.isVerified ?? false,
     ]
   );

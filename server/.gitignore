@@ -4,3 +4,6 @@ dist/
 .env.local
 uploads/
 *.log
+
+.env.production
+.env.*.local

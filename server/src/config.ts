@@ -32,6 +32,10 @@ export const env = {
     .map((o) => o.trim())
     .filter(Boolean),
   UPLOAD_DIR: process.env.UPLOAD_DIR ?? 'uploads',
+  // Neon Object Storage (S3-compatible). When both are set, uploads go to the bucket
+  // instead of local disk. Credentials/region come from the standard AWS_* env chain.
+  S3_BUCKET: process.env.S3_BUCKET ?? '',
+  S3_ENDPOINT: process.env.AWS_ENDPOINT_URL_S3 ?? '',
   MAX_UPLOAD_BYTES: Number(process.env.MAX_UPLOAD_BYTES ?? 5 * 1024 * 1024),
   SEED_ADMIN_EMAIL: process.env.SEED_ADMIN_EMAIL ?? 'admin@kiriproject.id',
   SEED_ADMIN_PASSWORD: process.env.SEED_ADMIN_PASSWORD ?? 'kiri-admin',
