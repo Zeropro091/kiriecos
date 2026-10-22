@@ -1,0 +1,17 @@
+# KIRI PROJECT - contoh config Cloudflare Tunnel
+# Copy ke cloudflared/config.yml lalu isi nilai milikmu sendiri.
+# config.yml ASLI berisi tunnel ID + path credentials -> tidak masuk repo (lihat .gitignore).
+
+tunnel: <TUNNEL_UUID>
+credentials-file: <PATH_KE_CREDENTIALS_JSON>
+protocol: auto
+
+ingress:
+  - hostname: kiriproject.id
+    service: http://localhost:4000
+  - hostname: www.kiriproject.id
+    service: http://localhost:4000
+  # hostname uji / verifikasi
+  - hostname: kiri.lensainsignia.com
+    service: http://localhost:4000
+  - service: http_status:404

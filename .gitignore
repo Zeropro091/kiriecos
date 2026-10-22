@@ -53,6 +53,10 @@ lerna-debug.log*
 # Browser-automation artifacts (regenerated on every run)
 .playwright-mcp/
 
+# Cloudflare Tunnel config (berisi tunnel ID + path credentials mesin lokal)
+cloudflared/*
+!cloudflared/config.example.yml
+
 # Large binary dumps / zips if not needed
 kiri_project_images.zip
 # UI/UX reference dump (regenerable source material, keep repo lean)
