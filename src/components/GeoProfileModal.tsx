@@ -19,7 +19,9 @@ export const GeoProfileModal: React.FC<GeoProfileModalProps> = ({ province, onCl
   };
 
   const handleCollabKiri = (creatorName: string) => {
-    const creator = entities.find((e) => e.name.toLowerCase().includes(creatorName.toLowerCase())) || entities[0];
+    // S2: never fall back to an arbitrary entity — look up by verified name only.
+    const creator = entities.find((e) => e.name.toLowerCase().includes(creatorName.toLowerCase()));
+    if (!creator) return;
     openCollabModalFor(creator);
   };
 

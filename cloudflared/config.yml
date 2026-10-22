@@ -1,0 +1,18 @@
+# KIRI PROJECT - Cloudflare Tunnel dedikasi kiriproject.id
+# Dibuat otomatis pada perbaikan masalahbrowser.md (19 Oktober 2026)
+# Dijalankan via pm2 sebagai 'kiri-tunnel'
+# Origin = container Docker 'kiri' (port 4000, build terbaru)
+
+tunnel: 7da7469b-0574-4d90-8e94-f85dd356f58b
+credentials-file: C:\Users\JayamAirways\.cloudflared\7da7469b-0574-4d90-8e94-f85dd356f58b.json
+protocol: auto
+
+ingress:
+  - hostname: kiriproject.id
+    service: http://localhost:4000
+  - hostname: www.kiriproject.id
+    service: http://localhost:4000
+  # hostname uji / verifikasi (satu zone yang kita pegang)
+  - hostname: kiri.lensainsignia.com
+    service: http://localhost:4000
+  - service: http_status:404

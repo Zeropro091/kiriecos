@@ -123,6 +123,11 @@ if (Test-Path (Join-Path $scriptRepo 'server\package.json')) {
 $hasGit = Test-Path (Join-Path $Target '.git')
 if (-not $hasGit) {
   Warn 'folder ini bukan repo git (hasil ZIP) - update kode nanti lewat download ulang'
+} elseif (-not $SkipPull -and (& git -C $Target status --porcelain)) {
+  # Perubahan lokal belum di-commit = kode baru. `reset --hard` akan menghapusnya,
+  # jadi pull dilewati dan yang di-deploy adalah kode di folder ini apa adanya.
+  Warn 'ada perubahan lokal belum di-commit - git pull/reset DILEWATI, deploy memakai kode lokal'
+  $SkipPull = $true
 } elseif (-not $SkipPull) {
   Push-Location $Target
   & git fetch origin $Branch --quiet
@@ -280,6 +285,23 @@ Ok 'health: db=up'
 
 $home_code = (Invoke-WebRequest -Uri "http://127.0.0.1:$Port/" -UseBasicParsing -TimeoutSec 15).StatusCode
 Ok "GET / -> $home_code"
+
+# Pastikan domain publik benar-benar menyajikan build BARU ini (bukan server lama).
+$hashRx = '/assets/index-[A-Za-z0-9_-]+\.js'
+$localHash = ([regex]::Match((Invoke-WebRequest -Uri "http://127.0.0.1:$Port/" -UseBasicParsing -TimeoutSec 15).Content, $hashRx)).Value
+$publicOk = 0
+for ($i = 1; $i -le 10; $i++) {
+  try {
+    $pub = Invoke-WebRequest -Uri 'https://kiriproject.id/' -UseBasicParsing -TimeoutSec 15 -Headers @{ 'Cache-Control' = 'no-cache' }
+    if ([regex]::Match($pub.Content, $hashRx).Value -eq $localHash) { $publicOk++ }
+  } catch { }
+}
+if ($localHash -and $publicOk -eq 10) {
+  Ok "kiriproject.id menyajikan build baru ($localHash) 10/10"
+} else {
+  Warn "kiriproject.id baru menyajikan build baru $publicOk/10 kali (build lokal: $localHash)"
+  Warn 'DNS @ dan www di Cloudflare harus menunjuk ke tunnel kiri (7da7469b-0574-4d90-8e94-f85dd356f58b.cfargotunnel.com)'
+}
 
 $lan = Get-LanIP
 $urls = @("http://127.0.0.1:$Port")

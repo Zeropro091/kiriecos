@@ -51,6 +51,8 @@ export const localAuth = {
     password: string;
     name: string;
     entityType?: UserSession['entityType'];
+    entityId?: string;
+    phone?: string;
   }): Promise<{ session?: UserSession; error?: string }> {
     try {
       const res = await api.post<AuthResponse>('/auth/register', input);

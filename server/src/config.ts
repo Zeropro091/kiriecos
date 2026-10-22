@@ -45,3 +45,16 @@ export const env = {
   SENTRY_ENVIRONMENT: process.env.SENTRY_ENVIRONMENT ?? NODE_ENV,
 } as const;
 
+// Fail fast on half-configured object storage: a bucket without an endpoint (or
+// vice versa) would silently fall back to local disk and lose uploads on redeploy.
+if (env.S3_BUCKET && !env.S3_ENDPOINT) {
+  throw new Error(
+    'FATAL: S3_BUCKET is set but AWS_ENDPOINT_URL_S3 is missing. Uploads would silently fall back to local disk. Set both or neither.'
+  );
+}
+if (!env.S3_BUCKET && env.S3_ENDPOINT) {
+  throw new Error(
+    'FATAL: AWS_ENDPOINT_URL_S3 is set but S3_BUCKET is missing. Set both or neither.'
+  );
+}
+

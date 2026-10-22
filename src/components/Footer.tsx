@@ -3,22 +3,26 @@ import { useApp } from '../context/AppContext';
 import { MessageSquare } from 'lucide-react';
 
 export const Footer: React.FC = () => {
-  const { navigateTo } = useApp();
+  const { navigateTo, entities } = useApp();
 
   const waNumber = '6285724262527';
   const waText = encodeURIComponent('Halo Kak Rini & Tim KIRI PROJECT, saya ingin berkonsultasi mengenai kolaborasi ekosistem kreator...');
   const waUrl = `https://wa.me/${waNumber}?text=${waText}`;
+
+  // S11: legacy hardcoded ids ("creator-1"...) point to nothing in the database;
+  // resolve the first verified entity of each type instead.
+  const entityOfType = (type: string) => entities.find((e) => e.type === type)?.id;
 
   const columns: { title: string; links: { label: string; onClick: () => void }[] }[] = [
     {
       title: 'Direktori',
       links: [
         { label: 'Semua Talenta & Entitas', onClick: () => navigateTo('page-02-directory') },
-        { label: 'Profil Kreator', onClick: () => navigateTo('page-04-creator-profile', 'creator-1') },
-        { label: 'Profil Komunitas', onClick: () => navigateTo('page-03-community-profile', 'comm-1') },
-        { label: 'Katalog UMKM', onClick: () => navigateTo('page-05-business-profile', 'biz-1') },
-        { label: 'Media Partner', onClick: () => navigateTo('page-06-media-profile', 'media-1') },
-        { label: 'Mitra Strategis', onClick: () => navigateTo('page-07-partner-profile', 'strat-1') },
+        { label: 'Profil Kreator', onClick: () => navigateTo('page-04-creator-profile', entityOfType('creator')) },
+        { label: 'Profil Komunitas', onClick: () => navigateTo('page-03-community-profile', entityOfType('community')) },
+        { label: 'Katalog UMKM', onClick: () => navigateTo('page-05-business-profile', entityOfType('business')) },
+        { label: 'Media Partner', onClick: () => navigateTo('page-06-media-profile', entityOfType('media')) },
+        { label: 'Mitra Strategis', onClick: () => navigateTo('page-07-partner-profile', entityOfType('strategic')) },
       ],
     },
     {

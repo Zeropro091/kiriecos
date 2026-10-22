@@ -69,6 +69,7 @@ export interface ProfileRow {
   id: string;
   email: string;
   password_hash: string;
+  phone: string | null;
   name: string;
   role: UserRole;
   entity_type: EntityType | null;

@@ -20,13 +20,16 @@ export async function compressImage(
     maxWidth = 1600,
     maxHeight = 1600,
     quality = 0.82,
+    // S13: honor the size ceiling callers configure (was accepted but ignored).
+    maxSizeMB,
     outputFormat = 'image/webp'
   } = options;
 
-  return new Promise((resolve, reject) => {
+  const compressOnce = (source: File | Blob): Promise<Blob> =>
+    new Promise((resolve, reject) => {
     // If not an image, pass through
-    if (!file.type.startsWith('image/')) {
-      resolve(file);
+    if (!source.type.startsWith('image/')) {
+      resolve(source);
       return;
     }
 
@@ -60,7 +63,7 @@ export async function compressImage(
 
       const ctx = canvas.getContext('2d');
       if (!ctx) {
-        resolve(file);
+        resolve(source);
         return;
       }
 
@@ -73,11 +76,11 @@ export async function compressImage(
         (blob) => {
           if (blob) {
             console.log(
-              `[KIRI Compressor] Original: ${(file.size / 1024).toFixed(1)} KB -> Compressed: ${(blob.size / 1024).toFixed(1)} KB (${Math.round((1 - blob.size / file.size) * 100)}% saved)`
+              `[KIRI Compressor] Original: ${(source.size / 1024).toFixed(1)} KB -> Compressed: ${(blob.size / 1024).toFixed(1)} KB (${Math.round((1 - blob.size / source.size) * 100)}% saved)`
             );
             resolve(blob);
           } else {
-            resolve(file);
+            resolve(source);
           }
         },
         outputFormat,
@@ -87,8 +90,24 @@ export async function compressImage(
 
     img.onerror = (err) => reject(err);
 
-    reader.readAsDataURL(file);
-  });
+    reader.readAsDataURL(source);
+    });
+
+  const firstPass = await compressOnce(file);
+
+  // Size ceiling: re-encode at progressively lower quality until the blob fits
+  // (or the loop bottoms out — quality floors at 0.4).
+  const ceilingBytes = maxSizeMB ? maxSizeMB * 1024 * 1024 : Infinity;
+  let result = firstPass;
+  let roundQuality = quality;
+  let rounds = 0;
+  while (result.size > ceilingBytes && rounds < 6) {
+    rounds += 1;
+    roundQuality = Math.max(0.4, roundQuality - 0.12);
+    result = await compressOnce(result);
+    if (result.size === 0) break;
+  }
+  return result;
 }
 
 /**

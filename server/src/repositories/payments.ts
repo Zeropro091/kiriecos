@@ -1,5 +1,22 @@
-import { query } from '../db/pool.js';
+import { query, withTransaction } from '../db/pool.js';
 import type { PaymentStatus } from '../types.js';
+
+/**
+ * Maps a payment `tier` value to a tier allowed by the
+ * `profiles_membership_tier_check` constraint (002_launch_features.sql).
+ * Accepts both plain tiers ("exclusive") and the checkout format
+ * ("creator:exclusive" / "business:platinum"). Returns null when the value
+ * cannot be safely mapped — the payment is still verified, the tier just
+ * is not changed.
+ */
+export function mapPaymentTier(tier: string): string | null {
+  const raw = (tier.includes(':') ? tier.split(':').pop()! : tier).trim().toLowerCase();
+  if (raw === 'basic') return 'basic';
+  if (raw === 'exclusive') return 'exclusive';
+  if (raw === 'platinum') return 'platinum';
+  if (raw === 'system master') return 'System Master';
+  return null;
+}
 
 export interface PaymentDto {
   id: string;
@@ -18,6 +35,7 @@ export interface PaymentDto {
 
 interface PaymentRow {
   id: string;
+  profile_id: string | null;
   user_id: string;
   user_name: string;
   entity_id: string | null;
@@ -94,12 +112,28 @@ export async function verifyPayment(
   action: 'verify' | 'reject',
   adminNotes?: string
 ): Promise<PaymentDto | undefined> {
-  const res = await query<PaymentRow>(
-    `UPDATE payment_receipts
-     SET status = $2, admin_notes = COALESCE($3, admin_notes)
-     WHERE id = $1
-     RETURNING *`,
-    [id, action === 'verify' ? 'verified' : 'rejected', adminNotes ?? null]
-  );
-  return res.rows[0] ? toDto(res.rows[0]) : undefined;
+  return withTransaction(async (client) => {
+    const res = await client.query<PaymentRow>(
+      `UPDATE payment_receipts
+       SET status = $2, admin_notes = COALESCE($3, admin_notes)
+       WHERE id = $1
+       RETURNING *`,
+      [id, action === 'verify' ? 'verified' : 'rejected', adminNotes ?? null]
+    );
+    const row = res.rows[0];
+    if (!row) return undefined;
+
+    // K2/K3: a verified payment must actually upgrade the member's tier.
+    if (action === 'verify' && row.profile_id) {
+      const tier = mapPaymentTier(row.tier);
+      if (tier) {
+        await client.query('UPDATE profiles SET membership_tier = $2 WHERE id = $1', [
+          row.profile_id,
+          tier,
+        ]);
+      }
+    }
+
+    return toDto(row);
+  });
 }

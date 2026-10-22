@@ -32,7 +32,8 @@ entityRouter.get(
       res.status(404).json({ error: 'Entitas tidak ditemukan.' });
       return;
     }
-    const isOwn = req.user?.entityId === entity.id;
+    const isOwn =
+      req.user?.entityId === entity.id || entity.ownerProfileId === req.user?.id;
     const isAdmin = req.user?.role === 'admin';
     if (entity.verificationStatus !== 'approved' && !isOwn && !isAdmin) {
       res.status(404).json({ error: 'Entitas tidak ditemukan.' });
@@ -41,6 +42,23 @@ entityRouter.get(
     res.json({ entity });
   })
 );
+
+const serviceSchema = z.object({
+  name: z.string().min(1),
+  price: z.string().optional(),
+  description: z.string().optional(),
+  deliverables: z.array(z.string()).max(50).optional(),
+});
+
+const portfolioItemSchema = z.object({
+  title: z.string().min(1),
+  type: z.string().optional(),
+  imageUrl: z.string().optional(),
+  caption: z.string().optional(),
+  views: z.string().optional(),
+  likes: z.string().optional(),
+  link: z.string().optional(),
+});
 
 const profileUpdateSchema = z.object({
   name: z.string().min(1).optional(),
@@ -51,6 +69,8 @@ const profileUpdateSchema = z.object({
   website: z.string().optional(),
   avatar: z.string().optional(),
   cover_image: z.string().optional(),
+  services: z.array(serviceSchema).max(100).optional(),
+  portfolio: z.array(portfolioItemSchema).max(200).optional(),
 });
 
 entityRouter.patch(
@@ -62,18 +82,24 @@ entityRouter.patch(
       res.status(400).json({ error: 'Data profil tidak valid.' });
       return;
     }
-    const isOwn = req.user?.entityId === req.params.id;
+    const entity = await getEntity(req.params.id);
+    if (!entity) {
+      res.status(404).json({ error: 'Entitas tidak ditemukan.' });
+      return;
+    }
+    const isOwn =
+      req.user?.entityId === entity.id || entity.ownerProfileId === req.user?.id;
     const isAdmin = req.user?.role === 'admin';
     if (!isOwn && !isAdmin) {
       res.status(403).json({ error: 'Anda hanya dapat mengubah profil milik sendiri.' });
       return;
     }
-    const entity = await updateEntity(req.params.id, parsed.data);
-    if (!entity) {
+    const updated = await updateEntity(req.params.id, parsed.data);
+    if (!updated) {
       res.status(404).json({ error: 'Entitas tidak ditemukan.' });
       return;
     }
-    res.json({ entity });
+    res.json({ entity: updated });
   })
 );
 

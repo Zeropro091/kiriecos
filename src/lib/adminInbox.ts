@@ -78,7 +78,9 @@ export const normalizeThread = (raw: any): AdminChatThread => ({
   profileId: String(pick(raw, 'profile_id', 'profileId', 'thread_profile_id', 'id') ?? ''),
   name: String(pick(raw, 'name', 'member_name', 'full_name') ?? 'Tanpa Nama'),
   email: String(pick(raw, 'email', 'member_email') ?? ''),
-  lastMessage: String(pick(raw, 'last_message', 'lastMessage', 'last_message_preview', 'preview') ?? ''),
+  // S3: the server's preview column is `last_message_body` — reading the other
+  // names left every thread preview empty.
+  lastMessage: String(pick(raw, 'last_message_body', 'last_message', 'lastMessage', 'last_message_preview', 'preview') ?? ''),
   unreadCount: Number(pick(raw, 'unread_count', 'unreadCount') ?? 0) || 0,
   updatedAt: pick(raw, 'updated_at', 'last_message_at', 'lastActivityAt', 'created_at'),
 });

@@ -21,6 +21,8 @@ export function assetUrl(path: string): string {
   return RAW_BASE ? `${RAW_BASE}${path.startsWith('/') ? '' : '/'}${path}` : path;
 }
 
+const REQUEST_TIMEOUT_MS = 15000;
+
 export class ApiError extends Error {
   status: number;
   constructor(status: number, message: string) {
@@ -61,30 +63,89 @@ export function clearSession(): void {
   localStorage.removeItem(USER_KEY);
 }
 
+/**
+ * S4: broadcast so the session state (React context) can reset immediately when
+ * the token expires/is rejected. Without this, api.ts cleared localStorage but
+ * the in-memory user stayed "logged in" until the next reload.
+ */
+function emitUnauthorized(): void {
+  try {
+    window.dispatchEvent(new CustomEvent('kiri:unauthorized'));
+  } catch {
+    // Non-browser environment — no listeners to notify.
+  }
+}
+
+function parseJsonSafe(text: string): Record<string, unknown> {
+  if (!text) return {};
+  try {
+    const parsed = JSON.parse(text);
+    return typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
+}
+
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  let res: Response;
-  try {
-    res = await fetch(`${API_BASE}${path}`, {
-      method,
-      headers,
-      body: body === undefined ? undefined : JSON.stringify(body),
-    });
-  } catch (err) {
-    throw new ApiError(0, 'Tidak dapat terhubung ke server KIRI. Pastikan backend berjalan.');
+  // Idempotent reads get one automatic retry: behind a tunnel/proxy a single
+  // request can hit a stale or restarting origin and come back as HTML or a 5xx.
+  const attempts = method === 'GET' ? 2 : 1;
+  let res: Response | null = null;
+  let text = '';
+  let lastError: ApiError | null = null;
+
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+      res = await fetch(`${API_BASE}${path}`, {
+        method,
+        headers,
+        body: body === undefined ? undefined : JSON.stringify(body),
+        signal: controller.signal,
+      });
+      text = res.status === 204 ? '' : await res.text();
+    } catch {
+      res = null;
+      lastError = new ApiError(0, 'Tidak dapat terhubung ke server KIRI. Coba lagi sebentar.');
+      clearTimeout(timer);
+      continue;
+    }
+    clearTimeout(timer);
+
+    // A 2xx that is not JSON means a non-API origin answered (SPA fallback HTML).
+    const isJson = (res.headers.get('content-type') ?? '').includes('application/json');
+    if (res.ok && res.status !== 204 && !isJson) {
+      lastError = new ApiError(502, 'Server KIRI membalas dengan format tidak valid.');
+      res = null;
+      continue;
+    }
+    if (res.status >= 502 && res.status <= 504 && attempt < attempts - 1) {
+      lastError = new ApiError(res.status, `Server sedang sibuk (${res.status}).`);
+      res = null;
+      continue;
+    }
+    lastError = null;
+    break;
   }
+
+  if (!res) throw lastError ?? new ApiError(0, 'Tidak dapat terhubung ke server KIRI.');
 
   if (res.status === 204) return undefined as T;
 
-  const text = await res.text();
-  const data = text ? JSON.parse(text) : {};
+  const data = parseJsonSafe(text);
 
   if (!res.ok) {
-    if (res.status === 401) clearSession();
-    throw new ApiError(res.status, data?.error ?? `Permintaan gagal (${res.status}).`);
+    if (res.status === 401) {
+      clearSession();
+      emitUnauthorized();
+    }
+    const message = typeof data.error === 'string' ? data.error : `Permintaan gagal (${res.status}).`;
+    throw new ApiError(res.status, message);
   }
   return data as T;
 }

@@ -47,7 +47,7 @@ interface AppContextType {
   importCommunityMembers: (members: Partial<CommunityMember>[]) => void;
   updateMemberStatus: (id: string, status: CommunityMember['status']) => void;
   deleteMember: (id: string) => void;
-  submitRegistration: (data: Partial<RegistrationApplication>) => void;
+  submitRegistration: (data: Partial<RegistrationApplication>) => Promise<RegistrationApplication>;
   reviewRegistration: (id: string, status: 'approved' | 'rejected') => void;
   updateEntityProfile: (entityId: string, updates: Partial<Entity>) => void;
   broadcastMessages: BroadcastMessage[];
@@ -85,20 +85,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [themeMode]);
 
-  // Hydrate every collection from the backend on boot.
+  // Hydrate public collections from the backend on boot. Members are loaded
+  // once a session exists (see below) — the endpoint requires auth now (K6).
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const [approved, broadcasts, members] = await Promise.all([
+        const [approved, broadcasts] = await Promise.all([
           dataService.getApprovedEntities(),
           dataService.getBroadcasts().catch(() => [] as BroadcastMessage[]),
-          dataService.getMembers().catch(() => [] as CommunityMember[]),
         ]);
         if (cancelled) return;
         setEntities(approved);
         setBroadcastMessages(broadcasts);
-        setCommunityMembers(members);
       } catch (err) {
         if (!cancelled) {
           console.error('[KIRI] Gagal memuat data dari server:', err);
@@ -111,21 +110,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => { cancelled = true; };
   }, []);
 
+  // S4: when the API rejects the session (token expired/forged), reset the
+  // in-memory session immediately instead of showing a logged-in shell.
+  useEffect(() => {
+    const onUnauthorized = () => {
+      setCurrentUser(null);
+      localAuth.clearSession();
+    };
+    window.addEventListener('kiri:unauthorized', onUnauthorized);
+    return () => window.removeEventListener('kiri:unauthorized', onUnauthorized);
+  }, []);
+
   useEffect(() => {
     if (!currentUser) {
       setCollabRequests([]);
       setRegistrations([]);
+      setCommunityMembers([]);
       return;
     }
     let cancelled = false;
     (async () => {
-      const [collabs, regs] = await Promise.all([
+      const [collabs, regs, members] = await Promise.all([
         dataService.getCollaborationRequests().catch(() => [] as CollaborationRequest[]),
         dataService.getRegistrations().catch(() => [] as RegistrationApplication[]),
+        // K6: server scopes this — admins get everything, members only their entity.
+        dataService.getMembers().catch(() => [] as CommunityMember[]),
       ]);
       if (cancelled) return;
       setCollabRequests(collabs);
       setRegistrations(regs);
+      setCommunityMembers(members);
     })();
     return () => { cancelled = true; };
   }, [currentUser?.id]);
@@ -313,7 +327,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     showToast('Anggota dihapus dari database terkontrol.', 'warning');
   };
 
-  const submitRegistration = (data: Partial<RegistrationApplication>) => {
+  const submitRegistration = async (
+    data: Partial<RegistrationApplication>
+  ): Promise<RegistrationApplication> => {
     const payload = {
       type: (data.type || 'creator') as RegistrationApplication['type'],
       name: data.name || 'Pendaftar Baru',
@@ -326,18 +342,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       details: data.details || 'Permohonan pendaftaran akun ekosistem KIRI Project.',
     };
 
-    dataService
-      .submitRegistration(payload)
-      .then((saved) => {
-        setRegistrations((prev) => {
-          const exists = prev.some((r) => r.id === saved.id);
-          return exists ? prev : [saved, ...prev];
-        });
-        showToast('Pendaftaran Anda telah diterima untuk verifikasi kurasi KIRI Project.', 'success');
-      })
-      .catch(() => {
-        showToast('Gagal mengirim pendaftaran ke server KIRI.', 'error');
-      });
+    const saved = await dataService.submitRegistration(payload);
+    setRegistrations((prev) => {
+      const exists = prev.some((r) => r.id === saved.id);
+      return exists ? prev : [saved, ...prev];
+    });
+    showToast('Pendaftaran Anda telah diterima untuk verifikasi kurasi KIRI Project.', 'success');
+    return saved;
   };
 
   const reviewRegistration = (id: string, status: 'approved' | 'rejected') => {
@@ -345,7 +356,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       showToast('Hanya admin KIRI yang dapat memutuskan moderasi pendaftaran.', 'error');
       return;
     }
-    dataService.reviewEntity(id, status === 'approved' ? 'approve' : 'reject').then((ok) => {
+    dataService.reviewRegistration(id, status === 'approved' ? 'approve' : 'reject').then((ok) => {
       if (!ok) {
         showToast('Gagal menyimpan keputusan moderasi.', 'error');
         return;
@@ -353,13 +364,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setRegistrations((prev) =>
         prev.map((reg) => (reg.id === id ? { ...reg, status } : reg))
       );
-      setEntities((prev) =>
-        prev.map((ent) =>
-          ent.id === id
-            ? { ...ent, verified: status === 'approved', verificationStatus: status === 'approved' ? 'approved' as const : 'rejected' as const }
-            : ent
-        )
-      );
+      // Approved registrations become public directory entries server-side;
+      // refresh so the new entity appears without a reload.
+      dataService
+        .getApprovedEntities()
+        .then((approved) => setEntities(approved))
+        .catch(() => undefined);
       showToast(`Pendaftaran telah di-${status === 'approved' ? 'SETUJUI & DIAKTIFKAN' : 'TOLAK'}.`, status === 'approved' ? 'success' : 'warning');
     }).catch(() => {
       showToast('Gagal menyimpan keputusan moderasi.', 'error');
@@ -367,18 +377,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const updateEntityProfile = (entityId: string, updates: Partial<Entity>) => {
+    const previous = entities;
     setEntities((prev) => prev.map((ent) => (ent.id === entityId ? { ...ent, ...updates } : ent)));
     dataService
-      .updateEntity(entityId, {
-        name: updates.name,
-        handle: updates.handle,
-        category: updates.category,
-        bio: updates.bio,
-        location: updates.location,
-        website: updates.website,
+      .updateEntity(entityId, updates)
+      .then((saved) => {
+        setEntities((prev) => prev.map((ent) => (ent.id === entityId ? saved : ent)));
+        showToast('Perubahan profil berhasil disimpan!', 'success');
       })
-      .catch(() => showToast('Gagal menyimpan profil ke server.', 'error'));
-    showToast('Perubahan profil berhasil disimpan!', 'success');
+      .catch(() => {
+        // S1: report the truth and roll the optimistic edit back.
+        setEntities(previous);
+        showToast('Gagal menyimpan profil ke server. Perubahan dibatalkan.', 'error');
+      });
   };
 
   const sendBroadcastMessage = (data: { scope: 'indonesia' | 'regional'; region?: string; content: string }) => {
@@ -401,13 +412,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const likeBroadcastMessage = (id: string) => {
+    if (!currentUser) {
+      showToast('Masuk terlebih dahulu untuk menyukai siaran.', 'warning');
+      navigateTo('page-15-login');
+      return;
+    }
     setBroadcastMessages((prev) =>
       prev.map((msg) => (msg.id === id ? { ...msg, likesCount: (msg.likesCount || 0) + 1 } : msg))
     );
-    dataService.likeBroadcast(id).catch(() => undefined);
+    dataService
+      .likeBroadcast(id)
+      .then((saved) => {
+        if (saved) setBroadcastMessages((prev) => prev.map((msg) => (msg.id === id ? saved : msg)));
+      })
+      .catch(() => {
+        setBroadcastMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === id ? { ...msg, likesCount: Math.max(0, (msg.likesCount || 1) - 1) } : msg
+          )
+        );
+        showToast('Gagal menyukai siaran. Coba lagi.', 'error');
+      });
   };
 
-  const selectedEntity = entities.find((e) => e.id === selectedEntityId) || entities[0];
+  const selectedEntity = entities.find((e) => e.id === selectedEntityId);
 
   return (
     <AppContext.Provider

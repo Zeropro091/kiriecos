@@ -32,7 +32,18 @@ function parseCSVLine(line) {
   return result;
 }
 
-const csvPath = 'C:\\Users\\Putu Ari\\Downloads\\Master Data KIRIPROJECT - Sheet1.csv';
+// Path CSV portabel: env KIRI_CSV_PATH atau --csv "path" (tidak lagi hardcode ke mesin tertentu)
+const argIdx = process.argv.indexOf('--csv');
+const csvArg = argIdx !== -1 ? process.argv[argIdx + 1] : undefined;
+const csvPath = csvArg || process.env.KIRI_CSV_PATH;
+if (!csvPath || !fs.existsSync(csvPath)) {
+  console.error(
+    'Path CSV wajib disetel dan harus ada. Contoh:\n' +
+      '  KIRI_CSV_PATH="data/Master Data KIRIPROJECT - Sheet1.csv" node scripts/secureGenerateAccounts.mjs\n' +
+      '  node scripts/secureGenerateAccounts.mjs --csv "data/Master Data KIRIPROJECT - Sheet1.csv"'
+  );
+  process.exit(1);
+}
 const content = fs.readFileSync(csvPath, 'utf8');
 const lines = content.split(/\r?\n/);
 

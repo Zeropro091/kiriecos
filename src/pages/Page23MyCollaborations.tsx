@@ -18,9 +18,8 @@ import {
 export const Page23MyCollaborations: React.FC = () => {
   const { collabRequests, updateCollabStatus, navigateTo, showToast } = useApp();
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [activeCollab, setActiveCollab] = useState<CollaborationRequest | null>(
-    collabRequests[0] || null
-  );
+  // S2: never seed from an arbitrary request; start empty and bind on select.
+  const [activeCollab, setActiveCollab] = useState<CollaborationRequest | null>(null);
 
   const [checkedDeliverables, setCheckedDeliverables] = useState<Record<string, boolean>>({
     '1x Instagram 4K Reel': true,

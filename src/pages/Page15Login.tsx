@@ -18,7 +18,7 @@ export const Page15Login: React.FC = () => {
 
     const term = identifier.trim();
     if (!term) {
-      setError('Masukkan Username, Email, atau ID Akun Anda.');
+      setError('Masukkan Email atau nomor WhatsApp terdaftar Anda.');
       return;
     }
 
@@ -40,7 +40,7 @@ export const Page15Login: React.FC = () => {
       <div className="mb-8">
         <h1 className="font-serif text-3xl text-foreground">Masuk ke akun</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Gunakan username, email, atau nomor WhatsApp terdaftar.
+          Gunakan email atau nomor WhatsApp terdaftar beserta kata sandi akun Anda.
         </p>
       </div>
 
@@ -55,7 +55,7 @@ export const Page15Login: React.FC = () => {
         <form onSubmit={handleManualLogin} className="space-y-4">
           <div className="space-y-1.5">
             <label htmlFor="login-identifier" className="block text-sm font-medium text-foreground">
-              Username / Email / ID Akun
+              Email / Nomor WhatsApp Terdaftar
             </label>
             <div className="relative">
               <AtSign className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -63,7 +63,7 @@ export const Page15Login: React.FC = () => {
                 id="login-identifier"
                 type="text"
                 autoComplete="username"
-                placeholder="contoh: rakadewantara"
+                placeholder="contoh: nama@email.com atau 0812xxxxxxx"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 className="pl-9 text-sm"
@@ -80,7 +80,7 @@ export const Page15Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() =>
-                  setError('Bantuan: gunakan nomor WhatsApp yang terdaftar sebagai kata sandi verifikasi.')
+                  setError('Bantuan: gunakan email atau nomor WhatsApp terdaftar beserta kata sandi yang dibuat saat pendaftaran.')
                 }
                 className="text-xs text-primary hover:underline"
               >
@@ -93,7 +93,7 @@ export const Page15Login: React.FC = () => {
                 id="login-password"
                 type="password"
                 autoComplete="current-password"
-                placeholder="Nomor WhatsApp terdaftar"
+                placeholder="Kata sandi akun"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="pl-9 text-sm"

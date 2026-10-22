@@ -1,4 +1,4 @@
-import { query } from '../db/pool.js';
+import { query, withTransaction } from '../db/pool.js';
 import type { BroadcastScope } from '../types.js';
 
 export interface BroadcastDto {
@@ -106,10 +106,35 @@ export async function createBroadcast(input: {
   return toDto(res.rows[0]);
 }
 
-export async function likeBroadcast(id: string): Promise<BroadcastDto | undefined> {
-  const res = await query<BroadcastRow>(
-    'UPDATE broadcast_messages SET likes_count = likes_count + 1 WHERE id = $1 RETURNING *',
-    [id]
-  );
-  return res.rows[0] ? toDto(res.rows[0]) : undefined;
+/**
+ * One like per profile per broadcast (broadcast_likes ledger). Re-liking is a
+ * no-op, so the count can no longer be inflated by repeat calls.
+ */
+export async function likeBroadcast(
+  id: string,
+  profileId: string
+): Promise<BroadcastDto | undefined> {
+  return withTransaction(async (client) => {
+    const msg = await client.query<BroadcastRow>(
+      'SELECT * FROM broadcast_messages WHERE id = $1 FOR UPDATE',
+      [id]
+    );
+    if (!msg.rows[0]) return undefined;
+
+    const inserted = await client.query(
+      `INSERT INTO broadcast_likes (broadcast_id, profile_id)
+       VALUES ($1, $2)
+       ON CONFLICT (broadcast_id, profile_id) DO NOTHING`,
+      [id, profileId]
+    );
+
+    if ((inserted.rowCount ?? 0) > 0) {
+      const updated = await client.query<BroadcastRow>(
+        'UPDATE broadcast_messages SET likes_count = likes_count + 1 WHERE id = $1 RETURNING *',
+        [id]
+      );
+      return toDto(updated.rows[0]);
+    }
+    return toDto(msg.rows[0]);
+  });
 }

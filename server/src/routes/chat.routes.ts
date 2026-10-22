@@ -6,6 +6,7 @@ import {
   createChatMessage,
   listChatMessagesByThread,
   markThreadMessagesRead,
+  markMemberMessagesRead,
   listChatThreads,
   profileExists,
 } from '../repositories/chatMessages.js';
@@ -82,7 +83,11 @@ chatRouter.get(
   })
 );
 
-/** GET /api/chat/threads/:profileId (admin): one thread's messages, oldest -> newest. */
+/**
+ * GET /api/chat/threads/:profileId (admin): one thread's messages,
+ * oldest -> newest, and marks member->admin messages as read so the
+ * inbox unread badge is accurate.
+ */
 chatRouter.get(
   '/threads/:profileId',
   requireAdmin,
@@ -97,6 +102,7 @@ chatRouter.get(
       return;
     }
     const messages = await listChatMessagesByThread(profileId);
+    await markMemberMessagesRead(profileId);
     res.json({ messages });
   })
 );

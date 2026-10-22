@@ -27,6 +27,11 @@ kiri.env.production
 *.env.production
 !server/.env.example
 
+# AKUN / kredensial app (K7/S14): plaintext credential lists never belong in git.
+# Local copies stay; the repo keeps only generator scripts.
+datalist/akun_*.json
+datalist/AKUN_*.md
+
 # Log files
 npm-debug.log*
 yarn-debug.log*

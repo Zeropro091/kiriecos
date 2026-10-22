@@ -15,10 +15,31 @@ export function toPublicUser(row: ProfileRow): PublicUser {
   };
 }
 
+/** Digits-only normalization so "+62 812…" and "0812…" match the same profile. */
+export function normalizePhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('62') && digits.length > 10) return `0${digits.slice(2)}`;
+  return digits;
+}
+
 export async function findByEmail(email: string): Promise<ProfileRow | undefined> {
   const res = await query<ProfileRow>(
     'SELECT * FROM profiles WHERE lower(email) = lower($1) LIMIT 1',
     [email]
+  );
+  return res.rows[0];
+}
+
+/** Login lookup: matches an email address OR a registered phone number. */
+export async function findByLoginIdentifier(identifier: string): Promise<ProfileRow | undefined> {
+  const trimmed = identifier.trim();
+  const phone = normalizePhone(trimmed);
+  const res = await query<ProfileRow>(
+    `SELECT * FROM profiles
+     WHERE lower(email) = lower($1)
+        OR ($2 <> '' AND phone = $2)
+     LIMIT 1`,
+    [trimmed, phone]
   );
   return res.rows[0];
 }
@@ -35,13 +56,14 @@ export async function createProfile(input: {
   role?: UserRole;
   entityType?: EntityType;
   entityId?: string;
+  phone?: string;
   avatar?: string;
   membershipTier?: string;
   isVerified?: boolean;
 }): Promise<ProfileRow> {
   const res = await query<ProfileRow>(
-    `INSERT INTO profiles (email, password_hash, name, role, entity_type, entity_id, avatar, membership_tier, is_verified)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `INSERT INTO profiles (email, password_hash, name, role, entity_type, entity_id, phone, avatar, membership_tier, is_verified)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING *`,
     [
       input.email.toLowerCase(),
@@ -50,12 +72,33 @@ export async function createProfile(input: {
       input.role ?? 'creator',
       input.entityType ?? null,
       input.entityId ?? null,
+      input.phone ? normalizePhone(input.phone) : null,
       input.avatar ?? '',
       input.membershipTier ?? 'basic',
       input.isVerified ?? false,
     ]
   );
   return res.rows[0];
+}
+
+/**
+ * Binds a freshly registered profile to the entity created by its registration
+ * application, so the owner can later edit it (PATCH /entities/:id isOwn check).
+ * Only claims entities that have no owner yet — an entity can never be stolen.
+ */
+export async function claimEntityOwnership(profileId: string, entityId: string): Promise<void> {
+  await query(
+    `UPDATE entities
+     SET owner_profile_id = $1
+     WHERE id = $2 AND (owner_profile_id IS NULL OR owner_profile_id = $1)`,
+    [profileId, entityId]
+  );
+  await query(
+    `UPDATE profiles
+     SET entity_id = $2
+     WHERE id = $1 AND (entity_id IS NULL OR entity_id = $2)`,
+    [profileId, entityId]
+  );
 }
 
 export async function updateProfile(

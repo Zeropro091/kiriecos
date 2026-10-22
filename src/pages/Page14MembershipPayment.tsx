@@ -165,6 +165,11 @@ export const Page14MembershipPayment: React.FC = () => {
 
   const handleUploadReceipt = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentUser) {
+      showToast('Masuk terlebih dahulu untuk mengirim bukti pembayaran.', 'warning');
+      navigateTo('page-15-login');
+      return;
+    }
     if (selectedTier === 'basic') {
       showToast('Paket Basic dipilih. Hubungi admin KIRI untuk aktivasi keanggotaan.', 'success');
       navigateTo('page-16-dashboard-user');
@@ -176,27 +181,33 @@ export const Page14MembershipPayment: React.FC = () => {
       return;
     }
 
+    // K5: a real receipt is mandatory — the old fallback silently attached a
+    // placeholder image so admins had nothing to verify.
+    if (!receiptFile) {
+      showToast('Harap unggah bukti transfer (resi / screenshot) terlebih dahulu.', 'error');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      let uploadedProofUrl = 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500';
-      if (receiptFile) {
-        try {
-          uploadedProofUrl = await dataService.uploadReceiptImage(receiptFile);
-        } catch {
-          setIsSubmitting(false);
-          showToast('Gagal mengunggah gambar bukti transfer. Cek koneksi lalu coba lagi.', 'error');
-          return;
-        }
+      let uploadedProofUrl: string;
+      try {
+        uploadedProofUrl = await dataService.uploadReceiptImage(receiptFile);
+      } catch {
+        setIsSubmitting(false);
+        showToast('Gagal mengunggah gambar bukti transfer. Cek koneksi lalu coba lagi.', 'error');
+        return;
       }
 
       const saved = await dataService.submitPaymentReceipt({
-        userId: currentUser?.id || 'guest-user',
-        userName: currentUser?.name || accountName || 'Member Bali',
+        userId: currentUser.id,
+        userName: currentUser.name || accountName,
         tier: `${track}:${selectedTier}`,
         amount: calculateAmount(),
         receiptImageUrl: uploadedProofUrl,
         senderAccountName: accountName,
         bankName,
+        entityId: currentUser.entityId,
       });
 
       setIsSubmitting(false);

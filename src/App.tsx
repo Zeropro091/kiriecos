@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { isAdmin } from './lib/access';
 import { PageId } from './types';
@@ -7,46 +7,98 @@ import { Footer } from './components/Footer';
 import { CollabRequestModal } from './components/CollabRequestModal';
 import { ToastContainer } from './components/ToastContainer';
 import { MasterNavDrawer } from './components/MasterNavDrawer';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
-// Import all 27 Pages
+// Home + directory load eagerly (first paint); every other page is split into
+// its own chunk so the initial bundle stays small and the app stays responsive.
 import { Page01Home } from './pages/Page01Home';
 import { Page02Directory } from './pages/Page02Directory';
-import { Page03CommunityProfile } from './pages/Page03CommunityProfile';
-import { Page04CreatorProfile } from './pages/Page04CreatorProfile';
-import { Page05BusinessProfile } from './pages/Page05BusinessProfile';
-import { Page06MediaProfile } from './pages/Page06MediaProfile';
-import { Page07PartnerProfile } from './pages/Page07PartnerProfile';
-import { Page08JoinSelect } from './pages/Page08JoinSelect';
-import { Page09RegisterCreator } from './pages/Page09RegisterCreator';
-import { Page10RegisterCommunity } from './pages/Page10RegisterCommunity';
-import { Page11RegisterBusiness } from './pages/Page11RegisterBusiness';
-import { Page12RegisterMedia } from './pages/Page12RegisterMedia';
-import { Page13RegisterPartner } from './pages/Page13RegisterPartner';
-import { Page14MembershipPayment } from './pages/Page14MembershipPayment';
-import { Page14ACreatorPricing } from './pages/Page14ACreatorPricing';
-import { Page14BBusinessPricing } from './pages/Page14BBusinessPricing';
-import { Page15Login } from './pages/Page15Login';
-import { Page16DashboardUser } from './pages/Page16DashboardUser';
-import { Page17ProfileEditor } from './pages/Page17ProfileEditor';
-import { Page18DashboardCommunity } from './pages/Page18DashboardCommunity';
-import { Page19CommunityMembers } from './pages/Page19CommunityMembers';
-import { Page20CollabGateway } from './pages/Page20CollabGateway';
-import { Page21CollabBriefForm } from './pages/Page21CollabBriefForm';
-import { Page22CollabSuccess } from './pages/Page22CollabSuccess';
-import { Page23MyCollaborations } from './pages/Page23MyCollaborations';
-import { Page24LoginAdmin } from './pages/Page24LoginAdmin';
-import { Page25DashboardAdmin } from './pages/Page25DashboardAdmin';
-import { Page26AdminReviews } from './pages/Page26AdminReviews';
-import { Page27RequestFlowchart } from './pages/Page27RequestFlowchart';
-import { Page28BrandLandingPage } from './pages/Page28BrandLandingPage';
-import { Page29Broadcast } from './pages/Page29Broadcast';
-import { Page30MemberCard } from './pages/Page30MemberCard';
-import { Page31LandingOrder } from './pages/Page31LandingOrder';
-import { Page32Chat } from './pages/Page32Chat';
+
+const Page03CommunityProfile = lazyPage(() => import('./pages/Page03CommunityProfile'), 'Page03CommunityProfile');
+const Page04CreatorProfile = lazyPage(() => import('./pages/Page04CreatorProfile'), 'Page04CreatorProfile');
+const Page05BusinessProfile = lazyPage(() => import('./pages/Page05BusinessProfile'), 'Page05BusinessProfile');
+const Page06MediaProfile = lazyPage(() => import('./pages/Page06MediaProfile'), 'Page06MediaProfile');
+const Page07PartnerProfile = lazyPage(() => import('./pages/Page07PartnerProfile'), 'Page07PartnerProfile');
+const Page08JoinSelect = lazyPage(() => import('./pages/Page08JoinSelect'), 'Page08JoinSelect');
+const Page09RegisterCreator = lazyPage(() => import('./pages/Page09RegisterCreator'), 'Page09RegisterCreator');
+const Page10RegisterCommunity = lazyPage(() => import('./pages/Page10RegisterCommunity'), 'Page10RegisterCommunity');
+const Page11RegisterBusiness = lazyPage(() => import('./pages/Page11RegisterBusiness'), 'Page11RegisterBusiness');
+const Page12RegisterMedia = lazyPage(() => import('./pages/Page12RegisterMedia'), 'Page12RegisterMedia');
+const Page13RegisterPartner = lazyPage(() => import('./pages/Page13RegisterPartner'), 'Page13RegisterPartner');
+const Page14MembershipPayment = lazyPage(() => import('./pages/Page14MembershipPayment'), 'Page14MembershipPayment');
+const Page14ACreatorPricing = lazyPage(() => import('./pages/Page14ACreatorPricing'), 'Page14ACreatorPricing');
+const Page14BBusinessPricing = lazyPage(() => import('./pages/Page14BBusinessPricing'), 'Page14BBusinessPricing');
+const Page15Login = lazyPage(() => import('./pages/Page15Login'), 'Page15Login');
+const Page16DashboardUser = lazyPage(() => import('./pages/Page16DashboardUser'), 'Page16DashboardUser');
+const Page17ProfileEditor = lazyPage(() => import('./pages/Page17ProfileEditor'), 'Page17ProfileEditor');
+const Page18DashboardCommunity = lazyPage(() => import('./pages/Page18DashboardCommunity'), 'Page18DashboardCommunity');
+const Page19CommunityMembers = lazyPage(() => import('./pages/Page19CommunityMembers'), 'Page19CommunityMembers');
+const Page20CollabGateway = lazyPage(() => import('./pages/Page20CollabGateway'), 'Page20CollabGateway');
+const Page21CollabBriefForm = lazyPage(() => import('./pages/Page21CollabBriefForm'), 'Page21CollabBriefForm');
+const Page22CollabSuccess = lazyPage(() => import('./pages/Page22CollabSuccess'), 'Page22CollabSuccess');
+const Page23MyCollaborations = lazyPage(() => import('./pages/Page23MyCollaborations'), 'Page23MyCollaborations');
+const Page24LoginAdmin = lazyPage(() => import('./pages/Page24LoginAdmin'), 'Page24LoginAdmin');
+const Page25DashboardAdmin = lazyPage(() => import('./pages/Page25DashboardAdmin'), 'Page25DashboardAdmin');
+const Page26AdminReviews = lazyPage(() => import('./pages/Page26AdminReviews'), 'Page26AdminReviews');
+const Page27RequestFlowchart = lazyPage(() => import('./pages/Page27RequestFlowchart'), 'Page27RequestFlowchart');
+const Page28BrandLandingPage = lazyPage(() => import('./pages/Page28BrandLandingPage'), 'Page28BrandLandingPage');
+const Page29Broadcast = lazyPage(() => import('./pages/Page29Broadcast'), 'Page29Broadcast');
+const Page30MemberCard = lazyPage(() => import('./pages/Page30MemberCard'), 'Page30MemberCard');
+const Page31LandingOrder = lazyPage(() => import('./pages/Page31LandingOrder'), 'Page31LandingOrder');
+const Page32Chat = lazyPage(() => import('./pages/Page32Chat'), 'Page32Chat');
 
 import { FolderGit2, Sparkles, ShieldAlert } from 'lucide-react';
 
+function lazyPage<K extends string>(
+  loader: () => Promise<Record<K, React.ComponentType>>,
+  name: K,
+) {
+  return lazy(() => loader().then((m) => ({ default: m[name] })));
+}
+
+const PageFallback: React.FC = () => (
+  <div className="max-w-lg mx-auto px-4 py-24 text-center text-sm text-muted-foreground" role="status">
+    Memuat halaman…
+  </div>
+);
+
 const ADMIN_PAGES: PageId[] = ['page-25-dashboard-admin', 'page-26-admin-reviews'];
+
+// S12: pages that must never render for a signed-out visitor. Previously the
+// dashboards, member card, chat inbox, profile editor, and collaboration pages
+// could be opened anonymously (most of them crashing on missing data).
+const AUTH_PAGES: PageId[] = [
+  'page-14-membership-payment',
+  'page-16-dashboard-user',
+  'page-17-profile-editor',
+  'page-18-dashboard-community',
+  'page-19-community-members',
+  'page-23-my-collaborations',
+  'page-30-member-card',
+  'page-31-landing-order',
+  'page-32-chat',
+];
+
+const AuthRequired: React.FC = () => {
+  const { navigateTo } = useApp();
+  return (
+    <div className="max-w-lg mx-auto px-4 py-24 text-center space-y-4">
+      <div className="w-14 h-14 mx-auto rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+        <ShieldAlert className="w-7 h-7" />
+      </div>
+      <h1 className="font-serif text-2xl font-bold text-foreground">Masuk Diperlukan</h1>
+      <p className="text-sm text-muted-foreground">
+        Halaman ini hanya untuk anggota KIRI PROJECT. Silakan masuk atau buat akun terlebih dahulu.
+      </p>
+      <button
+        onClick={() => navigateTo('page-15-login')}
+        className="px-6 py-2.5 rounded-xl bg-granite-900 text-white dark:bg-olive-500 dark:text-granite-950 text-xs font-bold"
+      >
+        Masuk / Daftar
+      </button>
+    </div>
+  );
+};
 
 const AdminAccessDenied: React.FC = () => {
   const { navigateTo, currentUser } = useApp();
@@ -77,6 +129,10 @@ const MainContent: React.FC = () => {
   const renderCurrentPage = () => {
     if (ADMIN_PAGES.includes(currentPage) && !isAdmin(currentUser)) {
       return <AdminAccessDenied />;
+    }
+
+    if (AUTH_PAGES.includes(currentPage) && !currentUser) {
+      return <AuthRequired />;
     }
 
     switch (currentPage) {
@@ -158,7 +214,9 @@ const MainContent: React.FC = () => {
       <Navbar />
 
       <main className="flex-1">
-        {renderCurrentPage()}
+        <ErrorBoundary resetKey={currentPage}>
+          <Suspense fallback={<PageFallback />}>{renderCurrentPage()}</Suspense>
+        </ErrorBoundary>
       </main>
 
       <Footer />
@@ -173,9 +231,11 @@ const MainContent: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <AppProvider>
-      <MainContent />
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <MainContent />
+      </AppProvider>
+    </ErrorBoundary>
   );
 };
 

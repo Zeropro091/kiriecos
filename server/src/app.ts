@@ -23,6 +23,7 @@ import { cardRouter } from './routes/meCard.routes.js';
 import { landingOrderRouter } from './routes/landingOrders.routes.js';
 import { chatRouter } from './routes/chat.routes.js';
 import { uploadsRouter } from './routes/uploads.routes.js';
+import { sandboxRouter } from './routes/sandbox.routes.js';
 import { UPLOAD_ROOT } from './storage/files.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -55,11 +56,21 @@ export function createApp(): express.Express {
         directives: {
           'default-src': ["'self'"],
           // Frontend is fully compiled — no CDN scripts exist (verified: index.html and src/ have no cdn.tailwindcss.com).
-          'script-src': ["'self'"],
+          'script-src': [
+            "'self'",
+            // Cloudflare Web Analytics beacon (auto-injected by the proxy on
+            // kiriproject.id) — without this the beacon is blocked by CSP.
+            'https://static.cloudflareinsights.com',
+          ],
           'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
           'font-src': ["'self'", 'data:', 'https://fonts.gstatic.com'],
           'img-src': ["'self'", 'data:', 'blob:', 'https://images.unsplash.com', 'https://*.unsplash.com'],
-          'connect-src': ["'self'"],
+          'connect-src': [
+            "'self'",
+            // Beacon reporting endpoint used by Cloudflare Web Analytics.
+            'https://cloudflareinsights.com',
+            'https://*.cloudflareinsights.com',
+          ],
           'frame-src': ["'self'"],
           'object-src': ["'none'"],
           'base-uri': ["'self'"],
@@ -124,6 +135,7 @@ export function createApp(): express.Express {
   app.use('/api/me', cardRouter);
   app.use('/api/landing-orders', landingOrderRouter);
   app.use('/api/chat', chatRouter);
+  app.use('/api/sandbox', sandboxRouter);
 
   app.use('/api', (_req, res) => {
     res.status(404).json({ error: 'Endpoint tidak ditemukan.' });
@@ -141,7 +153,17 @@ export function createApp(): express.Express {
   }
 
   app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
-    const status = res.statusCode >= 400 ? res.statusCode : 500;
+    // Respect status carried by the error itself (e.g. body-parser JSON errors
+    // set err.status = 400, storage errors carry 413/415). Fall back to the
+    // response status when a handler already set one, else 500.
+    const errorStatus = (err as { status?: number; statusCode?: number }).status
+      ?? (err as { statusCode?: number }).statusCode;
+    const status =
+      typeof errorStatus === 'number' && errorStatus >= 400 && errorStatus < 600
+        ? errorStatus
+        : res.statusCode >= 400
+          ? res.statusCode
+          : 500;
     logger.error({ err, reqId: req.id, path: req.path }, 'unhandled request error');
     captureError(err, { reqId: req.id, method: req.method, path: req.path, status });
     if (env.isProduction) {

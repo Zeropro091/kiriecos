@@ -16,8 +16,8 @@ import {
 export const Page22CollabSuccess: React.FC = () => {
   const { collabRequests, selectedCollabId, navigateTo, updateCollabStatus, showToast, currentUser } = useApp();
 
-  const currentCollab =
-    collabRequests.find((r) => r.id === selectedCollabId) || collabRequests[0];
+  // S2: no arbitrary fallback to the first request.
+  const currentCollab = collabRequests.find((r) => r.id === selectedCollabId);
 
   const steps = [
     { id: 'submitted', title: 'Submitted', label: 'Brief Diterima', desc: 'Brief masuk antrean kurasi KIRI Project' },
@@ -28,16 +28,17 @@ export const Page22CollabSuccess: React.FC = () => {
     { id: 'completed', title: 'Completed', label: 'Selesai & Dampak', desc: 'Karya disetujui, dana cair, laporan terbit' },
   ];
 
-  const currentStepIndex = steps.findIndex((s) => s.id === currentCollab.status);
+  const currentStepIndex = currentCollab ? steps.findIndex((s) => s.id === currentCollab.status) : -1;
   const activeIndex = currentStepIndex !== -1 ? currentStepIndex : 0;
 
   const handleCopyCode = () => {
+    if (!currentCollab) return;
     navigator.clipboard.writeText(currentCollab.trackingCode);
     showToast('Kode pelacakan disalin ke clipboard!', 'info');
   };
 
   const handleSimulateNextStage = () => {
-    if (!isAdmin(currentUser)) return;
+    if (!isAdmin(currentUser) || !currentCollab) return;
     const nextIndex = Math.min(activeIndex + 1, steps.length - 1);
     const nextStatus = steps[nextIndex].id as any;
     updateCollabStatus(
@@ -46,6 +47,25 @@ export const Page22CollabSuccess: React.FC = () => {
       `Tahap diperbarui menjadi: ${steps[nextIndex].label} oleh Tim KIRI.`
     );
   };
+
+  if (!currentCollab) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center space-y-4">
+        <h1 className="font-serif text-2xl font-bold text-kiri-green-950 dark:text-white">
+          Pengajuan kolaborasi tidak ditemukan
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Kirim brief kolaborasi terlebih dahulu untuk melihat progres pelacakannya di sini.
+        </p>
+        <button
+          onClick={() => navigateTo('page-02-directory')}
+          className="px-6 py-2.5 rounded-xl bg-kiri-green-900 text-white dark:bg-kiri-gold-500 dark:text-kiri-dark-900 text-xs font-bold hover:opacity-90"
+        >
+          Mulai Kolaborasi Baru
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">

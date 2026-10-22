@@ -164,6 +164,7 @@ export interface CollaborationRequest {
 
 export interface RegistrationApplication {
   id: string;
+  entityId?: string;
   type: EntityType;
   name: string;
   contactPerson: string;

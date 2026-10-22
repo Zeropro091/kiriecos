@@ -99,6 +99,20 @@ export const Page02Directory: React.FC = () => {
     });
   }, [entities, selectedType, searchQuery, selectedCategory, verifiedOnly]);
 
+  // S11: consume the search handoff from the homepage hero (keyed after reading
+  // so navigating back to the directory doesn't re-apply a stale query).
+  React.useEffect(() => {
+    try {
+      const handoff = sessionStorage.getItem('kiri.directory.search');
+      if (handoff) {
+        setSearchQuery(handoff);
+        sessionStorage.removeItem('kiri.directory.search');
+      }
+    } catch {
+      /* sessionStorage unavailable */
+    }
+  }, []);
+
   // Reset page when filter changes
   React.useEffect(() => {
     setCurrentPageNum(1);
@@ -123,7 +137,8 @@ export const Page02Directory: React.FC = () => {
     creator: 'Kreator',
     business: 'UMKM & Brand',
     community: 'Komunitas',
-    media: 'Media Partner'
+    media: 'Media Partner',
+    strategic: 'Mitra Strategis'
   };
 
   const getInitials = (name: string) => {
@@ -147,8 +162,8 @@ export const Page02Directory: React.FC = () => {
               Katalog talenta &amp; mitra terkurasi
             </h1>
             <p className="mt-4 text-muted-foreground leading-relaxed">
-              {entities.length} profil kreator, UMKM, komunitas, dan media partner di seluruh
-              Nusantara.
+              {entities.length} profil kreator, UMKM, komunitas, media partner, dan mitra strategis
+              di seluruh Nusantara.
             </p>
           </div>
 
@@ -281,7 +296,7 @@ export const Page02Directory: React.FC = () => {
 
               {/* Entity Type Filter Tabs */}
               <div className="flex flex-wrap items-center gap-1.5 w-full lg:w-auto">
-                {(['all', 'creator', 'business', 'community', 'media'] as const).map((type) => (
+                {(['all', 'creator', 'business', 'community', 'media', 'strategic'] as const).map((type) => (
                   <Button
                     key={type}
                     variant={selectedType === type ? 'default' : 'outline'}

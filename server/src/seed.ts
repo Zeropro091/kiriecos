@@ -125,10 +125,25 @@ async function main(): Promise<void> {
 
     const registrations = load<Array<Record<string, string>>>('registrations');
     for (const r of registrations) {
+      // Mirror createRegistrationWithEntity: every registration owns a backing
+      // pending entity so admin review (approve/reject) has a real target.
+      const handle = `${r.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'entity'}_${Math.random()
+        .toString(36)
+        .slice(2, 6)}`;
+      const entityRes = await client.query<{ id: string }>(
+        `INSERT INTO entities (type, name, handle, category, bio, location, instagram, verification_status, verified)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,'pending_review',false)
+         RETURNING id`,
+        [r.type, r.name, handle, r.category, r.details, r.city, r.socialLink]
+      );
       await client.query(
-        `INSERT INTO registrations (type, name, contact_person, email, phone, city, category, social_link, details, status, submitted_at)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-        [r.type, r.name, r.contactPerson, r.email, r.phone, r.city, r.category, r.socialLink, r.details, r.status, r.submittedAt]
+        `INSERT INTO registrations (entity_id, type, name, contact_person, email, phone, city, category, social_link, details, status, submitted_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+        [
+          entityRes.rows[0].id,
+          r.type, r.name, r.contactPerson, r.email, r.phone, r.city,
+          r.category, r.socialLink, r.details, r.status, r.submittedAt,
+        ]
       );
     }
     console.log(`[seed] registrations: ${registrations.length}`);

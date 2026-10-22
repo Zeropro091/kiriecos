@@ -1,5 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { EntityType } from '../types';
 import {
   ArrowRight,
   Search,
@@ -22,7 +23,7 @@ const PILLARS = [
     desc: 'Videografer, fotografer, desainer, dan kreator konten dalam satu direktori terkurasi.',
     icon: Film,
     page: 'page-04-creator-profile' as const,
-    id: 'creator-1',
+    type: 'creator' as EntityType,
   },
   {
     n: '02',
@@ -30,7 +31,7 @@ const PILLARS = [
     desc: 'Kolektif seni, perajin, dan asosiasi budaya dengan database anggota terkontrol.',
     icon: Users,
     page: 'page-03-community-profile' as const,
-    id: 'comm-1',
+    type: 'community' as EntityType,
   },
   {
     n: '03',
@@ -38,7 +39,7 @@ const PILLARS = [
     desc: 'Brand lokal, kafe, dan usaha produk kreatif yang mencari kolaborasi bermakna.',
     icon: Building2,
     page: 'page-05-business-profile' as const,
-    id: 'biz-1',
+    type: 'business' as EntityType,
   },
   {
     n: '04',
@@ -46,7 +47,7 @@ const PILLARS = [
     desc: 'Portal berita, majalah, dan kanal publikasi untuk jangkauan lebih luas.',
     icon: Radio,
     page: 'page-06-media-profile' as const,
-    id: 'media-1',
+    type: 'media' as EntityType,
   },
   {
     n: '05',
@@ -54,7 +55,7 @@ const PILLARS = [
     desc: 'Perusahaan teknologi dan inkubator yang mendukung pertumbuhan ekosistem.',
     icon: Handshake,
     page: 'page-07-partner-profile' as const,
-    id: 'strat-1',
+    type: 'strategic' as EntityType,
   },
 ];
 
@@ -90,8 +91,19 @@ export const Page01Home: React.FC = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // S11: hand the query to the directory instead of dropping it.
+    try {
+      sessionStorage.setItem('kiri.directory.search', searchQuery.trim());
+    } catch {
+      /* sessionStorage unavailable */
+    }
     navigateTo('page-02-directory');
   };
+
+  // S11: resolve each pillar's entity dynamically — the hardcoded ids
+  // ("creator-1", "comm-1", ...) never existed in the database.
+  const pillarEntityId = (type: EntityType): string | undefined =>
+    entities.find((e) => e.type === type)?.id;
 
   const getInitials = (name: string) =>
     name
@@ -192,7 +204,7 @@ export const Page01Home: React.FC = () => {
               return (
                 <button
                   key={p.n}
-                  onClick={() => navigateTo(p.page, p.id)}
+                  onClick={() => navigateTo(p.page, pillarEntityId(p.type))}
                   className={`lift group text-left rounded-xl border border-border bg-background p-6 hover:border-primary/40 ${
                     i < 3 ? 'lg:col-span-2' : 'lg:col-span-3'
                   }`}

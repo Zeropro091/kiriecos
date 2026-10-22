@@ -32,7 +32,8 @@ export const Page16DashboardUser: React.FC = () => {
     (req) => req.targetId === currentUser?.entityId || req.requesterId === currentUser?.entityId
   );
 
-  const creatorEntity = entities.find((e) => e.id === currentUser?.entityId) || entities[0];
+  // S2: only bind the entity this account owns; no "first entry" fallback.
+  const creatorEntity = entities.find((e) => e.id === currentUser?.entityId);
 
   const profileChecks = creatorEntity
     ? [
@@ -103,7 +104,7 @@ export const Page16DashboardUser: React.FC = () => {
               <span>Kekuatan Profil: <strong className="text-white">{profileStrength}%</strong></span>
               <span>•</span>
               <button
-                onClick={() => navigateTo('page-04-creator-profile', creatorEntity.id)}
+                onClick={() => creatorEntity && navigateTo('page-04-creator-profile', creatorEntity.id)}
                 className="underline hover:text-white flex items-center gap-1 font-bold text-white transition-colors"
               >
                 Lihat Tampilan Publik <ExternalLink className="w-3 h-3" />

@@ -51,6 +51,16 @@ export async function listMembers(entityId?: string): Promise<MemberDto[]> {
   return res.rows.map(toDto);
 }
 
+export async function getMember(id: string): Promise<MemberDto | undefined> {
+  const res = await query<MemberRow>('SELECT * FROM community_members WHERE id = $1 LIMIT 1', [id]);
+  return res.rows[0] ? toDto(res.rows[0]) : undefined;
+}
+
+export async function entityExists(entityId: string): Promise<boolean> {
+  const res = await query('SELECT 1 FROM entities WHERE id = $1 LIMIT 1', [entityId]);
+  return (res.rowCount ?? 0) > 0;
+}
+
 export async function createMember(input: {
   entityId?: string;
   name: string;

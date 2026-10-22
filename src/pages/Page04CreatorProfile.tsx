@@ -28,11 +28,30 @@ import { Separator } from '../components/ui/separator';
 export const Page04CreatorProfile: React.FC = () => {
   const { entities, selectedEntityId, navigateTo, openCollabModalFor } = useApp();
 
+  // S2: no hardcoded index fallback — show an empty state instead of guessing.
   const creator =
     entities.find((e) => e.id === selectedEntityId && e.type === 'creator') ||
     entities.find((e) => e.id === selectedEntityId) ||
-    entities.find((e) => e.type === 'creator') ||
-    entities[0];
+    entities.find((e) => e.type === 'creator');
+
+  if (!creator) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center space-y-4">
+        <h1 className="font-serif text-2xl font-bold text-kiri-green-950 dark:text-white">
+          Profil kreator tidak ditemukan
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Belum ada profil kreator yang dapat ditampilkan. Coba lagi setelah pendaftaran kreator disetujui.
+        </p>
+        <button
+          onClick={() => navigateTo('page-02-directory')}
+          className="px-6 py-2.5 rounded-xl bg-kiri-green-900 text-white dark:bg-kiri-gold-500 dark:text-kiri-dark-900 text-xs font-bold hover:opacity-90"
+        >
+          Buka Direktori
+        </button>
+      </div>
+    );
+  }
 
   const getInitials = (name: string) => {
     return name

@@ -14,10 +14,10 @@ import {
 } from 'lucide-react';
 
 export const Page21CollabBriefForm: React.FC = () => {
-  const { entities, selectedEntityId, navigateTo, submitCollabRequest, currentUser } = useApp();
+  const { entities, selectedEntityId, navigateTo, submitCollabRequest, currentUser, showToast } = useApp();
 
-  const targetEntity =
-    entities.find((e) => e.id === selectedEntityId) || entities[0];
+  // S2: no arbitrary "first entity" fallback — brief needs a real target.
+  const targetEntity = entities.find((e) => e.id === selectedEntityId);
 
   const [title, setTitle] = useState('Kampanye Visual Cold Brew Batur Organik');
   const [category, setCategory] = useState('Cinematic Reel & Review');
@@ -48,6 +48,11 @@ export const Page21CollabBriefForm: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!targetEntity) {
+      showToast('Pilih dulu target kolaborasi sebelum mengirim brief.', 'warning');
+      navigateTo('page-02-directory');
+      return;
+    }
     const requestId = submitCollabRequest({
       title,
       category,
@@ -63,6 +68,25 @@ export const Page21CollabBriefForm: React.FC = () => {
       navigateTo('page-22-collab-success');
     }
   };
+
+  if (!targetEntity) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center space-y-4">
+        <h1 className="font-serif text-2xl font-bold text-kiri-green-950 dark:text-white">
+          Target kolaborasi belum dipilih
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Pilih dulu entitas atau talenta yang ingin Anda ajak kolaborasi dari direktori KIRI.
+        </p>
+        <button
+          onClick={() => navigateTo('page-02-directory')}
+          className="px-6 py-2.5 rounded-xl bg-kiri-green-900 text-white dark:bg-kiri-gold-500 dark:text-kiri-dark-900 text-xs font-bold hover:opacity-90"
+        >
+          Buka Direktori
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">

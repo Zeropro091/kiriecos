@@ -1,5 +1,27 @@
 import fs from 'fs';
 
+/**
+ * Kredensial TIDAK PERNAH ditulis dalam plaintext:
+ * - Kolom "password" admin diganti penanda "(dikelola di server)" — password
+ *   asli hanya ada di env server (SEED_ADMIN_*) dan database (bcrypt hash).
+ * - Nomor WhatsApp kreator di-mask (mis. 0857****527) — pola sama dgn
+ *   scripts/maskGeoPhoneSource.mjs. Hash password tidak disertakan di sini.
+ *
+ * Path CSV portabel: set env KIRI_CSV_PATH atau berikan sebagai argv[2].
+ * Contoh: `node scripts/generateDatalist.mjs --csv "data/Master Data KIRIPROJECT - Sheet1.csv"`
+ */
+
+const mask = (raw) => {
+  const digits = String(raw).replace(/\D/g, '');
+  if (digits.length < 8) return '0****' + digits.slice(-3);
+  return digits.slice(0, 4) + '****' + digits.slice(-3);
+};
+
+const looksMasked = (v) => /\*{3,4}/.test(String(v));
+const looksRaw = (v) => /^\+?0\d{7,15}$/.test(String(v).trim());
+
+const SERVER_MANAGED_PASSWORD = '(Dikelola di server — lihat SEED_ADMIN_PASSWORD / reset password admin)';
+
 // Buat folder datalist jika belum ada
 if (!fs.existsSync('./datalist')) {
   fs.mkdirSync('./datalist', { recursive: true });
@@ -13,7 +35,7 @@ const adminAccounts = [
     role: 'Super Administrator / System Master',
     email: 'admin@kiriproject.id',
     username: 'admin',
-    password: '(Bebas / apa saja pada mode demo, atau sesuai VITE_KIRI_ADMIN_PASSWORD)',
+    password: SERVER_MANAGED_PASSWORD,
     hakAkses: 'Akses penuh pengawasan ekosistem, matching, review pendaftaran, escrow, dan Siaran Komunitas Nasional/Regional',
     urlLogin: '/page-24-login-admin'
   },
@@ -23,30 +45,32 @@ const adminAccounts = [
     role: 'Community Lead (Bali Creative Circle)',
     email: 'drini562@gmail.com',
     username: 'kakrini',
-    password: '(Bebas / apa saja)',
+    password: SERVER_MANAGED_PASSWORD,
     hakAkses: 'Kelola database anggota komunitas, review verifikasi, dan Siaran Komunitas Regional',
     urlLogin: '/page-15-login'
   }
 ];
 
 let adminMd = `# 🛡️ DAFTAR AKUN ADMINISTRATOR & OTORITAS KHUSUS KIRI PROJECT\n\n`;
-adminMd += `Dokumen ini berisi daftar kredensial akun level Administrator dan Otoritas Siaran KIRI Project.\n\n`;
+adminMd += `Daftar akun level Administrator dan Otoritas Siaran KIRI Project.\n`;
+adminMd += `> 🔒 **Kata sandi tidak pernah ditulis di sini** — dikelola di server (env \`SEED_ADMIN_PASSWORD\` / database bcrypt). Bila lupa, reset lewat admin KIRI.\n\n`;
 adminMd += `| No | Nama Akun | Role / Peran | Alamat Email | Username | Kata Sandi (Password) | Hak Akses & Wewenang |\n`;
 adminMd += `|---|---|---|---|---|---|---|\n`;
 
 adminAccounts.forEach((acc, idx) => {
-  adminMd += `| ${idx + 1} | **${acc.nama}** | \`${acc.role}\` | \`${acc.email}\` | \`${acc.username}\` | \`${acc.password}\` | ${acc.hakAkses} |\n`;
+  adminMd += `| ${idx + 1} | **${acc.nama}** | \`${acc.role}\` | \`${acc.email}\` | \`${acc.username}\` | ${acc.password} | ${acc.hakAkses} |\n`;
 });
 
 adminMd += `\n---\n### 🔑 Petunjuk Login Admin:\n`;
 adminMd += `1. **Halaman Login Admin**: Akses di \`/page-24-login-admin\`.\n`;
 adminMd += `2. **Email**: Gunakan \`admin@kiriproject.id\` atau \`drini562@gmail.com\`.\n`;
-adminMd += `3. **Hak Istimewa**: Akun-akun ini memiliki kewenangan untuk mengirimkan **Siaran Komunitas (Nasional & Per-Daerah)** di \`/page-29-broadcast\`.\n`;
+adminMd += `3. **Kata sandi**: dikelola di server — **tidak** ada di dokumen ini.\n`;
+adminMd += `4. **Hak Istimewa**: Akun-akun ini memiliki kewenangan untuk mengirimkan **Siaran Komunitas (Nasional & Per-Daerah)** di \`/page-29-broadcast\`.\n`;
 
 fs.writeFileSync('./datalist/AKUN_ADMIN.md', adminMd, 'utf8');
 fs.writeFileSync('./datalist/akun_admin.json', JSON.stringify(adminAccounts, null, 2), 'utf8');
 
-// 2. PARSE 526 KREATOR DARI CSV
+// 2. PARSE KREATOR DARI CSV
 function parseCSVLine(line) {
   const result = [];
   let cur = '';
@@ -66,7 +90,21 @@ function parseCSVLine(line) {
   return result;
 }
 
-const csvPath = 'C:\\Users\\Putu Ari\\Downloads\\Master Data KIRIPROJECT - Sheet1.csv';
+const argIdx = process.argv.indexOf('--csv');
+const csvArg = argIdx !== -1 ? process.argv[argIdx + 1] : undefined;
+const csvPath = csvArg || process.env.KIRI_CSV_PATH;
+if (!csvPath) {
+  console.error(
+    'Path CSV tidak diberikan. Jalankan dengan env atau argumen:\n' +
+      '  KIRI_CSV_PATH="path/ke/Master Data KIRIPROJECT - Sheet1.csv" node scripts/generateDatalist.mjs\n' +
+      '  node scripts/generateDatalist.mjs --csv "path/ke/Master Data KIRIPROJECT - Sheet1.csv"'
+  );
+  process.exit(1);
+}
+if (!fs.existsSync(csvPath)) {
+  console.error(`File CSV tidak ditemukan: ${csvPath}`);
+  process.exit(1);
+}
 const content = fs.readFileSync(csvPath, 'utf8');
 const lines = content.split(/\r?\n/);
 
@@ -108,7 +146,9 @@ for (let i = 1; i < lines.length; i++) {
     name: name,
     username: username,
     email: userEmail,
-    password_wa: cleanPhone,
+    // Password asli (nomor WhatsApp) TIDAK ditulis — hanya versi termask
+    // untuk referensi visual. Kredensial login dikelola server (bcrypt).
+    phoneMasked: mask(cleanPhone),
     domisili: domisili || provinsi || 'Indonesia',
     niche: (cols[15] || 'Lifestyle').trim()
   });
@@ -119,17 +159,17 @@ let userMd = `# 👥 DAFTAR AKUN KREATOR, UMKM & PENGGUNA TERDAFTAR KIRI PROJECT
 userMd += `Total akun terdaftar: **${creators.length + 2} Akun** (${creators.length} Kreator CSV + Akun Pilot UMKM & Creator Pro).\n\n`;
 userMd += `### 📌 Format Kredensial Login Pengguna:\n`;
 userMd += `- **Username / Identifier**: Username Instagram/TikTok, ID Akun (\`KP-xxxxx\`), atau Email terdaftar.\n`;
-userMd += `- **Password**: **Nomor WhatsApp terdaftar** (hanya angka, misal: \`085724262527\`).\n`;
+userMd += `- **Kata sandi**: dikelola di server (bcrypt) — **TIDAK** ditulis di dokumen ini. Nomor WhatsApp hanya ditampilkan versi ter-mask sebagai referensi.\n`;
 userMd += `- **Halaman Login**: \`/page-15-login\`.\n\n`;
-userMd += `| No | ID Akun | Nama Lengkap | Username (USN) | Password (No. WhatsApp) | Email Alternatif | Niche / Kategori | Domisili |\n`;
+userMd += `| No | ID Akun | Nama Lengkap | Username (USN) | WhatsApp (Ter-mask) | Email Alternatif | Niche / Kategori | Domisili |\n`;
 userMd += `|---|---|---|---|---|---|---|---|\n`;
 
-// Pilot Users
-userMd += `| 1 | \`KP-PILOT-01\` | **Raka Dewantara** | \`rakadewantara\` | \`08123456789\` | \`raka@dewantara.id\` | Cinematography & Travel | Ubud, Bali |\n`;
-userMd += `| 2 | \`KP-PILOT-02\` | **Wayan Kintamani (Kopi Batur)** | \`kopikintamani\` | \`08198765432\` | \`info@kopikintamani.id\` | Coffee Roastery & UMKM | Kintamani, Bali |\n`;
+// Pilot Users (nomor sudah literal demo, tetap ikut format ter-mask)
+userMd += `| 1 | \`KP-PILOT-01\` | **Raka Dewantara** | \`rakadewantara\` | \`0812****789\` | \`raka@dewantara.id\` | Cinematography & Travel | Ubud, Bali |\n`;
+userMd += `| 2 | \`KP-PILOT-02\` | **Wayan Kintamani (Kopi Batur)** | \`kopikintamani\` | \`0819****432\` | \`info@kopikintamani.id\` | Coffee Roastery & UMKM | Kintamani, Bali |\n`;
 
 creators.forEach((c, idx) => {
-  userMd += `| ${idx + 3} | \`${c.kpId}\` | **${c.name}** | \`${c.username}\` | \`${c.password_wa}\` | \`${c.email}\` | ${c.niche} | ${c.domisili} |\n`;
+  userMd += `| ${idx + 3} | \`${c.kpId}\` | **${c.name}** | \`${c.username}\` | \`${c.phoneMasked}\` | \`${c.email}\` | ${c.niche} | ${c.domisili} |\n`;
 });
 
 fs.writeFileSync('./datalist/AKUN_USERS_KREATOR.md', userMd, 'utf8');
@@ -139,7 +179,7 @@ const fullUserJson = [
     kpId: 'KP-PILOT-01',
     name: 'Raka Dewantara',
     username: 'rakadewantara',
-    password_wa: '08123456789',
+    phoneMasked: '0812****789',
     email: 'raka@dewantara.id',
     role: 'creator',
     niche: 'Cinematography',
@@ -149,7 +189,7 @@ const fullUserJson = [
     kpId: 'KP-PILOT-02',
     name: 'Wayan Kintamani',
     username: 'kopikintamani',
-    password_wa: '08198765432',
+    phoneMasked: '0819****432',
     email: 'info@kopikintamani.id',
     role: 'business / UMKM',
     niche: 'Food & Beverage',
@@ -160,4 +200,17 @@ const fullUserJson = [
 
 fs.writeFileSync('./datalist/akun_users_kreator.json', JSON.stringify(fullUserJson, null, 2), 'utf8');
 
-console.log('Semua file terpisah di folder datalist/ berhasil dibuat!');
+// Idempoten: pastikan tidak ada nilai mentah lolos — kalau ada, selamatkan.
+let rawLeak = 0;
+for (const c of fullUserJson) {
+  const v = c.phoneMasked;
+  if (v && looksRaw(v) && !looksMasked(v)) {
+    c.phoneMasked = mask(v);
+    rawLeak += 1;
+  }
+}
+if (rawLeak > 0) {
+  console.warn(`[warn] ${rawLeak} nomor mentah ditemukan — sudah di-mask ulang.`);
+}
+
+console.log('Semua file terpisah di folder datalist/ berhasil dibuat (tanpa kredensial plaintext)!');

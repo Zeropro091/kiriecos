@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { createAccountForRegistration } from '../lib/registration';
 import {
   Sparkles,
   ArrowRight,
@@ -12,6 +13,11 @@ import {
 export const Page11RegisterBusiness: React.FC = () => {
   const { navigateTo, submitRegistration, showToast } = useApp();
   const [step, setStep] = useState(1);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createdEntityId, setCreatedEntityId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     businessName: 'Bali Artisan Roasters',
@@ -28,23 +34,57 @@ export const Page11RegisterBusiness: React.FC = () => {
     setFormData((prev) => ({ ...prev, [field]: val }));
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < 2) {
       setStep(step + 1);
-    } else {
-      submitRegistration({
-        type: 'business',
-        name: formData.businessName,
-        contactPerson: formData.picName,
-        email: formData.email,
+      return;
+    }
+    if (password.length < 8) {
+      setFormError('Kata sandi akun minimal 8 karakter.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setFormError('Konfirmasi kata sandi tidak cocok.');
+      return;
+    }
+    setFormError(null);
+    setIsSubmitting(true);
+    try {
+      // One registration max — retries after a failure only redo the account step.
+      let entityId = createdEntityId;
+      if (!entityId) {
+        const saved = await submitRegistration({
+          type: 'business',
+          name: formData.businessName,
+          contactPerson: formData.picName,
+          email: formData.email,
+          phone: formData.phone,
+          city: formData.city,
+          category: formData.industry,
+          socialLink: formData.email,
+          details: `Budget: ${formData.budgetBracket} | Kebutuhan: ${formData.marketingNeeds}`,
+        });
+        entityId = saved.entityId ?? null;
+        setCreatedEntityId(entityId);
+      }
+      const account = await createAccountForRegistration({
+        email: formData.email.trim(),
+        password,
+        name: formData.picName,
         phone: formData.phone,
-        city: formData.city,
-        category: formData.industry,
-        socialLink: formData.email,
-        details: `Budget: ${formData.budgetBracket} | Kebutuhan: ${formData.marketingNeeds}`,
+        entityType: 'business',
+        entityId: entityId ?? undefined,
       });
-      showToast('Pendaftaran bisnis/UMKM tersimpan! Lanjut ke pemilihan paket membership.', 'success');
+      if (account.error) {
+        setFormError(account.error);
+        return;
+      }
+      showToast('Akun bisnis aktif! Lanjut ke pemilihan paket membership.', 'success');
       navigateTo('page-14-membership-payment');
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : 'Gagal mengirim pendaftaran ke server KIRI.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -173,6 +213,36 @@ export const Page11RegisterBusiness: React.FC = () => {
                 className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-kiri-dark-700 bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none"
               ></textarea>
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Kata Sandi Akun *
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Minimal 8 karakter"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-kiri-dark-700 bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none focus:border-kiri-gold-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Konfirmasi Kata Sandi *
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-kiri-dark-700 bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none focus:border-kiri-gold-500"
+                />
+              </div>
+            </div>
+
+            <p className="text-[11px] text-gray-500 dark:text-gray-400">
+              Kata sandi ini dipakai untuk masuk ke dashboard member bisnis (bisa juga dengan nomor WhatsApp terdaftar).
+            </p>
           </div>
         )}
 
@@ -196,12 +266,19 @@ export const Page11RegisterBusiness: React.FC = () => {
 
           <button
             onClick={handleNext}
-            className="px-6 py-2.5 rounded-xl bg-kiri-green-900 text-white dark:bg-kiri-gold-500 dark:text-kiri-dark-900 text-xs font-bold hover:opacity-90 shadow-subtle flex items-center gap-2"
+            disabled={isSubmitting}
+            className="px-6 py-2.5 rounded-xl bg-kiri-green-900 text-white dark:bg-kiri-gold-500 dark:text-kiri-dark-900 text-xs font-bold hover:opacity-90 shadow-subtle flex items-center gap-2 disabled:opacity-50"
           >
-            <span>{step === 2 ? 'Kirim Data & Pilih Membership' : 'Lanjutkan'}</span>
+            <span>{step === 2 ? (isSubmitting ? 'Memproses...' : 'Kirim Data & Pilih Membership') : 'Lanjutkan'}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
+
+        {formError && (
+          <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-xs text-red-700 dark:text-red-300">
+            {formError}
+          </div>
+        )}
       </div>
     </div>
   );

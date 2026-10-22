@@ -26,7 +26,7 @@ export async function listChatMessagesByThread(threadProfileId: string): Promise
   return res.rows;
 }
 
-/** Mark admin->member messages in a thread as read (read_at = now()). */
+/** Mark admin->member messages in a thread as read (read_at = now()). Used when the member opens their thread. */
 export async function markThreadMessagesRead(threadProfileId: string): Promise<void> {
   await query(
     `UPDATE chat_messages
@@ -38,13 +38,25 @@ export async function markThreadMessagesRead(threadProfileId: string): Promise<v
   );
 }
 
+/** Mark member->admin messages in a thread as read (read_at = now()). Used when an admin opens the thread. */
+export async function markMemberMessagesRead(threadProfileId: string): Promise<void> {
+  await query(
+    `UPDATE chat_messages
+     SET read_at = now()
+     WHERE thread_profile_id = $1
+       AND sender_role = 'member'
+       AND read_at IS NULL`,
+    [threadProfileId]
+  );
+}
+
 export interface ChatThreadRow extends ChatThreadSummaryRow {
   last_message_body: string | null;
   last_message_at: string | null;
   last_message_role: string | null;
 }
 
-/** Distinct threads with last message info and unread (admin->member) count. */
+/** Distinct threads with last message info and unread (member->admin) count. */
 export async function listChatThreads(): Promise<ChatThreadRow[]> {
   const res = await query<ChatThreadRow>(
     `SELECT
@@ -70,7 +82,7 @@ export async function listChatThreads(): Promise<ChatThreadRow[]> {
        SELECT COUNT(*) AS unread_count
        FROM chat_messages m
        WHERE m.thread_profile_id = t.thread_profile_id
-         AND m.sender_role = 'admin'
+         AND m.sender_role = 'member'
          AND m.read_at IS NULL
      ) unread ON TRUE
      ORDER BY last_message_at DESC NULLS LAST, p.id`

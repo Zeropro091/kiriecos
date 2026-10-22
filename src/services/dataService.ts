@@ -41,7 +41,7 @@ class DataService {
     if (searchKeyword?.trim()) params.set('search', searchKeyword.trim());
     const qs = params.toString();
     const res = await api.get<{ entities: Entity[] }>(`/entities${qs ? `?${qs}` : ''}`);
-    return res.entities;
+    return Array.isArray(res?.entities) ? res.entities : [];
   }
 
   async getEntityById(id: string): Promise<Entity | undefined> {
@@ -55,6 +55,8 @@ class DataService {
   }
 
   async updateEntity(id: string, updates: Partial<Entity>): Promise<Entity> {
+    // Full profile save: scalars + the services/portfolio collections the
+    // profile editor manages (S1 — previously these were dropped silently).
     const res = await api.patch<{ entity: Entity }>(`/entities/${id}`, {
       name: updates.name,
       handle: updates.handle,
@@ -62,6 +64,23 @@ class DataService {
       bio: updates.bio,
       location: updates.location,
       website: updates.website,
+      avatar: updates.avatar,
+      cover_image: updates.coverImage,
+      services: updates.services?.map((s) => ({
+        name: s.name,
+        price: s.price,
+        description: s.description,
+        deliverables: s.deliverables,
+      })),
+      portfolio: updates.portfolio?.map((p) => ({
+        title: p.title,
+        type: p.type,
+        imageUrl: p.imageUrl,
+        caption: p.caption,
+        views: p.views,
+        likes: p.likes,
+        link: p.link,
+      })),
     });
     return res.entity;
   }
@@ -88,13 +107,18 @@ class DataService {
     return res.registration;
   }
 
-  async reviewEntity(
-    entityId: string,
+  /**
+   * K1: review a registration by its REGISTRATION id (the old code posted to
+   * /entities/:id/verify with the registration id as the entity id, so the
+   * request 404'd). The server also flips the backing entity's status.
+   */
+  async reviewRegistration(
+    registrationId: string,
     action: 'approve' | 'reject',
     reason?: string
   ): Promise<boolean> {
     try {
-      await api.post(`/entities/${entityId}/verify`, {
+      await api.patch(`/registrations/${registrationId}`, {
         status: action === 'approve' ? 'approved' : 'rejected',
         rejectionReason: reason,
       });

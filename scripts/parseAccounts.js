@@ -19,7 +19,18 @@ function parseCSVLine(line) {
   return result;
 }
 
-const csvPath = 'C:\\Users\\Putu Ari\\Downloads\\Master Data KIRIPROJECT - Sheet1.csv';
+// Path CSV portabel: env KIRI_CSV_PATH atau --csv "path" (tidak lagi hardcode ke mesin tertentu)
+const argvIdx = process.argv.indexOf('--csv');
+const csvArg = argvIdx !== -1 ? process.argv[argvIdx + 1] : undefined;
+const csvPath = csvArg || process.env.KIRI_CSV_PATH;
+if (!csvPath || !fs.existsSync(csvPath)) {
+  console.error(
+    'Path CSV wajib disetel dan harus ada. Contoh:\n' +
+      '  KIRI_CSV_PATH="data/Master Data KIRIPROJECT - Sheet1.csv" node scripts/parseAccounts.js\n' +
+      '  node scripts/parseAccounts.js --csv "data/Master Data KIRIPROJECT - Sheet1.csv"'
+  );
+  process.exit(1);
+}
 const content = fs.readFileSync(csvPath, 'utf8');
 const lines = content.split(/\r?\n/);
 
@@ -63,7 +74,11 @@ for (let i = 1; i < lines.length; i++) {
     name: name,
     username: username,
     email: userEmail,
-    phone: cleanPhone,
+    // Nomor mentah tidak ditulis ke file — hanya versi ter-mask untuk
+    // membatasi data pribadi yang bisa ter-commit tidak sengaja.
+    phoneMasked: cleanPhone.length > 6
+      ? cleanPhone.slice(0, 4) + '****' + cleanPhone.slice(-3)
+      : '0****' + cleanPhone.slice(-3),
     instagram: ig.replace(/^@/, '').trim(),
     tiktok: tiktok.replace(/^@/, '').trim(),
   });

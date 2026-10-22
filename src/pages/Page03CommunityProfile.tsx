@@ -18,10 +18,30 @@ import {
 export const Page03CommunityProfile: React.FC = () => {
   const { entities, selectedEntityId, navigateTo, openCollabModalFor, communityMembers } = useApp();
 
+  // S2: no hardcoded index fallback — show an empty state instead of crashing
+  // on `undefined` when no community entity exists.
   const community =
     entities.find((e) => e.id === selectedEntityId && e.type === 'community') ||
-    entities.find((e) => e.type === 'community') ||
-    entities[3];
+    entities.find((e) => e.type === 'community');
+
+  if (!community) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center space-y-4">
+        <h1 className="font-serif text-2xl font-bold text-kiri-green-950 dark:text-white">
+          Profil komunitas tidak ditemukan
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Belum ada profil komunitas yang dapat ditampilkan. Coba lagi setelah pendaftaran komunitas disetujui.
+        </p>
+        <button
+          onClick={() => navigateTo('page-02-directory')}
+          className="px-6 py-2.5 rounded-xl bg-kiri-green-900 text-white dark:bg-kiri-gold-500 dark:text-kiri-dark-900 text-xs font-bold hover:opacity-90"
+        >
+          Buka Direktori
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">

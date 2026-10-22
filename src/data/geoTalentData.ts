@@ -30,7 +30,7 @@ const baseSampleCreators = [
     "Username Instagram atau TikTok": "Tiktok Derini.space",
     "Niche atau Kategori Utama": "Lifestyle",
     "Jumlah Followers per Platform": 10100.0,
-    "Kontak WhatsApp": "085724262527",
+    "Kontak WhatsApp": "0857****527",
     "Link Portofolio": null,
     "Upload Foto Profil": "https://drive.google.com/open?id=1AhVjZ4Xdf3wHAJrZE2YaAPhu35Zmmm6c"
   },
@@ -40,7 +40,7 @@ const baseSampleCreators = [
     "Username Instagram atau TikTok": "Sitimae02 / Hanummm10 ",
     "Niche atau Kategori Utama": "Travel",
     "Jumlah Followers per Platform": "710/2990",
-    "Kontak WhatsApp": "089619223122",
+    "Kontak WhatsApp": "0896****122",
     "Link Portofolio": null,
     "Upload Foto Profil": "https://drive.google.com/open?id=1_Ka2_GQNAyUSuHUdlW9gPGSTIDW5YF86"
   },
@@ -50,7 +50,7 @@ const baseSampleCreators = [
     "Username Instagram atau TikTok": "Neninurlaela_penuhkasih/keylanatasya47",
     "Niche atau Kategori Utama": "Lainnya",
     "Jumlah Followers per Platform": "Tiktok 1134, ig 904",
-    "Kontak WhatsApp": "081238924004",
+    "Kontak WhatsApp": "0812****004",
     "Link Portofolio": null,
     "Upload Foto Profil": "https://drive.google.com/open?id=1Ihr43dxixDzkhnrVLxxk-4W-_Z68UALJ"
   },
@@ -60,7 +60,7 @@ const baseSampleCreators = [
     "Username Instagram atau TikTok": "Alyaaptr28_",
     "Niche atau Kategori Utama": "Fashion & Beauty",
     "Jumlah Followers per Platform": 11700.0,
-    "Kontak WhatsApp": "088224577419",
+    "Kontak WhatsApp": "0882****419",
     "Link Portofolio": "https://www.instagram.com/alyaaptr28_",
     "Upload Foto Profil": "https://drive.google.com/open?id=1PM73fLvUojhBeDreTqTpv4PxIbM5pH8l"
   },
@@ -70,7 +70,7 @@ const baseSampleCreators = [
     "Username Instagram atau TikTok": "Queenpranata",
     "Niche atau Kategori Utama": "Kuliner",
     "Jumlah Followers per Platform": 2080.0,
-    "Kontak WhatsApp": "085268568226",
+    "Kontak WhatsApp": "0852****226",
     "Link Portofolio": null,
     "Upload Foto Profil": "https://drive.google.com/open?id=1apPW-qsd5lB8Ue8BD7Zvd3pkZSnUh0Bj"
   },
@@ -80,7 +80,7 @@ const baseSampleCreators = [
     "Username Instagram atau TikTok": "@araaa_sun / @araaasun_",
     "Niche atau Kategori Utama": "Lifestyle",
     "Jumlah Followers per Platform": "IG : 25000 / TT : 4200",
-    "Kontak WhatsApp": "08815751050",
+    "Kontak WhatsApp": "0881****050",
     "Link Portofolio": null,
     "Upload Foto Profil": null
   },
@@ -90,7 +90,7 @@ const baseSampleCreators = [
     "Username Instagram atau TikTok": "@fikrimaulana",
     "Niche atau Kategori Utama": "Visual Art & Video",
     "Jumlah Followers per Platform": 8500.0,
-    "Kontak WhatsApp": "081298765432",
+    "Kontak WhatsApp": "0812****432",
     "Link Portofolio": "https://instagram.com",
     "Upload Foto Profil": null
   },
@@ -100,7 +100,7 @@ const baseSampleCreators = [
     "Username Instagram atau TikTok": "@saraswati_bali",
     "Niche atau Kategori Utama": "Heritage & Culture",
     "Jumlah Followers per Platform": 34000.0,
-    "Kontak WhatsApp": "081999123456",
+    "Kontak WhatsApp": "0819****456",
     "Link Portofolio": "https://kiri.id",
     "Upload Foto Profil": null
   },
@@ -110,7 +110,7 @@ const baseSampleCreators = [
     "Username Instagram atau TikTok": "@rakadewantara",
     "Niche atau Kategori Utama": "Visual Art & Video",
     "Jumlah Followers per Platform": 58000.0,
-    "Kontak WhatsApp": "081234567890",
+    "Kontak WhatsApp": "0812****890",
     "Link Portofolio": "https://kiri.id/raka",
     "Upload Foto Profil": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
   },
@@ -120,7 +120,7 @@ const baseSampleCreators = [
     "Username Instagram atau TikTok": "anggraeniricca",
     "Niche atau Kategori Utama": "Lifestyle",
     "Jumlah Followers per Platform": 12530.0,
-    "Kontak WhatsApp": "085710497900",
+    "Kontak WhatsApp": "0857****900",
     "Link Portofolio": "https://www.instagram.com/reel/DaVTMTHBuXY/",
     "Upload Foto Profil": "https://drive.google.com/open?id=19EAHRloKblcdKl8MJ6-r3sBRmMFxtu0j"
   },
@@ -130,7 +130,7 @@ const baseSampleCreators = [
     "Username Instagram atau TikTok": "mia_arkania",
     "Niche atau Kategori Utama": "Kuliner",
     "Jumlah Followers per Platform": "TikTok: 2366, IG: 3235",
-    "Kontak WhatsApp": "085210026072",
+    "Kontak WhatsApp": "0852****072",
     "Link Portofolio": "https://mywebmia.my.canva.site/eats-escapes",
     "Upload Foto Profil": null
   },
@@ -140,7 +140,7 @@ const baseSampleCreators = [
     "Username Instagram atau TikTok": "@satria_motion",
     "Niche atau Kategori Utama": "Visual Art & Video",
     "Jumlah Followers per Platform": 18200.0,
-    "Kontak WhatsApp": "087865432109",
+    "Kontak WhatsApp": "0878****109",
     "Link Portofolio": "https://behance.net",
     "Upload Foto Profil": null
   },
@@ -150,7 +150,7 @@ const baseSampleCreators = [
     "Username Instagram atau TikTok": "@bintang_visual",
     "Niche atau Kategori Utama": "Brand & Advertising",
     "Jumlah Followers per Platform": 42000.0,
-    "Kontak WhatsApp": "08119876543",
+    "Kontak WhatsApp": "0811****543",
     "Link Portofolio": null,
     "Upload Foto Profil": null
   },
@@ -160,7 +160,7 @@ const baseSampleCreators = [
     "Username Instagram atau TikTok": "@dimas_cinematic",
     "Niche atau Kategori Utama": "Visual Art & Video",
     "Jumlah Followers per Platform": 9400.0,
-    "Kontak WhatsApp": "085612345678",
+    "Kontak WhatsApp": "0856****678",
     "Link Portofolio": null,
     "Upload Foto Profil": null
   },
@@ -170,13 +170,24 @@ const baseSampleCreators = [
     "Username Instagram atau TikTok": "@gitalaras_",
     "Niche atau Kategori Utama": "Lifestyle",
     "Jumlah Followers per Platform": 14200.0,
-    "Kontak WhatsApp": "089912345678",
+    "Kontak WhatsApp": "0899****678",
     "Link Portofolio": null,
     "Upload Foto Profil": null
   }
 ];
 
 const rawCreators = [...baseSampleCreators, ...masterGeoCreators];
+
+// S14: numbers are masked at the source (see scripts/maskGeoPhoneSource.mjs);
+// this guard only masks anything raw that slips through from older bundles.
+export const maskWhatsApp = (val: string | number | null | undefined): string | null => {
+  if (!val) return null;
+  const raw = String(val);
+  if (raw.includes('****')) return raw;
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length < 8) return '0****' + digits.slice(-3);
+  return digits.slice(0, 4) + '****' + digits.slice(-3);
+};
 
 export const parseFollowers = (val: string | number | null): number => {
   if (!val) return 0;
@@ -314,7 +325,7 @@ export const getFilteredGeoMapData = (nicheFilter: string, minFollowers: number)
         followers: creator['Jumlah Followers per Platform'] || null,
         portfolio: creator['Link Portofolio'] || null,
         profilePic: creator['Upload Foto Profil'] || null,
-        whatsapp: creator['Kontak WhatsApp'] ? (String(creator['Kontak WhatsApp']).replace(/\D/g, '').slice(0, 4) + '****' + String(creator['Kontak WhatsApp']).replace(/\D/g, '').slice(-3)) : null
+        whatsapp: maskWhatsApp(creator['Kontak WhatsApp'])
       });
     }
   });

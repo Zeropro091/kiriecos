@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import {
   Sparkles,
@@ -15,16 +15,31 @@ import {
 export const Page17ProfileEditor: React.FC = () => {
   const { entities, currentUser, updateEntityProfile, navigateTo, showToast } = useApp();
 
-  const currentEntity = entities.find((e) => e.id === currentUser?.entityId) || entities[0];
+  // S2/S12: edit only the entity THIS account owns — no "first directory
+  // entry" fallback, which previously let guests edit arbitrary profiles.
+  const currentEntity = entities.find((e) => e.id === currentUser?.entityId);
 
-  const [name, setName] = useState(currentEntity.name);
-  const [handle, setHandle] = useState(currentEntity.handle);
-  const [category, setCategory] = useState(currentEntity.category);
-  const [bio, setBio] = useState(currentEntity.bio);
-  const [location, setLocation] = useState(currentEntity.location);
-  const [website, setWebsite] = useState(currentEntity.website || '');
-  const [services, setServices] = useState(currentEntity.services || []);
-  const [portfolio, setPortfolio] = useState(currentEntity.portfolio || []);
+  const [name, setName] = useState(currentEntity?.name ?? '');
+  const [handle, setHandle] = useState(currentEntity?.handle ?? '');
+  const [category, setCategory] = useState(currentEntity?.category ?? '');
+  const [bio, setBio] = useState(currentEntity?.bio ?? '');
+  const [location, setLocation] = useState(currentEntity?.location ?? '');
+  const [website, setWebsite] = useState(currentEntity?.website || '');
+  const [services, setServices] = useState(currentEntity?.services || []);
+  const [portfolio, setPortfolio] = useState(currentEntity?.portfolio || []);
+
+  // Keep the form in sync once the entity loads (direct navigation / late fetch).
+  useEffect(() => {
+    if (!currentEntity) return;
+    setName(currentEntity.name);
+    setHandle(currentEntity.handle);
+    setCategory(currentEntity.category);
+    setBio(currentEntity.bio);
+    setLocation(currentEntity.location);
+    setWebsite(currentEntity.website || '');
+    setServices(currentEntity.services || []);
+    setPortfolio(currentEntity.portfolio || []);
+  }, [currentEntity?.id]);
 
   const [newServiceName, setNewServiceName] = useState('');
   const [newServicePrice, setNewServicePrice] = useState('');
@@ -35,6 +50,7 @@ export const Page17ProfileEditor: React.FC = () => {
   const [newPortCaption, setNewPortCaption] = useState('');
 
   const handleSave = () => {
+    if (!currentEntity) return;
     updateEntityProfile(currentEntity.id, {
       name,
       handle,
@@ -89,6 +105,26 @@ export const Page17ProfileEditor: React.FC = () => {
   const handleDeletePortfolio = (id: string) => {
     setPortfolio(portfolio.filter((p) => p.id !== id));
   };
+
+  if (!currentEntity) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center space-y-4">
+        <h1 className="font-serif text-2xl font-bold text-kiri-green-950 dark:text-white">
+          Profil entitas belum tersedia
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          Halaman ini mengelola profil entitas milik akun Anda, tetapi sesi Anda belum tertaut ke
+          entitas komunitas mana pun. Masuk dengan akun terverifikasi atau hubungi admin KIRI.
+        </p>
+        <button
+          onClick={() => navigateTo('page-16-dashboard-user')}
+          className="px-6 py-2.5 rounded-xl bg-kiri-green-900 text-white dark:bg-kiri-gold-500 dark:text-kiri-dark-900 text-xs font-bold hover:opacity-90"
+        >
+          Kembali ke Dashboard
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">

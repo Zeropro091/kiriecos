@@ -7,14 +7,15 @@ import type { BroadcastScope, PublicUser } from '../types.js';
 
 export const broadcastRouter = Router();
 
-const BROADCAST_EMAILS = new Set(['drini562@gmail.com']);
-
+/**
+ * Broadcast authorization is role/tier-based only — one source of truth shared
+ * with the client rule in src/lib/access.ts (no hardcoded email allow-lists;
+ * those drifted from the server's actual rules and leaked into the repo).
+ */
 function canBroadcast(user: PublicUser): boolean {
-  const email = user.email.toLowerCase();
   return (
     user.role === 'admin' ||
     user.role === 'community_lead' ||
-    BROADCAST_EMAILS.has(email) ||
     user.membershipTier === 'System Master' ||
     user.membershipTier === 'Community Verified'
   );
@@ -67,8 +68,13 @@ broadcastRouter.post(
 
 broadcastRouter.post(
   '/:id/like',
+  requireAuth,
   asyncHandler(async (req, res) => {
-    const message = await likeBroadcast(req.params.id);
+    if (!z.string().uuid().safeParse(req.params.id).success) {
+      res.status(400).json({ error: 'ID siaran tidak valid.' });
+      return;
+    }
+    const message = await likeBroadcast(req.params.id, req.user!.id);
     if (!message) {
       res.status(404).json({ error: 'Siaran tidak ditemukan.' });
       return;

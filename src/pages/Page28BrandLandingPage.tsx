@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { 
-  Sparkles, 
-  ExternalLink, 
-  Code, 
-  Globe, 
-  CheckCircle2, 
-  MessageSquare, 
+import { assetUrl } from '../lib/api';
+import {
+  Sparkles,
+  ExternalLink,
+  Code,
+  Globe,
+  CheckCircle2,
+  MessageSquare,
   ArrowLeft,
   Copy,
   Layers,
@@ -23,51 +24,27 @@ export const Page28BrandLandingPage: React.FC = () => {
   const [contactMsg, setContactMsg] = useState('');
   const [activeSandboxTab, setActiveSandboxTab] = useState<'preview' | 'html' | 'css' | 'js'>('preview');
 
-  // Find active entity or fallback to first business/creator
-  const entity = entities.find(e => e.id === selectedEntityId) || entities[0];
+  // S2: no "first entity" fallback — unknown ids get the empty state below.
+  const entity = entities.find(e => e.id === selectedEntityId);
 
   const handleCopyUrl = () => {
-    const fullUrl = `https://kiriproject.id/${entity.handle.replace('@', '')}`;
+    const fullUrl = `https://kiriproject.id/${entity?.handle.replace('@', '')}`;
     navigator.clipboard.writeText(fullUrl);
     showToast(`URL ${fullUrl} disalin ke clipboard!`, 'success');
   };
 
   const handleRequestDomain = (e: React.FormEvent) => {
     e.preventDefault();
-    showToast(`Permintaan custom domain untuk ${entity.name} telah dikirim ke Admin KIRI!`, 'success');
+    showToast(`Permintaan custom domain untuk ${entity?.name} telah dikirim ke Admin KIRI!`, 'success');
     setIsAdminContactOpen(false);
     setCustomDomainInput('');
   };
 
-  // If custom developer HTML/CSS/JS is provided and active, render inside a secure sandboxed iframe
+  // S9: if custom developer HTML/CSS/JS is provided and active, load it from the
+  // server (`/api/sandbox/landing/:entityId`) inside a sandboxed iframe. The
+  // old inline `srcdoc` could never pass the app's strict Content-Security-Policy.
   const renderCustomDeveloperSandbox = () => {
-    if (!entity.customLandingPageActive || !entity.customHtml) return null;
-
-    const sandboxedDocument = `
-      <!DOCTYPE html>
-      <html lang="id">
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <script src="https://cdn.tailwindcss.com"></script>
-          <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
-          <style>
-            body { font-family: 'Plus Jakarta Sans', sans-serif; }
-            ${entity.customCss || ''}
-          </style>
-        </head>
-        <body class="bg-slate-950 text-slate-100 min-h-screen">
-          ${entity.customHtml}
-          <script>
-            try {
-              ${entity.customJs || ''}
-            } catch (err) {
-              console.error('Custom Sandbox JS Error:', err);
-            }
-          </script>
-        </body>
-      </html>
-    `;
+    if (!entity || !entity.customLandingPageActive || !entity.customHtml) return null;
 
     return (
       <div className="w-full min-h-screen bg-slate-950 relative">
@@ -136,7 +113,7 @@ export const Page28BrandLandingPage: React.FC = () => {
         {activeSandboxTab === 'preview' && (
           <iframe
             title={`Custom Landing Page - ${entity.name}`}
-            srcDoc={sandboxedDocument}
+            src={assetUrl(`/api/sandbox/landing/${entity.id}`)}
             sandbox="allow-scripts allow-forms"
             className="w-full h-[calc(100vh-42px)] border-none"
           />
@@ -162,6 +139,25 @@ export const Page28BrandLandingPage: React.FC = () => {
       </div>
     );
   };
+
+  if (!entity) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center px-4">
+        <div className="text-center space-y-4 max-w-md">
+          <h1 className="font-serif text-2xl font-bold text-white">Halaman brand tidak ditemukan</h1>
+          <p className="text-sm text-slate-400">
+            Halaman khusus brand ini belum tersedia atau branding belum terverifikasi. Kunjungi direktori KIRI untuk melihat profil terverifikasi.
+          </p>
+          <button
+            onClick={() => navigateTo('page-02-directory')}
+            className="px-6 py-2.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-bold hover:bg-amber-400"
+          >
+            Buka Direktori
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (entity.customLandingPageActive && entity.customHtml) {
     return (
