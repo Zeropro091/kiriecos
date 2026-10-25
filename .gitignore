@@ -64,3 +64,6 @@ KIRI_PROJECT_UIUX_FOUNDATION_COMPLETE_VISUAL_ALL_ASSETS.docx
 extracted_images/
 extracted_doc_text.txt
 .neon
+
+# Restore point KIRI (dump DB berisi hash password — JANGAN masuk repo publik)
+backups/
