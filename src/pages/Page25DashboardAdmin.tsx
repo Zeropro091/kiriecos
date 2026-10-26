@@ -9,6 +9,7 @@ import {
 } from '../lib/adminInbox';
 import { AdminChatInbox } from './admin/AdminChatInbox';
 import { AdminLandingOrders } from './admin/AdminLandingOrders';
+import { AdminPromoCodes } from './admin/AdminPromoCodes';
 import {
   Sparkles,
   ShieldCheck,
@@ -24,7 +25,8 @@ import {
   AlertCircle,
   FileText,
   MessagesSquare,
-  LayoutList
+  LayoutList,
+  Tag
 } from 'lucide-react';
 
 export const Page25DashboardAdmin: React.FC = () => {
@@ -45,7 +47,7 @@ export const Page25DashboardAdmin: React.FC = () => {
   const [selectedStatusInput, setSelectedStatusInput] = useState<CollaborationRequest['status']>('matched');
 
   // Admin console tabs: Request Center (existing) + Chat Inbox + Landing Page Orders.
-  const [activeTab, setActiveTab] = useState<'requests' | 'chat' | 'orders'>('requests');
+  const [activeTab, setActiveTab] = useState<'requests' | 'chat' | 'orders' | 'promo'>('requests');
   const [unreadThreadsCount, setUnreadThreadsCount] = useState(0);
   const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
 
@@ -160,6 +162,7 @@ export const Page25DashboardAdmin: React.FC = () => {
           { key: 'requests', label: 'Request Center', icon: LayoutList, count: pendingRegistrationsCount },
           { key: 'chat', label: 'Chat Member', icon: MessagesSquare, count: unreadThreadsCount },
           { key: 'orders', label: 'Pesan Landing Page', icon: FileText, count: pendingOrdersCount },
+          { key: 'promo', label: 'Kode Promo', icon: Tag, count: 0 },
         ] as const).map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.key;
@@ -197,6 +200,10 @@ export const Page25DashboardAdmin: React.FC = () => {
 
       {activeTab === 'orders' && (
         <AdminLandingOrders />
+      )}
+
+      {activeTab === 'promo' && (
+        <AdminPromoCodes />
       )}
 
       {activeTab === 'requests' && (

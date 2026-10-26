@@ -177,17 +177,22 @@ class DataService {
   // ==========================================
 
   async submitPaymentReceipt(
-    receipt: Omit<PaymentReceipt, 'id' | 'status' | 'submittedAt'>
-  ): Promise<PaymentReceipt> {
-    const res = await api.post<{ payment: PaymentReceipt }>('/payments', {
+    receipt: Omit<PaymentReceipt, 'id' | 'status' | 'submittedAt'> & {
+      promoCode?: string;
+      /** Kosong saat kode promo membuat harga jadi Rp 0 (akses gratis). */
+      receiptImageUrl?: string;
+    }
+  ): Promise<PaymentReceipt & { activated?: boolean }> {
+    const res = await api.post<{ payment: PaymentReceipt; activated?: boolean }>('/payments', {
       tier: receipt.tier,
       amount: receipt.amount,
+      promoCode: receipt.promoCode,
       bankName: receipt.bankName,
       senderAccountName: receipt.senderAccountName,
       entityId: receipt.entityId,
-      receiptImageDataUrl: receipt.receiptImageUrl,
+      receiptImageDataUrl: receipt.receiptImageUrl || undefined,
     });
-    return res.payment;
+    return { ...res.payment, activated: res.activated };
   }
 
   async getPendingPayments(): Promise<PaymentReceipt[]> {

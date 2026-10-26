@@ -13,8 +13,19 @@ import {
   UserRound,
   Briefcase,
   UploadCloud,
-  ChevronRight
+  ChevronRight,
+  Tag,
+  Loader2,
+  X,
+  Gift,
 } from 'lucide-react';
+import {
+  formatRupiah,
+  validatePromo,
+  discountedPrice,
+  type PromoEvaluation,
+  type PromoTier,
+} from '../lib/promos';
 
 /**
  * Page14 — Membership payment flow.
@@ -133,8 +144,6 @@ const TIER_CARDS: Record<Track, TierCardConfig[]> = {
   ],
 };
 
-const formatRupiah = (n: number) => `Rp ${n.toLocaleString('id-ID')}`;
-
 export const Page14MembershipPayment: React.FC = () => {
   const { currentUser, navigateTo, showToast } = useApp();
 
@@ -145,23 +154,70 @@ export const Page14MembershipPayment: React.FC = () => {
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittedSuccess, setIsSubmittedSuccess] = useState(false);
+  const [wasFreeActivation, setWasFreeActivation] = useState(false);
+
+  // Kode promo
+  const [promoCode, setPromoCode] = useState('');
+  const [promo, setPromo] = useState<PromoEvaluation | null>(null);
+  const [promoError, setPromoError] = useState('');
+  const [checkingPromo, setCheckingPromo] = useState(false);
 
   // Pick up selection handed off by the pricing pages (Page14A / Page14B).
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem('kiri.membership.selection');
       if (raw) {
-        const parsed = JSON.parse(raw) as { track?: Track; tier?: TierKey };
-        if (parsed.track === 'creator' || parsed.track === 'business') setTrack(parsed.track);
-        if (parsed.tier && parsed.tier in PRICES.creator) setSelectedTier(parsed.tier);
+        const parsed = JSON.parse(raw) as { track?: Track; tier?: TierKey; promoCode?: string };
+        const nextTrack = parsed.track === 'business' ? 'business' : parsed.track === 'creator' ? 'creator' : null;
+        const nextTier = parsed.tier && parsed.tier in PRICES.creator ? parsed.tier : null;
+        if (nextTrack) setTrack(nextTrack);
+        if (nextTier) setSelectedTier(nextTier);
+        if (parsed.promoCode) {
+          setPromoCode(parsed.promoCode);
+          // Validasi langsung dengan pilihan yang baru dibaca, bukan state lama.
+          void applyPromoCode(parsed.promoCode, nextTrack ?? 'creator', nextTier ?? 'exclusive');
+        }
         sessionStorage.removeItem('kiri.membership.selection');
+        sessionStorage.removeItem('kiri.membership.promo');
       }
     } catch {
       /* ignore malformed selection */
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const calculateAmount = () => PRICES[track][selectedTier] ?? 0;
+  const applyPromoCode = async (
+    rawCode: string,
+    targetTrack: Track = track,
+    targetTier: TierKey = selectedTier
+  ) => {
+    const code = rawCode.trim();
+    if (!code) return;
+    setCheckingPromo(true);
+    setPromoError('');
+    const result = await validatePromo(code, targetTrack, targetTier, { preview: !currentUser });
+    setCheckingPromo(false);
+    if (!result.valid) {
+      setPromo(null);
+      setPromoError(result.reason ?? 'Kode promo tidak valid.');
+      return;
+    }
+    setPromo(result);
+    setPromoCode(result.code ?? code);
+  };
+
+  // Kode bisa dibatasi ke tier tertentu — validasi ulang saat paket berganti.
+  useEffect(() => {
+    if (!promoCode.trim()) return;
+    if (promo?.valid && promo.tier === selectedTier && promo.track === track) return;
+    void applyPromoCode(promoCode, track, selectedTier);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [track, selectedTier]);
+
+  const baseAmount = PRICES[track][selectedTier] ?? 0;
+  const calculateAmount = () => (promo?.valid ? promo.amountAfter : baseAmount);
+  const discountAmount = promo?.valid ? promo.discountAmount : 0;
+  const isFree = Boolean(promo?.valid) && calculateAmount() === 0;
 
   const handleUploadReceipt = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,33 +226,36 @@ export const Page14MembershipPayment: React.FC = () => {
       navigateTo('page-15-login');
       return;
     }
-    if (selectedTier === 'basic') {
+    if (selectedTier === 'basic' && !isFree) {
       showToast('Paket Basic dipilih. Hubungi admin KIRI untuk aktivasi keanggotaan.', 'success');
       navigateTo('page-16-dashboard-user');
       return;
     }
 
-    if (!accountName.trim()) {
+    if (!isFree && !accountName.trim()) {
       showToast('Harap masukkan nama pemilik rekening.', 'error');
       return;
     }
 
     // K5: a real receipt is mandatory — the old fallback silently attached a
     // placeholder image so admins had nothing to verify.
-    if (!receiptFile) {
+    // Kode promo gratis tidak butuh bukti transfer sama sekali.
+    if (!isFree && !receiptFile) {
       showToast('Harap unggah bukti transfer (resi / screenshot) terlebih dahulu.', 'error');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      let uploadedProofUrl: string;
-      try {
-        uploadedProofUrl = await dataService.uploadReceiptImage(receiptFile);
-      } catch {
-        setIsSubmitting(false);
-        showToast('Gagal mengunggah gambar bukti transfer. Cek koneksi lalu coba lagi.', 'error');
-        return;
+      let uploadedProofUrl = '';
+      if (!isFree && receiptFile) {
+        try {
+          uploadedProofUrl = await dataService.uploadReceiptImage(receiptFile);
+        } catch {
+          setIsSubmitting(false);
+          showToast('Gagal mengunggah gambar bukti transfer. Cek koneksi lalu coba lagi.', 'error');
+          return;
+        }
       }
 
       const saved = await dataService.submitPaymentReceipt({
@@ -204,22 +263,26 @@ export const Page14MembershipPayment: React.FC = () => {
         userName: currentUser.name || accountName,
         tier: `${track}:${selectedTier}`,
         amount: calculateAmount(),
+        promoCode: promo?.valid ? promo.code : undefined,
         receiptImageUrl: uploadedProofUrl,
-        senderAccountName: accountName,
-        bankName,
+        senderAccountName: accountName || currentUser.name,
+        bankName: isFree ? 'PROMO' : bankName,
         entityId: currentUser.entityId,
       });
 
       setIsSubmitting(false);
+      setWasFreeActivation(Boolean(saved.activated));
       setIsSubmittedSuccess(true);
-      if (saved.syncError) {
+      if (saved.activated) {
+        showToast('Kode promo berhasil! Keanggotaanmu langsung aktif.', 'success');
+      } else if (saved.syncError) {
         showToast('Bukti tersimpan lokal — sinkronisasi ke server gagal. Hubungi admin via WhatsApp.', 'warning');
       } else {
         showToast('Bukti transfer berhasil dikirim! Tim kurasi KIRI akan memverifikasi dalam 1x24 jam.', 'success');
       }
-    } catch {
+    } catch (err) {
       setIsSubmitting(false);
-      showToast('Gagal mengunggah bukti transfer.', 'error');
+      showToast(err instanceof Error ? err.message : 'Gagal mengunggah bukti transfer.', 'error');
     }
   };
 
@@ -313,11 +376,35 @@ export const Page14MembershipPayment: React.FC = () => {
                     <h3 className="font-serif text-2xl font-bold text-white mt-3">{card.title}</h3>
                     <p className="text-xs text-gray-300/80 mt-1 leading-relaxed">{card.subtitle}</p>
 
-                    <div className="mt-6 flex items-baseline gap-1">
-                      <span className={`font-serif text-4xl font-bold ${card.highlighted ? 'text-kiri-gold-300' : 'text-white'}`}>
-                        {formatRupiah(PRICES[track][card.key])}
-                      </span>
-                      <span className="text-xs text-gray-400">/ tahun</span>
+                    <div className="mt-6">
+                      {(() => {
+                        const basePrice = PRICES[track][card.key];
+                        const finalPrice = discountedPrice(basePrice, promo);
+                        const discounted = finalPrice < basePrice;
+                        return (
+                          <>
+                            {discounted && (
+                              <span className="block text-xs text-gray-400 line-through decoration-red-400/60">
+                                {formatRupiah(basePrice)}
+                              </span>
+                            )}
+                            <div className="flex items-baseline gap-1">
+                              <span
+                                className={`font-serif text-4xl font-bold ${
+                                  finalPrice === 0
+                                    ? 'text-emerald-300'
+                                    : card.highlighted || discounted
+                                      ? 'text-kiri-gold-300'
+                                      : 'text-white'
+                                }`}
+                              >
+                                {finalPrice === 0 ? 'GRATIS' : formatRupiah(finalPrice)}
+                              </span>
+                              {finalPrice !== 0 && <span className="text-xs text-gray-400">/ tahun</span>}
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
 
                     <div className="w-full h-px bg-white/10 my-6"></div>
@@ -354,7 +441,7 @@ export const Page14MembershipPayment: React.FC = () => {
         </div>
 
         {/* Basic (admin activation) note */}
-        {selectedTier === 'basic' && (
+        {selectedTier === 'basic' && !isFree && (
           <div className="text-center pt-4">
             <button
               onClick={() => {
@@ -371,7 +458,7 @@ export const Page14MembershipPayment: React.FC = () => {
         )}
 
         {/* Payment & Transfer Area */}
-        {selectedTier !== 'basic' && (
+        {(selectedTier !== 'basic' || isFree) && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-4">
             {/* Left: Bank Details & Upload Form */}
             <div className="lg:col-span-8 rounded-[2rem] p-1.5 bg-white/10 backdrop-blur-xl border border-white/15 shadow-2xl">
@@ -391,7 +478,19 @@ export const Page14MembershipPayment: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Bank Account Info Card */}
+                {/* Bank Account Info Card — tidak perlu saat kode promo membuat harga Rp 0 */}
+                {isFree ? (
+                  <div className="rounded-2xl p-5 border border-emerald-400/40 bg-emerald-500/10 space-y-2">
+                    <div className="flex items-center gap-2 text-emerald-300 font-bold text-sm">
+                      <Gift className="w-4 h-4" /> Akses gratis dengan kode promo
+                    </div>
+                    <p className="text-xs text-gray-200 leading-relaxed">
+                      Kode <span className="font-mono font-bold text-emerald-200">{promo?.code}</span> membuat
+                      keanggotaan {track === 'creator' ? 'Creator' : 'Business'} {TIER_LABELS[selectedTier]} gratis.
+                      Tidak perlu transfer atau unggah bukti — klik tombol di bawah dan akses langsung aktif.
+                    </p>
+                  </div>
+                ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white/[0.03] p-5 rounded-2xl border border-white/10">
                   <div className="space-y-1">
                     <span className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Bank Tujuan</span>
@@ -416,9 +515,12 @@ export const Page14MembershipPayment: React.FC = () => {
                     </div>
                   </div>
                 </div>
+                )}
 
                 {!isSubmittedSuccess ? (
                   <form onSubmit={handleUploadReceipt} className="space-y-5 pt-2">
+                    {!isFree && (
+                    <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label className="block text-xs font-semibold text-gray-300">Bank / E-Wallet Pengirim</label>
@@ -470,14 +572,22 @@ export const Page14MembershipPayment: React.FC = () => {
                         </div>
                       </div>
                     </div>
+                    </>
+                    )}
 
                     <button
                       type="submit"
                       disabled={isSubmitting}
                       className="w-full py-3.5 rounded-full bg-kiri-gold-500 hover:bg-kiri-gold-400 text-kiri-dark-950 font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 shadow-[0_6px_24px_rgba(216,174,90,0.35)] active:scale-[0.99] disabled:opacity-50"
                     >
-                      <span>{isSubmitting ? 'Mengirim Data...' : 'Konfirmasi & Kirim Bukti Pembayaran'}</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <span>
+                        {isSubmitting
+                          ? 'Memproses...'
+                          : isFree
+                            ? 'Aktifkan Keanggotaan Gratis'
+                            : 'Konfirmasi & Kirim Bukti Pembayaran'}
+                      </span>
+                      {isFree ? <Gift className="w-4 h-4" /> : <ArrowRight className="w-4 h-4" />}
                     </button>
                   </form>
                 ) : (
@@ -485,10 +595,13 @@ export const Page14MembershipPayment: React.FC = () => {
                     <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
                       <FileCheck className="w-6 h-6" />
                     </div>
-                    <h5 className="font-serif text-lg font-bold text-emerald-300">Bukti Pembayaran Diterima</h5>
+                    <h5 className="font-serif text-lg font-bold text-emerald-300">
+                      {wasFreeActivation ? 'Keanggotaan Aktif — Gratis' : 'Bukti Pembayaran Diterima'}
+                    </h5>
                     <p className="text-xs text-gray-300 max-w-md mx-auto leading-relaxed">
-                      Tim Admin KIRI Project sedang memverifikasi pembayaran Anda. Keanggotaan dan lencana
-                      Verified Badge akan aktif maksimal dalam 1x24 jam kerja.
+                      {wasFreeActivation
+                        ? `Kode promo ${promo?.code ?? ''} berhasil dipakai. Akses ${track === 'creator' ? 'Creator' : 'Business'} ${TIER_LABELS[selectedTier]} kamu sudah aktif sekarang — tidak perlu menunggu verifikasi.`
+                        : 'Tim Admin KIRI Project sedang memverifikasi pembayaran Anda. Keanggotaan dan lencana Verified Badge akan aktif maksimal dalam 1x24 jam kerja.'}
                     </p>
                     <button
                       onClick={() => navigateTo('page-16-dashboard-user')}
@@ -504,6 +617,78 @@ export const Page14MembershipPayment: React.FC = () => {
 
             {/* Right: Security & Summary Widget */}
             <div className="lg:col-span-4 space-y-6">
+              {/* Promo code */}
+              <div className="rounded-[2rem] p-1.5 bg-white/10 backdrop-blur-xl border border-white/15">
+                <div className="rounded-[calc(2rem-0.375rem)] bg-[#001f15] p-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-kiri-gold-400" />
+                    <h4 className="font-serif text-base font-bold text-white">Kode Promo</h4>
+                  </div>
+
+                  {promo?.valid ? (
+                    <div className="flex items-start justify-between gap-3 bg-emerald-500/10 border border-emerald-400/30 rounded-xl p-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-emerald-300 font-mono tracking-wider truncate">
+                          {promo.code}
+                        </p>
+                        <p className="text-[11px] text-gray-300 mt-0.5">
+                          {promo.isFree ? 'Akses gratis 100%' : promo.label}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPromo(null);
+                          setPromoCode('');
+                          setPromoError('');
+                        }}
+                        className="text-gray-400 hover:text-white shrink-0"
+                        aria-label="Hapus kode promo"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        void applyPromoCode(promoCode);
+                      }}
+                      className="space-y-2"
+                    >
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={promoCode}
+                          onChange={(e) => {
+                            setPromoCode(e.target.value.toUpperCase());
+                            setPromoError('');
+                          }}
+                          placeholder="Masukkan kode"
+                          autoComplete="off"
+                          spellCheck={false}
+                          className="flex-1 min-w-0 bg-[#001710] border border-white/15 rounded-xl px-3 py-2 text-xs tracking-wider text-white placeholder:text-gray-500 placeholder:tracking-normal focus:outline-none focus:border-kiri-gold-500 transition-colors"
+                        />
+                        <button
+                          type="submit"
+                          disabled={checkingPromo || !promoCode.trim()}
+                          className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold transition-all disabled:opacity-40 flex items-center gap-1 shrink-0"
+                        >
+                          {checkingPromo ? <Loader2 className="w-3 h-3 animate-spin" /> : <Tag className="w-3 h-3" />}
+                          <span>Cek</span>
+                        </button>
+                      </div>
+                      {promoError && (
+                        <p className="text-[11px] text-red-300 flex items-start gap-1.5">
+                          <X className="w-3 h-3 shrink-0 mt-0.5" />
+                          <span>{promoError}</span>
+                        </p>
+                      )}
+                    </form>
+                  )}
+                </div>
+              </div>
+
               <div className="rounded-[2rem] p-1.5 bg-white/10 backdrop-blur-xl border border-white/15">
                 <div className="rounded-[calc(2rem-0.375rem)] bg-[#001f15] p-6 space-y-5">
                   <h4 className="font-serif text-base font-bold text-white">Ringkasan Keanggotaan</h4>
@@ -518,20 +703,37 @@ export const Page14MembershipPayment: React.FC = () => {
                       <span className="text-gray-400">Durasi Akses</span>
                       <span className="font-semibold text-white">1 Tahun (Aktif Seketika)</span>
                     </div>
+                    <div className="flex justify-between pt-3">
+                      <span className="text-gray-400">Harga Normal</span>
+                      <span className={`font-semibold ${discountAmount > 0 ? 'text-gray-400 line-through' : 'text-white'}`}>
+                        {formatRupiah(baseAmount)}
+                      </span>
+                    </div>
+                    {discountAmount > 0 && (
+                      <div className="flex justify-between pt-3">
+                        <span className="text-gray-400">Potongan ({promo?.code})</span>
+                        <span className="font-semibold text-emerald-300">− {formatRupiah(discountAmount)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between pt-3 text-sm font-bold text-kiri-gold-300">
                       <span>Total Investasi</span>
-                      <span>{formatRupiah(calculateAmount())}</span>
+                      <span className={isFree ? 'text-emerald-300' : ''}>
+                        {isFree ? 'GRATIS' : formatRupiah(calculateAmount())}
+                      </span>
                     </div>
                   </div>
 
                   <div className="bg-white/[0.04] p-4 rounded-xl border border-white/10 text-xs text-gray-300 space-y-2">
                     <div className="flex items-center gap-2 text-kiri-gold-300 font-semibold">
                       <ShieldCheck className="w-4 h-4" />
-                      <span>Verifikasi Pembayaran Manual oleh Tim Admin</span>
+                      <span>
+                        {isFree ? 'Aktivasi Instan dengan Kode Promo' : 'Verifikasi Pembayaran Manual oleh Tim Admin'}
+                      </span>
                     </div>
                     <p className="text-[11px] text-gray-400 leading-relaxed font-light">
-                      Setiap pembayaran diperiksa langsung oleh tim admin KIRI Project sebelum keanggotaan
-                      Anda diaktifkan.
+                      {isFree
+                        ? 'Kode promo gratis langsung mengaktifkan keanggotaan tanpa menunggu verifikasi admin.'
+                        : 'Setiap pembayaran diperiksa langsung oleh tim admin KIRI Project sebelum keanggotaan Anda diaktifkan.'}
                     </p>
                   </div>
                 </div>

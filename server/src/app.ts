@@ -17,6 +17,7 @@ import { entityRouter } from './routes/entities.routes.js';
 import { collaborationRouter } from './routes/collaborations.routes.js';
 import { registrationRouter } from './routes/registrations.routes.js';
 import { paymentRouter } from './routes/payments.routes.js';
+import { promoRouter } from './routes/promos.routes.js';
 import { memberRouter } from './routes/members.routes.js';
 import { broadcastRouter } from './routes/broadcasts.routes.js';
 import { cardRouter } from './routes/meCard.routes.js';
@@ -130,6 +131,7 @@ export function createApp(): express.Express {
   app.use('/api/collaborations', collaborationRouter);
   app.use('/api/registrations', registrationRouter);
   app.use('/api/payments', paymentRouter);
+  app.use('/api/promos', promoRouter);
   app.use('/api/members', memberRouter);
   app.use('/api/broadcasts', broadcastRouter);
   app.use('/api/me', cardRouter);

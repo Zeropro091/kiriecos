@@ -76,36 +76,62 @@ export async function listPayments(status?: PaymentStatus): Promise<PaymentDto[]
   return res.rows.map(toDto);
 }
 
-export async function createPayment(input: {
-  profileId: string;
-  userId: string;
-  userName: string;
-  entityId?: string;
-  tier: string;
-  amount: number;
-  bankName: string;
-  senderAccountName: string;
-  receiptImageUrl: string;
-}): Promise<PaymentDto> {
-  const res = await query<PaymentRow>(
-    `INSERT INTO payment_receipts
-      (profile_id, user_id, user_name, entity_id, tier, amount, bank_name, sender_account_name, receipt_image_url, status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'pending_verification')
-     RETURNING *`,
-    [
-      input.profileId,
-      input.userId,
-      input.userName,
-      input.entityId ?? null,
-      input.tier,
-      input.amount,
-      input.bankName,
-      input.senderAccountName,
-      input.receiptImageUrl,
-    ]
-  );
+export async function createPayment(
+  input: {
+    profileId: string;
+    userId: string;
+    userName: string;
+    entityId?: string;
+    tier: string;
+    amount: number;
+    bankName: string;
+    senderAccountName: string;
+    receiptImageUrl: string;
+    promoCode?: string | null;
+    discountAmount?: number;
+    amountBeforeDiscount?: number | null;
+    status?: PaymentStatus;
+  },
+  client?: { query: (text: string, params?: unknown[]) => Promise<{ rows: PaymentRow[] }> }
+): Promise<PaymentDto> {
+  const sql = `INSERT INTO payment_receipts
+      (profile_id, user_id, user_name, entity_id, tier, amount, bank_name, sender_account_name,
+       receipt_image_url, status, promo_code, discount_amount, amount_before_discount)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+     RETURNING *`;
+  const params = [
+    input.profileId,
+    input.userId,
+    input.userName,
+    input.entityId ?? null,
+    input.tier,
+    input.amount,
+    input.bankName,
+    input.senderAccountName,
+    input.receiptImageUrl,
+    input.status ?? 'pending_verification',
+    input.promoCode ?? null,
+    input.discountAmount ?? 0,
+    input.amountBeforeDiscount ?? null,
+  ];
+  const res = client
+    ? await client.query(sql, params)
+    : await query<PaymentRow>(sql, params);
   return toDto(res.rows[0]);
 }
+
+/** Naikkan tier member. Dipakai saat verifikasi admin dan saat aktivasi gratis. */
+export async function setMembershipTier(
+  client: { query: (text: string, params?: unknown[]) => Promise<unknown> },
+  profileId: string,
+  tier: string
+): Promise<void> {
+  await client.query('UPDATE profiles SET membership_tier = $2, updated_at = now() WHERE id = $1', [
+    profileId,
+    tier,
+  ]);
+}
+
 
 export async function verifyPayment(
   id: string,
