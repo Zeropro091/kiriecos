@@ -107,12 +107,20 @@ const AuthRequired: React.FC = () => {
           daftar, kamu langsung dibawa kembali ke halaman pembayaran.
         </p>
       )}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
       <button
         onClick={() => navigateTo('page-15-login')}
         className="px-6 py-2.5 rounded-xl bg-granite-900 text-white dark:bg-olive-500 dark:text-granite-950 text-xs font-bold"
       >
         Masuk / Daftar
       </button>
+      <button
+        onClick={() => navigateTo('page-08-join-select')}
+        className="px-6 py-2.5 rounded-xl border border-border text-xs font-bold text-foreground hover:bg-muted transition-colors"
+      >
+        Daftar Akun Baru
+      </button>
+      </div>
     </div>
   );
 };

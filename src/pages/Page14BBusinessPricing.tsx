@@ -53,9 +53,22 @@ const TIERS: BusinessTier[] = [
 const formatRupiah = (n: number) => `Rp ${n.toLocaleString('id-ID')}`;
 
 export const Page14BBusinessPricing: React.FC = () => {
-  const { navigateTo } = useApp();
+  const { navigateTo, currentUser } = useApp();
 
   const chooseTier = (tier: BusinessTier) => {
+    // Belum punya akun? Lewat formulir pendaftaran bisnis dulu.
+    if (!currentUser) {
+      try {
+        sessionStorage.setItem(
+          'kiri.membership.selection',
+          JSON.stringify({ track: 'business', tier: tier.key })
+        );
+      } catch {
+        /* storage unavailable */
+      }
+      navigateTo('page-11-register-business');
+      return;
+    }
     try {
       sessionStorage.setItem(
         'kiri.membership.selection',

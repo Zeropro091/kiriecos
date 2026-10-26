@@ -65,7 +65,26 @@ const TIERS: CreatorTier[] = [
 ];
 
 export const Page14ACreatorPricing: React.FC = () => {
-  const { navigateTo } = useApp();
+  const { navigateTo, currentUser } = useApp();
+
+  // Belum punya akun? Paket tetap dipilih, tapi prosesnya lewat formulir
+  // pendaftaran — setelah akun jadi, user dibawa balik ke pembayaran.
+  const chooseTierWithAuth = (tier: CreatorTier) => {
+    const { evaluation } = priceFor(tier);
+    try {
+      sessionStorage.setItem(
+        'kiri.membership.selection',
+        JSON.stringify({
+          track: 'creator',
+          tier: tier.key,
+          promoCode: evaluation?.valid ? evaluation.code : undefined,
+        })
+      );
+    } catch {
+      /* storage unavailable */
+    }
+    navigateTo('page-09-register-creator');
+  };
 
   const [promoInput, setPromoInput] = useState('');
   const [promoResults, setPromoResults] = useState<Record<string, PromoEvaluation> | null>(null);
@@ -115,6 +134,10 @@ export const Page14ACreatorPricing: React.FC = () => {
   };
 
   const chooseTier = (tier: CreatorTier) => {
+    if (!currentUser) {
+      chooseTierWithAuth(tier);
+      return;
+    }
     const { final, evaluation } = priceFor(tier);
     try {
       sessionStorage.setItem(
