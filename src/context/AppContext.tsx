@@ -25,6 +25,13 @@ interface AppContextType {
   selectedEntity: Entity | undefined;
   currentUser: UserSession | null;
   loginAs: (user: UserSession) => void;
+  /**
+   * Muat ulang sesi dari localStorage ke state React. Dipakai setelah
+   * pendaftaran: `localAuth.register()` sudah menyimpan token, tapi tanpa
+   * sinkronisasi ini `currentUser` masih null sehingga halaman berikutnya
+   * (mis. pembayaran keanggotaan) tertahan gate "Masuk Diperlukan".
+   */
+  refreshSession: () => UserSession | null;
   logout: () => void;
   themeMode: 'heritage' | 'nocturnal';
   toggleTheme: () => void;
@@ -164,6 +171,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCurrentUser(user);
     localAuth.saveSession(user);
     showToast(`Selamat datang kembali, ${user.name}! (${user.membershipTier})`, 'success');
+
+    // Kalau user tadi menekan "Pilih paket" di halaman pricing lalu tertahan
+    // gate login, pilihan paket (+ kode promo) masih tersimpan. Lanjutkan ke
+    // pembayaran, jangan dibuang ke dashboard.
+    let hasPendingMembership = false;
+    try {
+      hasPendingMembership = Boolean(sessionStorage.getItem('kiri.membership.selection'));
+    } catch {
+      hasPendingMembership = false;
+    }
+
+    if (hasPendingMembership && user.role !== 'admin') {
+      navigateTo('page-14-membership-payment');
+      return;
+    }
+
     if (user.role === 'admin') {
       navigateTo('page-25-dashboard-admin');
     } else if (user.role === 'community_lead') {
@@ -171,6 +194,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } else {
       navigateTo('page-16-dashboard-user');
     }
+  };
+
+  /**
+   * Setelah `localAuth.register()` berhasil, token sudah tersimpan tetapi state
+   * React belum tahu. Tanpa ini, alur "daftar → pilih paket" berhenti di gate
+   * "Masuk Diperlukan" walau akunnya sudah jadi.
+   */
+  const refreshSession = (): UserSession | null => {
+    const stored = localAuth.loadSession();
+    if (stored) setCurrentUser(stored);
+    return stored;
   };
 
   const logout = () => {
@@ -446,6 +480,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         selectedEntity,
         currentUser,
         loginAs,
+        refreshSession,
         logout,
         themeMode,
         toggleTheme,

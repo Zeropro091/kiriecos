@@ -288,6 +288,79 @@ export const Page14MembershipPayment: React.FC = () => {
 
   const cards = TIER_CARDS[track];
 
+  const promoCard = (
+  <div className="rounded-[2rem] p-1.5 bg-white/10 backdrop-blur-xl border border-white/15">
+    <div className="rounded-[calc(2rem-0.375rem)] bg-[#001f15] p-5 space-y-3">
+      <div className="flex items-center gap-2">
+        <Tag className="w-4 h-4 text-kiri-gold-400" />
+        <h4 className="font-serif text-base font-bold text-white">Kode Promo</h4>
+      </div>
+
+      {promo?.valid ? (
+        <div className="flex items-start justify-between gap-3 bg-emerald-500/10 border border-emerald-400/30 rounded-xl p-3">
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-emerald-300 font-mono tracking-wider truncate">
+              {promo.code}
+            </p>
+            <p className="text-[11px] text-gray-300 mt-0.5">
+              {promo.isFree ? 'Akses gratis 100%' : promo.label}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setPromo(null);
+              setPromoCode('');
+              setPromoError('');
+            }}
+            className="text-gray-400 hover:text-white shrink-0"
+            aria-label="Hapus kode promo"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      ) : (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void applyPromoCode(promoCode);
+          }}
+          className="space-y-2"
+        >
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={promoCode}
+              onChange={(e) => {
+                setPromoCode(e.target.value.toUpperCase());
+                setPromoError('');
+              }}
+              placeholder="Masukkan kode"
+              autoComplete="off"
+              spellCheck={false}
+              className="flex-1 min-w-0 bg-[#001710] border border-white/15 rounded-xl px-3 py-2 text-xs tracking-wider text-white placeholder:text-gray-500 placeholder:tracking-normal focus:outline-none focus:border-kiri-gold-500 transition-colors"
+            />
+            <button
+              type="submit"
+              disabled={checkingPromo || !promoCode.trim()}
+              className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold transition-all disabled:opacity-40 flex items-center gap-1 shrink-0"
+            >
+              {checkingPromo ? <Loader2 className="w-3 h-3 animate-spin" /> : <Tag className="w-3 h-3" />}
+              <span>Cek</span>
+            </button>
+          </div>
+          {promoError && (
+            <p className="text-[11px] text-red-300 flex items-start gap-1.5">
+              <X className="w-3 h-3 shrink-0 mt-0.5" />
+              <span>{promoError}</span>
+            </p>
+          )}
+        </form>
+      )}
+    </div>
+  </div>
+  );
+
   return (
     <div className="min-h-screen bg-[#001710] text-white py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Dynamic Background Light Orbs */}
@@ -457,6 +530,12 @@ export const Page14MembershipPayment: React.FC = () => {
           </div>
         )}
 
+        {/* Untuk paket Basic tanpa promo, area pembayaran disembunyikan — tapi
+            kode promo tetap harus bisa dimasukkan. */}
+        {selectedTier === 'basic' && !isFree && (
+          <div className="max-w-xl mx-auto">{promoCard}</div>
+        )}
+
         {/* Payment & Transfer Area */}
         {(selectedTier !== 'basic' || isFree) && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-4">
@@ -617,78 +696,7 @@ export const Page14MembershipPayment: React.FC = () => {
 
             {/* Right: Security & Summary Widget */}
             <div className="lg:col-span-4 space-y-6">
-              {/* Promo code */}
-              <div className="rounded-[2rem] p-1.5 bg-white/10 backdrop-blur-xl border border-white/15">
-                <div className="rounded-[calc(2rem-0.375rem)] bg-[#001f15] p-5 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Tag className="w-4 h-4 text-kiri-gold-400" />
-                    <h4 className="font-serif text-base font-bold text-white">Kode Promo</h4>
-                  </div>
-
-                  {promo?.valid ? (
-                    <div className="flex items-start justify-between gap-3 bg-emerald-500/10 border border-emerald-400/30 rounded-xl p-3">
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-emerald-300 font-mono tracking-wider truncate">
-                          {promo.code}
-                        </p>
-                        <p className="text-[11px] text-gray-300 mt-0.5">
-                          {promo.isFree ? 'Akses gratis 100%' : promo.label}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPromo(null);
-                          setPromoCode('');
-                          setPromoError('');
-                        }}
-                        className="text-gray-400 hover:text-white shrink-0"
-                        aria-label="Hapus kode promo"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        void applyPromoCode(promoCode);
-                      }}
-                      className="space-y-2"
-                    >
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={promoCode}
-                          onChange={(e) => {
-                            setPromoCode(e.target.value.toUpperCase());
-                            setPromoError('');
-                          }}
-                          placeholder="Masukkan kode"
-                          autoComplete="off"
-                          spellCheck={false}
-                          className="flex-1 min-w-0 bg-[#001710] border border-white/15 rounded-xl px-3 py-2 text-xs tracking-wider text-white placeholder:text-gray-500 placeholder:tracking-normal focus:outline-none focus:border-kiri-gold-500 transition-colors"
-                        />
-                        <button
-                          type="submit"
-                          disabled={checkingPromo || !promoCode.trim()}
-                          className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold transition-all disabled:opacity-40 flex items-center gap-1 shrink-0"
-                        >
-                          {checkingPromo ? <Loader2 className="w-3 h-3 animate-spin" /> : <Tag className="w-3 h-3" />}
-                          <span>Cek</span>
-                        </button>
-                      </div>
-                      {promoError && (
-                        <p className="text-[11px] text-red-300 flex items-start gap-1.5">
-                          <X className="w-3 h-3 shrink-0 mt-0.5" />
-                          <span>{promoError}</span>
-                        </p>
-                      )}
-                    </form>
-                  )}
-                </div>
-              </div>
-
+              {promoCard}
               <div className="rounded-[2rem] p-1.5 bg-white/10 backdrop-blur-xl border border-white/15">
                 <div className="rounded-[calc(2rem-0.375rem)] bg-[#001f15] p-6 space-y-5">
                   <h4 className="font-serif text-base font-bold text-white">Ringkasan Keanggotaan</h4>

@@ -81,6 +81,17 @@ const AUTH_PAGES: PageId[] = [
 
 const AuthRequired: React.FC = () => {
   const { navigateTo } = useApp();
+
+  // Kalau user sampai di sini karena menekan "Pilih paket" di halaman pricing,
+  // pilihan paket + kode promo sudah tersimpan. Beri tahu supaya dia tidak
+  // mengira harus mengulang dari awal.
+  let hasPendingMembership = false;
+  try {
+    hasPendingMembership = Boolean(sessionStorage.getItem('kiri.membership.selection'));
+  } catch {
+    hasPendingMembership = false;
+  }
+
   return (
     <div className="max-w-lg mx-auto px-4 py-24 text-center space-y-4">
       <div className="w-14 h-14 mx-auto rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
@@ -90,6 +101,12 @@ const AuthRequired: React.FC = () => {
       <p className="text-sm text-muted-foreground">
         Halaman ini hanya untuk anggota KIRI PROJECT. Silakan masuk atau buat akun terlebih dahulu.
       </p>
+      {hasPendingMembership && (
+        <p className="text-xs rounded-lg bg-primary/5 border border-primary/20 px-3 py-2 text-foreground/80">
+          Paket dan kode promomu <span className="font-semibold">sudah tersimpan</span> — setelah masuk atau
+          daftar, kamu langsung dibawa kembali ke halaman pembayaran.
+        </p>
+      )}
       <button
         onClick={() => navigateTo('page-15-login')}
         className="px-6 py-2.5 rounded-xl bg-granite-900 text-white dark:bg-olive-500 dark:text-granite-950 text-xs font-bold"

@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 
 export const Page13RegisterPartner: React.FC = () => {
-  const { navigateTo, submitRegistration, showToast } = useApp();
+  const { navigateTo, submitRegistration, showToast, refreshSession } = useApp();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -77,6 +77,9 @@ export const Page13RegisterPartner: React.FC = () => {
         return;
       }
       showToast('Pengajuan kemitraan strategis diterima — akun institusi aktif!', 'success');
+      // Sinkronkan sesi hasil register ke state React dulu — tanpa ini gate
+      // "Masuk Diperlukan" muncul walau akun baru saja berhasil dibuat.
+      refreshSession();
       navigateTo('page-14-membership-payment');
     } catch (err) {
       setFormError(err instanceof Error ? err.message : 'Gagal mengirim pendaftaran ke server KIRI.');
