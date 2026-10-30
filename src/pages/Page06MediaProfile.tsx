@@ -1,4 +1,5 @@
 import React from 'react';
+import { useMediaSrc } from '../hooks/useMediaSrc';
 import { useApp } from '../context/AppContext';
 import {
   Sparkles,
@@ -41,6 +42,9 @@ export const Page06MediaProfile: React.FC = () => {
     );
   }
 
+  const coverSrc = useMediaSrc(media.coverImage);
+  const avatarSrc = useMediaSrc(media.avatar);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
       {/* Page Badge */}
@@ -48,7 +52,7 @@ export const Page06MediaProfile: React.FC = () => {
       <div className="rounded-3xl bg-white dark:bg-kiri-dark-800 border border-gray-200 dark:border-kiri-dark-700 overflow-hidden shadow-subtle">
         <div className="h-64 sm:h-80 relative overflow-hidden bg-kiri-green-950">
           <img
-            src={media.coverImage}
+            src={coverSrc}
             alt={media.name}
             className="w-full h-full object-cover opacity-85"
           />
@@ -62,7 +66,7 @@ export const Page06MediaProfile: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between -mt-20 sm:-mt-24 mb-6 gap-4">
             <div className="flex items-end gap-5">
               <img
-                src={media.avatar}
+                src={avatarSrc}
                 alt={media.name}
                 className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl object-cover border-4 border-white dark:border-kiri-dark-800 shadow-xl"
               />

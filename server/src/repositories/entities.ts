@@ -180,6 +180,18 @@ export async function getEntity(id: string): Promise<EntityDto | undefined> {
   return res.rows[0] ? toDto(res.rows[0]) : undefined;
 }
 
+/**
+ * Fallback lookup for accounts whose profiles.entity_id was never backfilled:
+ * the entity is still theirs because entities.owner_profile_id points at them.
+ */
+export async function getEntityByOwner(profileId: string): Promise<EntityDto | undefined> {
+  const res = await query<EntityRow>(
+    `${SELECT_WITH_RELATIONS} WHERE e.owner_profile_id = $1 ORDER BY e.created_at ASC LIMIT 1`,
+    [profileId]
+  );
+  return res.rows[0] ? toDto(res.rows[0]) : undefined;
+}
+
 /** Approve/reject an entity (admin action). */
 export async function setVerification(
   id: string,
@@ -188,8 +200,8 @@ export async function setVerification(
 ): Promise<EntityDto | undefined> {
   const res = await query<EntityRow>(
     `UPDATE entities
-     SET verification_status = $2,
-         verified = ($2 = 'approved'),
+     SET verification_status = $2::verification_status,
+         verified = ($2::verification_status = 'approved'),
          rejection_reason = $3
      WHERE id = $1
      RETURNING *`,

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { assetUrl } from '../lib/api';
+import { useMediaSrc } from '../hooks/useMediaSrc';
 import {
   Sparkles,
   ExternalLink,
@@ -26,6 +27,8 @@ export const Page28BrandLandingPage: React.FC = () => {
 
   // S2: no "first entity" fallback — unknown ids get the empty state below.
   const entity = entities.find(e => e.id === selectedEntityId);
+  const entityCoverSrc = useMediaSrc(entity?.coverImage);
+  const entityAvatarSrc = useMediaSrc(entity?.avatar);
 
   const handleCopyUrl = () => {
     const fullUrl = `https://kiriproject.id/${entity?.handle.replace('@', '')}`;
@@ -254,7 +257,7 @@ export const Page28BrandLandingPage: React.FC = () => {
       {/* Hero Banner */}
       <div className="relative h-64 sm:h-80 w-full overflow-hidden bg-slate-900 border-b border-slate-800">
         <img
-          src={entity.coverImage}
+          src={entityCoverSrc}
           alt={entity.name}
           className="w-full h-full object-cover opacity-60"
         />
@@ -267,7 +270,7 @@ export const Page28BrandLandingPage: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
             <img
-              src={entity.avatar}
+              src={entityAvatarSrc}
               alt={entity.name}
               className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover border-4 border-slate-950 shadow-xl"
             />

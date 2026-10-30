@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
+import { useMediaSrc } from '../hooks/useMediaSrc';
 import {
   Search,
   Users,
@@ -16,7 +17,7 @@ import {
   CheckCircle2,
   Sliders
 } from 'lucide-react';
-import { EntityType } from '../types';
+import { Entity, EntityType } from '../types';
 import MapChart from '../components/GeoMapChart';
 import { GeoProfileModal } from '../components/GeoProfileModal';
 import {
@@ -371,90 +372,12 @@ export const Page02Directory: React.FC = () => {
           ) : (
             <RevealGroup className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {paginatedEntities.map((entity) => (
-                <Card
+                <EntityDirectoryCard
                   key={entity.id}
-                  className="lift overflow-hidden border-border hover:border-primary/40 flex flex-col justify-between bg-card"
-                >
-                  <div>
-                    <div className="aspect-[16/9] bg-secondary overflow-hidden">
-                      <img
-                        src={entity.coverImage || entity.avatar}
-                        alt={entity.name}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    </div>
-
-                    <div className="px-5 pt-5 pb-4">
-                      <div className="flex items-center justify-between gap-3 mb-3">
-                        <Avatar className="w-12 h-12 border border-border">
-                          <AvatarImage src={entity.avatar} alt={entity.name} />
-                          <AvatarFallback className="bg-secondary text-foreground font-semibold text-sm">
-                            {getInitials(entity.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex items-center gap-1.5">
-                          {entity.verified && (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary">
-                              <ShieldCheck className="w-3.5 h-3.5" />
-                              <span>Terverifikasi</span>
-                            </span>
-                          )}
-                          <Badge variant="outline" className="text-[11px] font-normal text-muted-foreground">
-                            {entity.category}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      <h3
-                        onClick={() => navigateTo(PROFILE_PAGE_BY_TYPE[entity.type] as any, entity.id)}
-                        className="font-medium text-base text-foreground hover:text-primary transition-colors cursor-pointer"
-                      >
-                        {entity.name}
-                      </h3>
-
-                      <div className="flex items-center text-xs text-muted-foreground gap-1.5 mt-1 mb-2.5">
-                        <MapPin className="w-3.5 h-3.5 shrink-0" />
-                        <span className="truncate">{entity.location}</span>
-                      </div>
-
-                      <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed mb-4">
-                        {entity.bio}
-                      </p>
-
-                      <div className="flex flex-wrap gap-1.5">
-                        {entity.tags.slice(0, 3).map((tag, idx) => (
-                          <Badge
-                            key={idx}
-                            variant="secondary"
-                            className="text-[11px] font-normal text-muted-foreground"
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <CardFooter className="p-3 border-t border-border flex items-center justify-between gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigateTo(PROFILE_PAGE_BY_TYPE[entity.type] as any, entity.id)}
-                      className="gap-1"
-                    >
-                      <span>Lihat Profil</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </Button>
-
-                    <Button
-                      size="sm"
-                      onClick={() => openCollabModalFor(entity)}
-                    >
-                      Kolaborasi
-                    </Button>
-                  </CardFooter>
-                </Card>
+                  entity={entity}
+                  onOpen={() => navigateTo(PROFILE_PAGE_BY_TYPE[entity.type] as any, entity.id)}
+                  onCollaborate={() => openCollabModalFor(entity)}
+                />
               ))}
             </RevealGroup>
           )}
@@ -518,5 +441,108 @@ export const Page02Directory: React.FC = () => {
         </div>
       )}
     </div>
+  );
+};
+
+/** One directory tile. Split out so each card can resolve its own uploaded
+ *  avatar/banner (they live behind the authenticated /uploads route). */
+const EntityDirectoryCard: React.FC<{
+  entity: Entity;
+  onOpen: () => void;
+  onCollaborate: () => void;
+}> = ({ entity, onOpen, onCollaborate }) => {
+  const coverSrc = useMediaSrc(entity.coverImage || entity.avatar);
+  const avatarSrc = useMediaSrc(entity.avatar);
+  const getInitials = (name: string) =>
+    name
+      .split(' ')
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+
+  return (
+    <Card className="lift overflow-hidden border-border hover:border-primary/40 flex flex-col justify-between bg-card">
+                  <div>
+                    <div className="aspect-[16/9] bg-secondary overflow-hidden">
+                      <img
+                        src={coverSrc}
+                        alt={entity.name}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+
+                    <div className="px-5 pt-5 pb-4">
+                      <div className="flex items-center justify-between gap-3 mb-3">
+                        <Avatar className="w-12 h-12 border border-border">
+                          <AvatarImage src={avatarSrc} alt={entity.name} />
+                          <AvatarFallback className="bg-secondary text-foreground font-semibold text-sm">
+                            {getInitials(entity.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex items-center gap-1.5">
+                          {entity.verified && (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-primary">
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              <span>Terverifikasi</span>
+                            </span>
+                          )}
+                          <Badge variant="outline" className="text-[11px] font-normal text-muted-foreground">
+                            {entity.category}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <h3
+                        onClick={onOpen}
+                        className="font-medium text-base text-foreground hover:text-primary transition-colors cursor-pointer"
+                      >
+                        {entity.name}
+                      </h3>
+
+                      <div className="flex items-center text-xs text-muted-foreground gap-1.5 mt-1 mb-2.5">
+                        <MapPin className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{entity.location}</span>
+                      </div>
+
+                      <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed mb-4">
+                        {entity.bio}
+                      </p>
+
+                      <div className="flex flex-wrap gap-1.5">
+                        {entity.tags.slice(0, 3).map((tag, idx) => (
+                          <Badge
+                            key={idx}
+                            variant="secondary"
+                            className="text-[11px] font-normal text-muted-foreground"
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <CardFooter className="p-3 border-t border-border flex items-center justify-between gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={onOpen}
+                      className="gap-1"
+                    >
+                      <span>Lihat Profil</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </Button>
+
+                    <Button
+                      size="sm"
+                      onClick={onCollaborate}
+                    >
+                      Kolaborasi
+                    </Button>
+                  </CardFooter>
+
+    </Card>
   );
 };

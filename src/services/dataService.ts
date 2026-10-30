@@ -14,8 +14,10 @@ import {
   PaymentReceipt,
   CommunityMember,
   BroadcastMessage,
+  UserSession,
 } from '../types';
-import { api, ApiError, assetUrl, getToken } from '../lib/api';
+import { api, ApiError, assetUrl, getToken, setSession } from '../lib/api';
+import { compressImageToBase64 } from '../utils/imageCompressor';
 
 function isForbidden(err: unknown): boolean {
   return err instanceof ApiError && (err.status === 401 || err.status === 403);
@@ -50,6 +52,21 @@ class DataService {
       return res.entity;
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) return undefined;
+      throw err;
+    }
+  }
+
+  /**
+   * The signed-in account's own entity, including one still pending review.
+   * The public directory only returns approved entities, so the profile
+   * editor cannot rely on that list to find it.
+   */
+  async getMyEntity(): Promise<Entity | undefined> {
+    try {
+      const res = await api.get<{ entity: Entity }>('/entities/me');
+      return res.entity;
+    } catch (err) {
+      if (err instanceof ApiError && (err.status === 404 || err.status === 401)) return undefined;
       throw err;
     }
   }
@@ -170,6 +187,35 @@ class DataService {
 
   async uploadReceiptImage(file: File): Promise<string> {
     return fileToDataUrl(file);
+  }
+
+  /**
+   * Avatar / banner upload: shrink client-side (they are displayed small) and
+   * return a compact data URL. The server validates the bytes and persists it
+   * to object storage / disk, returning an `/uploads/...` path.
+   */
+  async uploadProfileImage(
+    file: File,
+    kind: 'avatar' | 'cover'
+  ): Promise<string> {
+    const dataUrl = await compressImageToBase64(file, {
+      maxWidth: kind === 'avatar' ? 640 : 1920,
+      maxHeight: kind === 'avatar' ? 640 : 1080,
+      quality: 0.86,
+      maxSizeMB: 4,
+      outputFormat: 'image/webp',
+    });
+    return dataUrl;
+  }
+
+  /**
+   * The signed-in ACCOUNT profile (navbar / dashboard avatar). Separate from
+   * the entity profile: works for every account, admins included.
+   */
+  async updateMyAccount(updates: { name?: string; avatar?: string }): Promise<UserSession> {
+    const res = await api.patch<{ user: UserSession; token: string }>('/auth/me', updates);
+    setSession(res.user, res.token);
+    return res.user;
   }
 
   // ==========================================

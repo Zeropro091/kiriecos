@@ -1,4 +1,5 @@
 import React from 'react';
+import { useMediaSrc } from '../hooks/useMediaSrc';
 import { useApp } from '../context/AppContext';
 import {
   Sparkles,
@@ -24,6 +25,7 @@ import { Badge } from '../components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { Separator } from '../components/ui/separator';
+import type { Entity } from '../types';
 
 export const Page04CreatorProfile: React.FC = () => {
   const { entities, selectedEntityId, navigateTo, openCollabModalFor } = useApp();
@@ -52,6 +54,15 @@ export const Page04CreatorProfile: React.FC = () => {
       </div>
     );
   }
+
+  return <CreatorProfileView creator={creator} />;
+};
+
+const CreatorProfileView: React.FC<{ creator: Entity }> = ({ creator }) => {
+  const { navigateTo, openCollabModalFor } = useApp();
+  // Uploaded photos live behind an authenticated /uploads route — resolve them.
+  const coverSrc = useMediaSrc(creator.coverImage);
+  const avatarSrc = useMediaSrc(creator.avatar);
 
   const getInitials = (name: string) => {
     return name
@@ -84,7 +95,7 @@ export const Page04CreatorProfile: React.FC = () => {
       <Card className="overflow-hidden border-border shadow-md bg-card">
         <div className="h-64 sm:h-80 relative overflow-hidden bg-granite-900">
           <img
-            src={creator.coverImage || 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=1600&q=80'}
+            src={coverSrc || 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=1600&q=80'}
             alt={creator.name}
             className="w-full h-full object-cover opacity-80"
           />
@@ -99,7 +110,7 @@ export const Page04CreatorProfile: React.FC = () => {
           <div className="flex flex-col sm:flex-row sm:items-end justify-between -mt-20 sm:-mt-24 mb-6 gap-5">
             <div className="flex items-end gap-5">
               <Avatar className="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl border-4 border-background ring-2 ring-olive-500/50 shadow-2xl">
-                <AvatarImage src={creator.avatar} alt={creator.name} />
+                <AvatarImage src={avatarSrc} alt={creator.name} />
                 <AvatarFallback className="bg-granite-900 text-olive-300 text-xl font-bold">
                   {getInitials(creator.name)}
                 </AvatarFallback>

@@ -156,3 +156,42 @@ export const api = {
   patch: <T>(path: string, body?: unknown) => request<T>('PATCH', path, body),
   delete: <T>(path: string) => request<T>('DELETE', path),
 };
+
+/**
+ * Resolve a stored avatar / banner value into something an <img> can render.
+ *
+ * Uploaded media lives under `/uploads/...`, which requires a bearer token —
+ * an <img src> cannot send one. Those paths are fetched with the token and
+ * swapped for a blob URL (cached per path, since browsers re-request images
+ * on every render otherwise). Anything else (remote https URL, data: URL,
+ * empty string) is returned untouched.
+ */
+const blobUrlCache = new Map<string, Promise<string>>();
+
+export function useMediaUrl(path: string | undefined | null): Promise<string> | null {
+  if (!path) return null;
+  if (!path.startsWith('/uploads/')) return null;
+  const cached = blobUrlCache.get(path);
+  if (cached) return cached;
+
+  const pending = (async () => {
+    const headers: Record<string, string> = {};
+    const token = getToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const res = await fetch(assetUrl(path), { headers });
+    if (!res.ok) throw new ApiError(res.status, 'Gagal memuat gambar.');
+    return URL.createObjectURL(await res.blob());
+  })();
+
+  blobUrlCache.set(path, pending);
+  pending.catch(() => blobUrlCache.delete(path));
+  return pending;
+}
+
+/** Revoke cached blob URLs for a replaced path (old avatar/banner). */
+export function forgetMediaUrl(path: string | undefined | null): void {
+  if (!path || !path.startsWith('/uploads/')) return;
+  const cached = blobUrlCache.get(path);
+  blobUrlCache.delete(path);
+  cached?.then((url) => URL.revokeObjectURL(url)).catch(() => undefined);
+}

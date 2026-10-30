@@ -57,6 +57,16 @@ interface AppContextType {
   submitRegistration: (data: Partial<RegistrationApplication>) => Promise<RegistrationApplication>;
   reviewRegistration: (id: string, status: 'approved' | 'rejected') => void;
   updateEntityProfile: (entityId: string, updates: Partial<Entity>) => void;
+  /** Compress + validate a profile photo ('avatar') or banner ('cover'), returning a data URL. */
+  prepareProfileImage: (file: File, kind: 'avatar' | 'cover') => Promise<string>;
+  /**
+   * Ganti foto profil AKUN (avatar navbar/dashboard). Kalau akun ini punya
+   * entitas, foto entitas ikut disamakan supaya tidak ada dua foto berbeda.
+   * Resolve `true` saat server sudah menyimpan.
+   */
+  updateAccountAvatar: (file: File, entityId?: string) => Promise<boolean>;
+  /** Versi yang menerima data URL / path siap pakai (dipakai profil editor). */
+  updateAccountAvatarFromUrl: (avatar: string) => Promise<boolean>;
   broadcastMessages: BroadcastMessage[];
   sendBroadcastMessage: (data: { scope: 'indonesia' | 'regional'; region?: string; content: string }) => void;
   likeBroadcastMessage: (id: string) => void;
@@ -416,7 +426,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     dataService
       .updateEntity(entityId, updates)
       .then((saved) => {
-        setEntities((prev) => prev.map((ent) => (ent.id === entityId ? saved : ent)));
+        // The entity may be missing from the approved directory list (e.g. it
+        // is still pending review), so append instead of only mapping.
+        setEntities((prev) =>
+          prev.some((ent) => ent.id === entityId)
+            ? prev.map((ent) => (ent.id === entityId ? saved : ent))
+            : [...prev, saved]
+        );
         showToast('Perubahan profil berhasil disimpan!', 'success');
       })
       .catch(() => {
@@ -424,6 +440,64 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setEntities(previous);
         showToast('Gagal menyimpan profil ke server. Perubahan dibatalkan.', 'error');
       });
+  };
+
+  const prepareProfileImage = (file: File, kind: 'avatar' | 'cover') =>
+    dataService.uploadProfileImage(file, kind);
+
+  /**
+   * Simpan foto ke profil akun, lalu samakan foto entitas yang dimiliki akun
+   * ini. Fotonya hidup di dua tempat — profil akun (navbar/dashboard) dan
+   * profil entitas (halaman publik) — jadi keduanya harus sinkron.
+   */
+  const saveAccountAvatar = async (avatar: string, entityId?: string): Promise<boolean> => {
+    const saved = await dataService.updateMyAccount({ avatar });
+    setCurrentUser(saved);
+
+    if (entityId) {
+      const linked = entities.find((e) => e.id === entityId);
+      if (linked && linked.avatar !== saved.avatar) {
+        try {
+          const entity = await dataService.updateEntity(entityId, {
+            ...linked,
+            avatar: saved.avatar,
+          });
+          setEntities((prev) =>
+            prev.some((e) => e.id === entity.id)
+              ? prev.map((e) => (e.id === entity.id ? entity : e))
+              : [...prev, entity]
+          );
+        } catch {
+          // Avatar akun sudah tersimpan; foto publik akan ikut di pembaruan berikutnya.
+        }
+      }
+    }
+
+    showToast('Foto profil berhasil diperbarui!', 'success');
+    return true;
+  };
+
+  const updateAccountAvatar = async (file: File, entityId?: string): Promise<boolean> => {    if (!currentUser) return false;
+    try {
+      const dataUrl = await dataService.uploadProfileImage(file, 'avatar');
+      return await saveAccountAvatar(dataUrl, entityId);
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : 'Gagal memperbarui foto profil.',
+        'error'
+      );
+      return false;
+    }
+  };
+
+  const updateAccountAvatarFromUrl = async (avatar: string): Promise<boolean> => {
+    if (!currentUser) return false;
+    try {
+      return await saveAccountAvatar(avatar, currentUser.entityId);
+    } catch {
+      // Entity save already succeeded; the navbar copy is best-effort.
+      return false;
+    }
   };
 
   const sendBroadcastMessage = (data: { scope: 'indonesia' | 'regional'; region?: string; content: string }) => {
@@ -505,6 +579,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         submitRegistration,
         reviewRegistration,
         updateEntityProfile,
+        prepareProfileImage,
+        updateAccountAvatar,
+        updateAccountAvatarFromUrl,
         broadcastMessages,
         sendBroadcastMessage,
         likeBroadcastMessage,

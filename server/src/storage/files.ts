@@ -16,7 +16,7 @@ export const useObjectStorage = Boolean(env.S3_BUCKET && env.S3_ENDPOINT);
 const s3 = useObjectStorage ? new S3Client({ forcePathStyle: true }) : null;
 
 /** Object keys we ever write: <folder>/<timestamp>_<rand>.<ext>. Anything else is rejected. */
-export const OBJECT_KEY_PATTERN = /^(receipts|avatars|portfolios)\/[A-Za-z0-9_-]+\.(png|jpg|webp|pdf)$/;
+export const OBJECT_KEY_PATTERN = /^(receipts|avatars|covers|portfolios)\/[A-Za-z0-9_-]+\.(png|jpg|webp|pdf)$/;
 
 export interface StoredObject {
   body: Readable;
@@ -103,7 +103,7 @@ const EXT_BY_MIME: Record<string, string> = {
  *  mismatch and PayloadTooLargeError (413) when too large. */
 export async function saveDataUrl(
   dataUrl: string,
-  folder: 'receipts' | 'avatars' | 'portfolios'
+  folder: 'receipts' | 'avatars' | 'covers' | 'portfolios'
 ): Promise<string> {
   const match = /^data:([^;]+);base64,(.+)$/s.exec(dataUrl);
   if (!match) throw new UnsupportedMediaTypeError('Format gambar tidak valid.');

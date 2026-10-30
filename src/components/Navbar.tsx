@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
+import { useMediaSrc } from '../hooks/useMediaSrc';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import {
@@ -35,6 +36,7 @@ export const Navbar: React.FC = () => {
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const navAvatarSrc = useMediaSrc(currentUser?.avatar);
 
   const navItems = [
     { id: 'page-02-directory', label: 'Direktori', icon: <Compass className="w-4 h-4" /> },
@@ -138,7 +140,7 @@ export const Navbar: React.FC = () => {
                   aria-label="Menu akun"
                 >
                   <Avatar className="w-7 h-7">
-                    <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
+                    <AvatarImage src={navAvatarSrc} alt={currentUser.name} />
                     <AvatarFallback className="bg-secondary text-foreground text-[10px] font-semibold">
                       {getInitials(currentUser.name)}
                     </AvatarFallback>

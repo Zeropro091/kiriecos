@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import {
   Sparkles,
@@ -18,15 +18,18 @@ import {
   FolderGit2,
   IdCard,
   LayoutTemplate,
-  MessagesSquare
+  MessagesSquare,
+  Camera,
+  Loader2
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
+import { useMediaSrc } from '../hooks/useMediaSrc';
 
 export const Page16DashboardUser: React.FC = () => {
-  const { currentUser, collabRequests, navigateTo, openCollabModalFor, entities } = useApp();
+  const { currentUser, collabRequests, navigateTo, openCollabModalFor, entities, updateAccountAvatar } = useApp();
 
   const userCollabs = collabRequests.filter(
     (req) => req.targetId === currentUser?.entityId || req.requesterId === currentUser?.entityId
@@ -34,6 +37,25 @@ export const Page16DashboardUser: React.FC = () => {
 
   // S2: only bind the entity this account owns; no "first entry" fallback.
   const creatorEntity = entities.find((e) => e.id === currentUser?.entityId);
+
+  // Foto profil akun bisa diganti langsung dari sini, tanpa masuk Page 17.
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const accountAvatarSrc = useMediaSrc(currentUser?.avatar);
+
+  const handleAvatarPicked = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.target;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return;
+    setAvatarUploading(true);
+    try {
+      await updateAccountAvatar(file, creatorEntity?.id);
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
 
   const profileChecks = creatorEntity
     ? [
@@ -81,12 +103,34 @@ export const Page16DashboardUser: React.FC = () => {
         <div className="absolute -right-10 -bottom-10 w-72 h-72 rounded-full bg-olive-500/10 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex items-center gap-5">
-          <Avatar className="w-20 h-20 rounded-2xl border-2 border-olive-400 ring-2 ring-olive-500/30 shadow-md shrink-0">
-            <AvatarImage src={currentUser?.avatar} alt={currentUser?.name} />
-            <AvatarFallback className="bg-granite-950 text-olive-300 font-bold text-xl">
-              {getInitials(currentUser?.name)}
-            </AvatarFallback>
-          </Avatar>
+          <div className="relative shrink-0">
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="hidden"
+              onChange={handleAvatarPicked}
+            />
+            <Avatar className="w-20 h-20 rounded-2xl border-2 border-olive-400 ring-2 ring-olive-500/30 shadow-md">
+              <AvatarImage src={accountAvatarSrc} alt={currentUser?.name} />
+              <AvatarFallback className="bg-granite-950 text-olive-300 font-bold text-xl">
+                {getInitials(currentUser?.name)}
+              </AvatarFallback>
+            </Avatar>
+            <button
+              type="button"
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={avatarUploading}
+              title="Ganti foto profil"
+              className="absolute -bottom-1.5 -right-1.5 w-8 h-8 rounded-full bg-olive-500 hover:bg-olive-400 text-granite-950 flex items-center justify-center shadow-md transition-colors disabled:opacity-60"
+            >
+              {avatarUploading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Camera className="w-4 h-4" />
+              )}
+            </button>
+          </div>
 
           <div>
             <div className="flex items-center gap-2.5">

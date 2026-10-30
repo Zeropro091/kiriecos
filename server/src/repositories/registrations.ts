@@ -127,7 +127,7 @@ export async function reviewRegistration(
 ): Promise<RegistrationDto | undefined> {
   return withTransaction(async (client) => {
     const regRes = await client.query<RegistrationRow>(
-      `UPDATE registrations SET status = $2, rejection_reason = $3 WHERE id = $1 RETURNING *`,
+      `UPDATE registrations SET status = $2::application_status, rejection_reason = $3 WHERE id = $1 RETURNING *`,
       [id, status, rejectionReason ?? null]
     );
     const reg = regRes.rows[0];
@@ -136,7 +136,9 @@ export async function reviewRegistration(
     if (reg.entity_id) {
       await client.query(
         `UPDATE entities
-         SET verification_status = $2, verified = ($2 = 'approved'), rejection_reason = $3
+         SET verification_status = $2::verification_status,
+             verified = ($2::verification_status = 'approved'),
+             rejection_reason = $3
          WHERE id = $1`,
         [reg.entity_id, status === 'approved' ? 'approved' : 'rejected', rejectionReason ?? null]
       );

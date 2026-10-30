@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { asyncHandler } from '../http/asyncHandler.js';
-import { listEntities, getEntity, setVerification, updateEntity } from '../repositories/entities.js';
+import { listEntities, getEntity, getEntityByOwner, setVerification, updateEntity } from '../repositories/entities.js';
 import { requireAuth, requireAdmin } from '../auth/middleware.js';
+import { saveDataUrl, UnsupportedMediaTypeError, PayloadTooLargeError } from '../storage/files.js';
 import type { EntityType, VerificationStatus } from '../types.js';
 
 export const entityRouter = Router();
@@ -21,6 +22,24 @@ entityRouter.get(
       search: req.query.search as string | undefined,
     });
     res.json({ entities });
+  })
+);
+
+/**
+ * The entity owned by the signed-in account, whatever its verification status.
+ * Must stay above GET /:id so "me" is not parsed as an entity id.
+ */
+entityRouter.get(
+  '/me',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    let entity = req.user!.entityId ? await getEntity(req.user!.entityId) : undefined;
+    if (!entity) entity = await getEntityByOwner(req.user!.id);
+    if (!entity) {
+      res.status(404).json({ error: 'Akun Anda belum tertaut ke entitas mana pun.' });
+      return;
+    }
+    res.json({ entity });
   })
 );
 
@@ -94,7 +113,28 @@ entityRouter.patch(
       res.status(403).json({ error: 'Anda hanya dapat mengubah profil milik sendiri.' });
       return;
     }
-    const updated = await updateEntity(req.params.id, parsed.data);
+
+    // The editor uploads the profile photo / banner as a data: URL. Persist it
+    // through the same validated storage path as receipts (magic-byte +
+    // size checks) so the profile row holds a /uploads/... path instead of a
+    // multi-hundred-KB base64 string.
+    const updates = { ...parsed.data };
+    for (const field of ['avatar', 'cover_image'] as const) {
+      const value = updates[field];
+      if (!value || !value.startsWith('data:')) continue;
+      try {
+        updates[field] = await saveDataUrl(value, field === 'avatar' ? 'avatars' : 'covers');
+      } catch (err) {
+        const message =
+          err instanceof UnsupportedMediaTypeError || err instanceof PayloadTooLargeError
+            ? err.message
+            : 'Gagal menyimpan gambar.';
+        res.status(400).json({ error: message });
+        return;
+      }
+    }
+
+    const updated = await updateEntity(req.params.id, updates);
     if (!updated) {
       res.status(404).json({ error: 'Entitas tidak ditemukan.' });
       return;
