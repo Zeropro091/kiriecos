@@ -65,8 +65,8 @@ interface AppContextType {
    * Resolve `true` saat server sudah menyimpan.
    */
   updateAccountAvatar: (file: File, entityId?: string) => Promise<boolean>;
-  /** Versi yang menerima data URL / path siap pakai (dipakai profil editor). */
-  updateAccountAvatarFromUrl: (avatar: string) => Promise<boolean>;
+  /** Versi yang menerima data URL / path siap pakai (dipakai crop editor). */
+  updateAccountAvatarFromUrl: (avatar: string, entityId?: string) => Promise<boolean>;
   broadcastMessages: BroadcastMessage[];
   sendBroadcastMessage: (data: { scope: 'indonesia' | 'regional'; region?: string; content: string }) => void;
   likeBroadcastMessage: (id: string) => void;
@@ -490,10 +490,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const updateAccountAvatarFromUrl = async (avatar: string): Promise<boolean> => {
+  const updateAccountAvatarFromUrl = async (avatar: string, entityId?: string): Promise<boolean> => {
     if (!currentUser) return false;
     try {
-      return await saveAccountAvatar(avatar, currentUser.entityId);
+      return await saveAccountAvatar(avatar, entityId ?? currentUser.entityId);
     } catch {
       // Entity save already succeeded; the navbar copy is best-effort.
       return false;

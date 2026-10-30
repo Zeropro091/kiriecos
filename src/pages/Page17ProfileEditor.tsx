@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { dataService } from '../services/dataService';
 import { useMediaSrc } from '../hooks/useMediaSrc';
+import { CropModal } from '../components/CropModal';
 import type { Entity } from '../types';
 import {
   Sparkles,
@@ -15,7 +16,6 @@ import {
   ExternalLink,
   Camera,
   ImageIcon,
-  Loader2
 } from 'lucide-react';
 
 export const Page17ProfileEditor: React.FC = () => {
@@ -94,7 +94,7 @@ export const Page17ProfileEditor: React.FC = () => {
   // canceled) before it rewrites the public profile.
   const [avatarDraft, setAvatarDraft] = useState<string | undefined>(undefined);
   const [bannerDraft, setBannerDraft] = useState<string | undefined>(undefined);
-  const [uploadingImage, setUploadingImage] = useState<'avatar' | 'cover' | null>(null);
+  const [cropTarget, setCropTarget] = useState<{ file: File; kind: 'avatar' | 'cover' } | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
@@ -103,7 +103,9 @@ export const Page17ProfileEditor: React.FC = () => {
   const avatarSrc = useMediaSrc(avatarValue);
   const bannerSrc = useMediaSrc(bannerValue);
 
-  const handleImagePicked = async (
+  // File dipilih dulu, lalu diatur lewat editor crop (frame sesuai rasio)
+  // sebelum disimpan sebagai draft.
+  const handleImagePicked = (
     e: React.ChangeEvent<HTMLInputElement>,
     kind: 'avatar' | 'cover'
   ) => {
@@ -118,17 +120,15 @@ export const Page17ProfileEditor: React.FC = () => {
       return;
     }
 
-    setUploadingImage(kind);
-    try {
-      const dataUrl = await prepareProfileImage(file, kind);
-      if (kind === 'avatar') setAvatarDraft(dataUrl);
-      else setBannerDraft(dataUrl);
-      showToast('Gambar siap. Tekan "Simpan Perubahan" untuk menerapkan.', 'info');
-    } catch {
-      showToast('Gagal memproses gambar. Coba berkas lain.', 'error');
-    } finally {
-      setUploadingImage(null);
-    }
+    setCropTarget({ file, kind });
+  };
+
+  const handleCropConfirm = (dataUrl: string) => {
+    if (!cropTarget) return;
+    if (cropTarget.kind === 'avatar') setAvatarDraft(dataUrl);
+    else setBannerDraft(dataUrl);
+    setCropTarget(null);
+    showToast('Gambar siap. Tekan "Simpan Perubahan" untuk menerapkan.', 'info');
   };
 
   const handleSave = () => {
@@ -299,15 +299,10 @@ export const Page17ProfileEditor: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => bannerInputRef.current?.click()}
-                    disabled={uploadingImage !== null}
                     className="px-4 py-2 rounded-xl bg-white text-kiri-green-950 text-xs font-bold flex items-center gap-1.5 shadow disabled:opacity-60"
                   >
-                    {uploadingImage === 'cover' ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <ImageIcon className="w-3.5 h-3.5" />
-                    )}
-                    <span>{uploadingImage === 'cover' ? 'Memproses…' : 'Ganti Banner'}</span>
+                    <ImageIcon className="w-3.5 h-3.5" />
+                    <span>Ganti Banner</span>
                   </button>
                   {bannerDraft && (
                     <button
@@ -338,15 +333,10 @@ export const Page17ProfileEditor: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => avatarInputRef.current?.click()}
-                  disabled={uploadingImage !== null}
                   title="Ganti foto profil"
                   className="absolute -bottom-1.5 -right-1.5 w-8 h-8 rounded-full bg-kiri-green-900 dark:bg-kiri-gold-500 text-white dark:text-kiri-dark-950 flex items-center justify-center shadow disabled:opacity-60"
                 >
-                  {uploadingImage === 'avatar' ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Camera className="w-4 h-4" />
-                  )}
+                  <Camera className="w-4 h-4" />
                 </button>
               </div>
               <div className="space-y-1.5">
@@ -355,10 +345,9 @@ export const Page17ProfileEditor: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => avatarInputRef.current?.click()}
-                    disabled={uploadingImage !== null}
                     className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-kiri-dark-600 text-[11px] font-semibold text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-kiri-dark-750 disabled:opacity-60"
                   >
-                    {uploadingImage === 'avatar' ? 'Memproses…' : 'Unggah Foto'}
+                    Unggah Foto
                   </button>
                   {avatarDraft && (
                     <button
@@ -642,6 +631,15 @@ export const Page17ProfileEditor: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {cropTarget && (
+        <CropModal
+          file={cropTarget.file}
+          kind={cropTarget.kind}
+          onCancel={() => setCropTarget(null)}
+          onConfirm={handleCropConfirm}
+        />
+      )}
     </div>
   );
 };

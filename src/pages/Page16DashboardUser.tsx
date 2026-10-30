@@ -27,9 +27,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../co
 import { Badge } from '../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { useMediaSrc } from '../hooks/useMediaSrc';
+import { CropModal } from '../components/CropModal';
 
 export const Page16DashboardUser: React.FC = () => {
-  const { currentUser, collabRequests, navigateTo, openCollabModalFor, entities, updateAccountAvatar } = useApp();
+  const { currentUser, collabRequests, navigateTo, openCollabModalFor, entities, updateAccountAvatarFromUrl, showToast } = useApp();
 
   const userCollabs = collabRequests.filter(
     (req) => req.targetId === currentUser?.entityId || req.requesterId === currentUser?.entityId
@@ -41,17 +42,29 @@ export const Page16DashboardUser: React.FC = () => {
   // Foto profil akun bisa diganti langsung dari sini, tanpa masuk Page 17.
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const accountAvatarSrc = useMediaSrc(currentUser?.avatar);
 
-  const handleAvatarPicked = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Pilih file → buka editor crop (frame 1:1) → baru simpan.
+  const handleAvatarPicked = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target;
     const file = input.files?.[0];
     input.value = '';
     if (!file) return;
-    if (!file.type.startsWith('image/')) return;
+    if (!file.type.startsWith('image/')) {
+      showToast('Pilih berkas gambar (JPG, PNG, atau WEBP).', 'warning');
+      return;
+    }
+    setCropFile(file);
+  };
+
+  const handleCroppedAvatar = async (dataUrl: string) => {
     setAvatarUploading(true);
     try {
-      await updateAccountAvatar(file, creatorEntity?.id);
+      const ok = await updateAccountAvatarFromUrl(dataUrl, creatorEntity?.id);
+      if (ok) setCropFile(null);
+    } catch {
+      showToast('Gagal menyimpan foto profil.', 'error');
     } finally {
       setAvatarUploading(false);
     }
@@ -324,6 +337,16 @@ export const Page16DashboardUser: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {cropFile && (
+        <CropModal
+          file={cropFile}
+          kind="avatar"
+          busy={avatarUploading}
+          onCancel={() => setCropFile(null)}
+          onConfirm={handleCroppedAvatar}
+        />
+      )}
     </div>
   );
 };
