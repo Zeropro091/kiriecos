@@ -36,7 +36,36 @@ export const Page09RegisterCreator: React.FC = () => {
     equipment: '',
     expectedRate: '',
     bio: '',
+    errors: {} as Record<string, string>,
   });
+
+  const requiredByStep: Record<number, string[]> = {
+    1: ['fullName', 'stageName', 'email', 'phone', 'city'],
+    2: ['niche', 'instagram', 'portfolioLink'],
+    3: ['password'],
+  };
+
+  const validateStep = (stepNum: number): boolean => {
+    const fields = requiredByStep[stepNum] ?? [];
+    const nextErrors: Record<string, string> = {};
+    for (const f of fields) {
+      const val = f === 'password' ? password : (formData as unknown as Record<string, string>)[f];
+      if (!val || !String(val).trim()) nextErrors[f] = 'Wajib diisi';
+    }
+    if (stepNum === 1 && formData.email && !/^\S+@\S+\.\S+$/.test(formData.email.trim())) {
+      nextErrors.email = 'Format email tidak valid';
+    }
+    if (stepNum === 3 && password && password.length < 8) {
+      nextErrors.password = 'Minimal 8 karakter';
+    }
+    if (stepNum === 3 && confirmPassword && password !== confirmPassword) {
+      nextErrors.confirmPassword = 'Konfirmasi tidak cocok';
+    }
+    setFormData((prev) => ({ ...prev, errors: nextErrors }));
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const fieldError = (f: string) => (formData.errors as Record<string, string>)[f];
 
   const handleChange = (field: string, val: string) => {
     setFormData((prev) => ({ ...prev, [field]: val }));
@@ -44,7 +73,16 @@ export const Page09RegisterCreator: React.FC = () => {
 
   const handleNext = async () => {
     if (step < 3) {
+      if (!validateStep(step)) {
+        setFormError('Beberapa kolom wajib belum diisi. Periksa kolom bertanda merah.');
+        return;
+      }
+      setFormError(null);
       setStep(step + 1);
+      return;
+    }
+    if (!validateStep(3)) {
+      setFormError('Beberapa kolom wajib belum diisi. Periksa kolom bertanda merah.');
       return;
     }
     if (password.length < 8) {
@@ -140,62 +178,67 @@ export const Page09RegisterCreator: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Nama Lengkap Sesuai KTP *
+                  Nama Lengkap Sesuai KTP <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.fullName}
                   onChange={(e) => handleChange('fullName', e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-kiri-dark-700 bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none focus:border-kiri-gold-500"
+                  className={`w-full px-3.5 py-2 text-xs rounded-xl border bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none ${fieldError('fullName') ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-kiri-dark-700 focus:border-kiri-gold-500'}`}
                 />
+                {fieldError('fullName') && <p className="mt-1 text-[10px] text-red-500">{fieldError('fullName')}</p>}
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Nama Panggung / Alias Kreator *
+                  Nama Panggung / Alias Kreator <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.stageName}
                   onChange={(e) => handleChange('stageName', e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-kiri-dark-700 bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none focus:border-kiri-gold-500"
+                  className={`w-full px-3.5 py-2 text-xs rounded-xl border bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none ${fieldError('stageName') ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-kiri-dark-700 focus:border-kiri-gold-500'}`}
                 />
+                {fieldError('stageName') && <p className="mt-1 text-[10px] text-red-500">{fieldError('stageName')}</p>}
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Alamat Email Aktif *
+                  Alamat Email Aktif <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleChange('email', e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-kiri-dark-700 bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none focus:border-kiri-gold-500"
+                  className={`w-full px-3.5 py-2 text-xs rounded-xl border bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none ${fieldError('email') ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-kiri-dark-700 focus:border-kiri-gold-500'}`}
                 />
+                {fieldError('email') && <p className="mt-1 text-[10px] text-red-500">{fieldError('email')}</p>}
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Nomor WhatsApp *
+                  Nomor WhatsApp <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.phone}
                   onChange={(e) => handleChange('phone', e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-kiri-dark-700 bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none focus:border-kiri-gold-500"
+                  className={`w-full px-3.5 py-2 text-xs rounded-xl border bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none ${fieldError('phone') ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-kiri-dark-700 focus:border-kiri-gold-500'}`}
                 />
+                {fieldError('phone') && <p className="mt-1 text-[10px] text-red-500">{fieldError('phone')}</p>}
               </div>
 
               <div className="sm:col-span-2">
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Domisili / Kota Basis Kreatif *
+                  Domisili / Kota Basis Kreatif <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.city}
                   onChange={(e) => handleChange('city', e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-kiri-dark-700 bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none focus:border-kiri-gold-500"
+                  className={`w-full px-3.5 py-2 text-xs rounded-xl border bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none ${fieldError('city') ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-kiri-dark-700 focus:border-kiri-gold-500'}`}
                 />
+                {fieldError('city') && <p className="mt-1 text-[10px] text-red-500">{fieldError('city')}</p>}
               </div>
 
               <div className="sm:col-span-2">
@@ -222,7 +265,7 @@ export const Page09RegisterCreator: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Niche Utama Konten *
+                  Niche Utama Konten <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -230,23 +273,24 @@ export const Page09RegisterCreator: React.FC = () => {
                   onChange={(e) => handleChange('niche', e.target.value)}
                   placeholder="Ketik niche kamu, mis. Cinematography, Food Review, Fashion..."
                   autoComplete="off"
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-kiri-dark-700 bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none focus:border-kiri-gold-500"
+                  className={`w-full px-3.5 py-2 text-xs rounded-xl border bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none ${fieldError('niche') ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-kiri-dark-700 focus:border-kiri-gold-500'}`}
                 />
-                <p className="mt-1 text-[10px] text-gray-500 dark:text-gray-400">
-                  Bebas diisi sesuai keahlian — tidak harus salah satu kategori.
-                </p>
+                {fieldError('niche')
+                  ? <p className="mt-1 text-[10px] text-red-500">{fieldError('niche')}</p>
+                  : <p className="mt-1 text-[10px] text-gray-500 dark:text-gray-400">Bebas diisi sesuai keahlian — tidak harus salah satu kategori.</p>}
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Username Instagram *
+                  Username Instagram <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.instagram}
                   onChange={(e) => handleChange('instagram', e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-kiri-dark-700 bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none"
+                  className={`w-full px-3.5 py-2 text-xs rounded-xl border bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none ${fieldError('instagram') ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-kiri-dark-700 focus:border-kiri-gold-500'}`}
                 />
+                {fieldError('instagram') && <p className="mt-1 text-[10px] text-red-500">{fieldError('instagram')}</p>}
               </div>
 
               <div>
@@ -263,14 +307,16 @@ export const Page09RegisterCreator: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Tautan Portofolio / Drive / Behance *
+                  Tautan Portofolio / Drive / Behance <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="url"
                   value={formData.portfolioLink}
                   onChange={(e) => handleChange('portfolioLink', e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-kiri-dark-700 bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none"
+                  placeholder="https://..."
+                  className={`w-full px-3.5 py-2 text-xs rounded-xl border bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none ${fieldError('portfolioLink') ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-kiri-dark-700 focus:border-kiri-gold-500'}`}
                 />
+                {fieldError('portfolioLink') && <p className="mt-1 text-[10px] text-red-500">{fieldError('portfolioLink')}</p>}
               </div>
 
               <div className="sm:col-span-2">
@@ -328,26 +374,28 @@ export const Page09RegisterCreator: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Kata Sandi Akun *
+                  Kata Sandi Akun <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Minimal 8 karakter"
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-kiri-dark-700 bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none focus:border-kiri-gold-500"
+                  className={`w-full px-3.5 py-2 text-xs rounded-xl border bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none ${fieldError('password') ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-kiri-dark-700 focus:border-kiri-gold-500'}`}
                 />
+                {fieldError('password') && <p className="mt-1 text-[10px] text-red-500">{fieldError('password')}</p>}
               </div>
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Konfirmasi Kata Sandi *
+                  Konfirmasi Kata Sandi <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-kiri-dark-700 bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none focus:border-kiri-gold-500"
+                  className={`w-full px-3.5 py-2 text-xs rounded-xl border bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none ${fieldError('confirmPassword') ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-kiri-dark-700 focus:border-kiri-gold-500'}`}
                 />
+                {fieldError('confirmPassword') && <p className="mt-1 text-[10px] text-red-500">{fieldError('confirmPassword')}</p>}
               </div>
             </div>
 
