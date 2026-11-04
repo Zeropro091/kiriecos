@@ -24,18 +24,18 @@ export const Page09RegisterCreator: React.FC = () => {
   const [createdEntityId, setCreatedEntityId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
-    fullName: 'Gede Arya Wijaya',
-    stageName: 'Arya Visuals',
-    email: 'arya.wijaya@gmail.com',
-    phone: '081298765432',
-    city: 'Denpasar, Bali',
-    niche: 'Cinematography & Travel',
-    instagram: '@aryavisuals.bali',
-    tiktok: '@aryabali.reels',
-    portfolioLink: 'https://behance.net/aryawijaya',
-    equipment: 'Sony A7S III, DJI Mavic 3 Pro, Prime Lenses',
-    expectedRate: 'Rp 4.000.000 - Rp 8.000.000 / proyek',
-    bio: 'Videografer berpengalaman 5 tahun di industri pariwisata dan culinary Bali.',
+    fullName: '',
+    stageName: '',
+    email: '',
+    phone: '',
+    city: '',
+    niche: '',
+    instagram: '',
+    tiktok: '',
+    portfolioLink: '',
+    equipment: '',
+    expectedRate: '',
+    bio: '',
   });
 
   const handleChange = (field: string, val: string) => {
@@ -224,17 +224,17 @@ export const Page09RegisterCreator: React.FC = () => {
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
                   Niche Utama Konten *
                 </label>
-                <select
+                <input
+                  type="text"
                   value={formData.niche}
                   onChange={(e) => handleChange('niche', e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-kiri-dark-700 bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none"
-                >
-                  <option value="Cinematography & Travel">Cinematography & Travel</option>
-                  <option value="Food & Culinary">Food & Culinary Review</option>
-                  <option value="Art & Culture">Art, Craft & Culture</option>
-                  <option value="Fashion & Lifestyle">Fashion & Lifestyle</option>
-                  <option value="Tech & Creative Digital">Tech & Creative Digital</option>
-                </select>
+                  placeholder="Ketik niche kamu, mis. Cinematography, Food Review, Fashion..."
+                  autoComplete="off"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-200 dark:border-kiri-dark-700 bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none focus:border-kiri-gold-500"
+                />
+                <p className="mt-1 text-[10px] text-gray-500 dark:text-gray-400">
+                  Bebas diisi sesuai keahlian — tidak harus salah satu kategori.
+                </p>
               </div>
 
               <div>
