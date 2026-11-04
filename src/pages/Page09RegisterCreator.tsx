@@ -41,7 +41,7 @@ export const Page09RegisterCreator: React.FC = () => {
 
   const requiredByStep: Record<number, string[]> = {
     1: ['fullName', 'stageName', 'email', 'phone', 'city'],
-    2: ['niche', 'instagram', 'portfolioLink'],
+    2: ['niche', 'instagram'],
     3: ['password'],
   };
 
@@ -307,13 +307,13 @@ export const Page09RegisterCreator: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Tautan Portofolio / Drive / Behance <span className="text-red-500">*</span>
+                  Tautan Portofolio / Drive / Behance
                 </label>
                 <input
                   type="url"
                   value={formData.portfolioLink}
                   onChange={(e) => handleChange('portfolioLink', e.target.value)}
-                  placeholder="https://..."
+                  placeholder="https://... (opsional)"
                   className={`w-full px-3.5 py-2 text-xs rounded-xl border bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none ${fieldError('portfolioLink') ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-kiri-dark-700 focus:border-kiri-gold-500'}`}
                 />
                 {fieldError('portfolioLink') && <p className="mt-1 text-[10px] text-red-500">{fieldError('portfolioLink')}</p>}
@@ -379,10 +379,19 @@ export const Page09RegisterCreator: React.FC = () => {
                 <input
                   type="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    if (fieldError('password')) setFormData((prev) => ({ ...prev, errors: { ...prev.errors, password: '' } }));
+                  }}
                   placeholder="Minimal 8 karakter"
+                  autoComplete="new-password"
                   className={`w-full px-3.5 py-2 text-xs rounded-xl border bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none ${fieldError('password') ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-kiri-dark-700 focus:border-kiri-gold-500'}`}
                 />
+                {password.length > 0 && password.length < 8 && (
+                  <p className="mt-1 text-[10px] text-amber-600 dark:text-amber-400">
+                    {password.length} karakter — kurang {8 - password.length} lagi
+                  </p>
+                )}
                 {fieldError('password') && <p className="mt-1 text-[10px] text-red-500">{fieldError('password')}</p>}
               </div>
               <div>
@@ -392,7 +401,12 @@ export const Page09RegisterCreator: React.FC = () => {
                 <input
                   type="password"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    if (fieldError('confirmPassword')) setFormData((prev) => ({ ...prev, errors: { ...prev.errors, confirmPassword: '' } }));
+                  }}
+                  placeholder="Ulangi kata sandi"
+                  autoComplete="new-password"
                   className={`w-full px-3.5 py-2 text-xs rounded-xl border bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none ${fieldError('confirmPassword') ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-kiri-dark-700 focus:border-kiri-gold-500'}`}
                 />
                 {fieldError('confirmPassword') && <p className="mt-1 text-[10px] text-red-500">{fieldError('confirmPassword')}</p>}
