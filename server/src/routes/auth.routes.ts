@@ -24,7 +24,11 @@ const registerSchema = z.object({
   name: z.string().min(1),
   entityType: z.enum(['creator', 'community', 'business', 'media', 'strategic']).optional(),
   entityId: z.string().uuid().optional(),
-  phone: z.string().min(8).optional(),
+  phone: z
+    .string()
+    .transform((v) => v.replace(/[\s\-().]/g, ''))
+    .refine((v) => v === '' || v.length >= 8, 'Nomor WhatsApp tidak valid — minimal 8 digit.')
+    .optional(),
 });
 
 authRouter.post(
@@ -32,7 +36,13 @@ authRouter.post(
   asyncHandler(async (req, res) => {
     const parsed = registerSchema.safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ error: parsed.error.issues[0]?.message ?? 'Data tidak valid.' });
+      // Tampilkan pesan error yang benar-benar menyebut field yang salah,
+      // bukan selalu issues[0] (dulu phone error ikut memunculkan pesan password).
+      const phoneIssue = parsed.error.issues.find((i) => i.path.includes('phone'));
+      const pwIssue = parsed.error.issues.find((i) => i.path.includes('password'));
+      const emailIssue = parsed.error.issues.find((i) => i.path.includes('email'));
+      const first = phoneIssue ?? pwIssue ?? emailIssue ?? parsed.error.issues[0];
+      res.status(400).json({ error: first?.message ?? 'Data tidak valid.' });
       return;
     }
     const { email, password, name, entityType, entityId, phone } = parsed.data;
@@ -43,7 +53,7 @@ authRouter.post(
       return;
     }
 
-    if (phone) {
+    if (phone && phone !== '') {
       const dup = await query('SELECT 1 FROM profiles WHERE phone = $1 LIMIT 1', [normalizePhone(phone)]);
       if (dup.rowCount) {
         res.status(409).json({ error: 'Nomor WhatsApp ini sudah terdaftar.' });

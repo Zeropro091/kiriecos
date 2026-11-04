@@ -72,7 +72,7 @@ export async function createProfile(input: {
       input.role ?? 'creator',
       input.entityType ?? null,
       input.entityId ?? null,
-      input.phone ? normalizePhone(input.phone) : null,
+      input.phone && input.phone !== '' ? normalizePhone(input.phone) : null,
       input.avatar ?? '',
       input.membershipTier ?? 'basic',
       input.isVerified ?? false,

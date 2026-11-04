@@ -55,6 +55,12 @@ export const Page09RegisterCreator: React.FC = () => {
     if (stepNum === 1 && formData.email && !/^\S+@\S+\.\S+$/.test(formData.email.trim())) {
       nextErrors.email = 'Format email tidak valid';
     }
+    if (stepNum === 1 && formData.phone) {
+      const digits = formData.phone.replace(/\D/g, '');
+      if (digits.length < 8) {
+        nextErrors.phone = `Nomor WhatsApp terlalu pendek (${digits.length}/8 digit)`;
+      }
+    }
     if (stepNum === 3 && password && password.length < 8) {
       nextErrors.password = 'Minimal 8 karakter';
     }
@@ -222,8 +228,11 @@ export const Page09RegisterCreator: React.FC = () => {
                 <input
                   type="text"
                   value={formData.phone}
-                  onChange={(e) => handleChange('phone', e.target.value)}
-                  className={`w-full px-3.5 py-2 text-xs rounded-xl border bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none ${fieldError('phone') ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-kiri-dark-700 focus:border-kiri-gold-500'}`}
+                  onChange={(e) => {
+                    handleChange('phone', e.target.value);
+                    if (fieldError('phone')) setFormData((prev) => ({ ...prev, errors: { ...prev.errors, phone: '' } }));
+                  }}
+                  inputMode="tel"                  className={`w-full px-3.5 py-2 text-xs rounded-xl border bg-gray-50 dark:bg-kiri-dark-850 text-gray-900 dark:text-white focus:outline-none ${fieldError('phone') ? 'border-red-400 dark:border-red-500' : 'border-gray-200 dark:border-kiri-dark-700 focus:border-kiri-gold-500'}`}
                 />
                 {fieldError('phone') && <p className="mt-1 text-[10px] text-red-500">{fieldError('phone')}</p>}
               </div>
